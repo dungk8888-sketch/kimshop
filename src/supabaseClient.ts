@@ -21,7 +21,13 @@ export const LOCAL_EMAIL_DOMAIN = 'kimshop.local';
 
 export const usernameToEmail = (usernameOrEmail: string) => {
   const v = (usernameOrEmail || '').trim().toLowerCase();
-  return v.includes('@') ? v : `${v}@${LOCAL_EMAIL_DOMAIN}`;
+  if (v.includes('@')) return v;
+
+  // Tài khoản admin hợp lệ hiện tại được tạo bằng email nội bộ riêng.
+  // Chỉ ánh xạ alias đăng nhập, không chứa mật khẩu hay secret.
+  if (v === 'admin') return `admin.auth@${LOCAL_EMAIL_DOMAIN}`;
+
+  return `${v}@${LOCAL_EMAIL_DOMAIN}`;
 };
 
 export const isValidUsername = (username: string) => /^[a-z0-9._-]{3,32}$/.test(username);
