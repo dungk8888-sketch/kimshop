@@ -1,0 +1,173 @@
+import React, { useState, useRef, useEffect } from 'react';
+import { supabase, usernameToEmail, isValidUsername } from './supabaseClient';
+import {
+  ShoppingCart, Search, Heart, Star, Bell, HelpCircle, MessageCircle, Store,
+  Plus, Minus, Trash2, Pencil, Package, BarChart3, LayoutDashboard, ListOrdered,
+  AlertTriangle, X, Truck, ChevronLeft, Check, LogOut, ImagePlus, Wallet,
+  CreditCard, Sparkles, RotateCcw, Settings, TrendingUp, Users, ChevronDown, Copy, Zap,
+  User, LogIn, UserPlus, MapPin, Eye, Lock, Mail, ShieldCheck, Loader2,
+} from 'lucide-react';
+import {
+  BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid,
+} from 'recharts';
+
+/* ============================== DỮ LIỆU MẪU ============================== */
+
+const SELLER_SHOP = 'Kim Shop Mobile';
+const SELLER_USERNAME = 'kimshopmobile';
+const SHIPPING_FEE = 20000;
+const FREE_SHIP_THRESHOLD = 300000;
+const ORANGE = '#EE4D2D';
+const DEFAULT_SHOP_ID = null;
+
+const dbProductToUi = (p:any, images:any[]=[], variants:any[]=[]) => ({
+  ...p,
+  sellerId: p.seller_id,
+  shopId: p.shop_id,
+  originalPrice: Number(p.original_price ?? p.price ?? 0),
+  flashSale: Boolean(p.flash_sale),
+  flashPrice: p.flash_price == null ? null : Number(p.flash_price),
+  image: images.find(x=>x.sort_order===0)?.public_url || images[0]?.public_url || p.image_url || '',
+  images: [...images].sort((a,b)=>a.sort_order-b.sort_order).map(x=>x.public_url).filter(Boolean),
+  variants: [...variants].sort((a,b)=>a.sort_order-b.sort_order).map(v=>v.name).filter(Boolean),
+  reviews: Array.isArray(p.reviews) ? p.reviews : [],
+});
+const uiProductToDb = (p:any, userId:string|null) => ({
+  id: p.id?.length===36 ? p.id : undefined,
+  seller_id: userId,
+  shop_id: p.shopId || null,
+  name: p.name,
+  description: p.description || '',
+  category: p.category || '',
+  price: Number(p.price || 0),
+  original_price: Number(p.originalPrice ?? p.original_price ?? p.price ?? 0),
+  stock: Number(p.stock || 0),
+  sold: Number(p.sold || 0),
+  rating: Number(p.rating || 0),
+  status: p.status === 'deleted' ? 'deleted' : 'active',
+  flash_sale: Boolean(p.flashSale ?? p.flash_sale),
+  flash_price: p.flashPrice ?? p.flash_price ?? null,
+});
+// QUAN TRỌNG: products/shops/orders/seller_applications LUÔN được nạp trực
+// tiếp từ các bảng quan hệ thật (được bảo vệ bởi RLS — xem
+// supabase/migrations/0002_admin_seller_permissions.sql), KHÔNG bao giờ tin
+// vào blob JSON dùng chung `app_state.key='global:catalog'` nữa. Trước đây
+// hàm này sẽ trả thẳng snapshot đó nếu có, nghĩa là BẤT KỲ ai gọi thẳng
+// Supabase (kể cả bằng anon key, bỏ qua toàn bộ UI) đều có thể ghi đè dữ liệu
+// mà TẤT CẢ người dùng khác nhìn thấy — bao gồm cả quyền admin/seller. Đọc từ
+// bảng thật + RLS theo từng dòng mới là ranh giới bảo mật thật sự.
+const loadRemoteData = async () => {
+  const [ps, ss, os, apps] = await Promise.all([
+    supabase.from('products').select('*').neq('status','deleted').order('created_at',{ascending:false}),
+    supabase.from('shops').select('*').order('created_at',{ascending:false}),
+    supabase.from('orders').select('*').order('created_at',{ascending:false}),
+    supabase.from('seller_applications').select('*').order('created_at',{ascending:false}),
+  ]);
+  if(ps.error) throw ps.error; if(ss.error) throw ss.error; if(os.error) throw os.error; if(apps.error) throw apps.error;
+  const ids=(ps.data||[]).map((p:any)=>p.id);
+  const orderIds=(os.data||[]).map((o:any)=>o.id);
+  const [imgs, vars, orderItems] = await Promise.all([
+    ids.length ? supabase.from('product_images').select('*').in('product_id',ids) : Promise.resolve({data:[],error:null} as any),
+    ids.length ? supabase.from('product_variants').select('*').in('product_id',ids) : Promise.resolve({data:[],error:null} as any),
+    // QUAN TRỌNG: order_items từng KHÔNG được nạp ở đây — mọi nơi trong UI
+    // (Đơn Mua, Quản Lý Đơn Hàng, Trả Hàng, Chi Tiết Đơn) đều đọc `order.items`,
+    // nên nếu thiếu bước này, các trang đó vỡ ngay khi render (o.items.map
+    // trên undefined). order_items là bảng riêng (xem 0005_orders_checkout.sql),
+    // phải join thủ công theo order_id ở đây.
+    orderIds.length ? supabase.from('order_items').select('*').in('order_id',orderIds) : Promise.resolve({data:[],error:null} as any),
+  ]);
+  const shops=(ss.data||[]).map((s:any)=>({id:s.id,name:s.name,ownerId:s.owner_id,status:s.status,logo:s.logo_url,description:s.description}));
+  const shopById=(id:string)=>shops.find((s:any)=>s.id===id);
+  const products=(ps.data||[]).map((p:any)=>{
+    const ui=dbProductToUi(p,(imgs.data||[]).filter((x:any)=>x.product_id===p.id),(vars.data||[]).filter((x:any)=>x.product_id===p.id));
+    return {...ui, shopId:p.shop_id, shopName:shopById(p.shop_id)?.name || SELLER_SHOP};
+  });
+  // order_items -> shape mà UI dùng khắp nơi: { productId, name, image, variant, qty, price, originalPrice }
+  const itemsByOrder=(orderItems.data||[]).reduce((acc:any,it:any)=>{
+    (acc[it.order_id] ||= []).push({
+      productId: it.product_id, name: it.product_name, image: it.product_image || it.product_image_url || '',
+      variant: it.variant || it.variant_name || '', qty: Number(it.qty ?? it.quantity ?? 0), price: Number(it.unit_price||0),
+      originalPrice: Number(it.original_unit_price ?? it.unit_price ?? 0),
+    });
+    return acc;
+  },{});
+  const orders=(os.data||[]).map((o:any)=>({
+    ...o, orderStatus:o.status, buyerId:o.buyer_id, customerUserId:o.buyer_id, shopId:o.shop_id,
+    shopName:shopById(o.shop_id)?.name || o.shop_name || o.shop_id, totalAmount:Number(o.total_amount||0), total:Number(o.total_amount||0),
+    createdAt:o.created_at, customerName:o.customer_name || o.recipient_name || '', customerPhone:o.customer_phone || o.recipient_phone || '', customerAddress:o.customer_address || o.shipping_address || '',
+    paymentMethod:o.payment_method, pendingPickup:o.pending_pickup, cancelReason:o.cancel_reason, returnReason:o.return_reason,
+    refundResolved:o.refund_resolved, reviewDeadline:o.review_deadline, isPreferred:o.is_preferred,
+    items: itemsByOrder[o.id] || [],
+  }));
+  const sellerApplications=(apps.data||[]).map((a:any)=>({
+    id:a.id, userId:a.user_id, username:a.username, shopName:a.shop_name, phone:a.phone,
+    address:a.address, category:a.category, status:a.status, shopId:a.shop_id, createdAt:a.created_at,
+  }));
+  return {products,shops,orders,sellerApplications};
+};
+
+
+const CATEGORIES = ['Tất cả', 'Phụ Kiện Điện Thoại', 'Điện Máy', 'Gia Dụng', 'Thời Trang Nam', 'Mẹ & Bé'];
+
+const VOUCHERS = {
+  FREESHIP: { type: 'shipping', label: 'Miễn phí vận chuyển' },
+  GIAM10: { type: 'percent', value: 10, label: 'Giảm 10%, tối đa 50K' },
+  GIAM20K: { type: 'fixed', value: 20000, label: 'Giảm trực tiếp 20.000đ' },
+};
+
+/* ============================== TÀI KHOẢN / PHÂN QUYỀN ============================== */
+
+const REVENUE_TREND = [
+  { day: 'T2', revenue: 890000 }, { day: 'T3', revenue: 1240000 }, { day: 'T4', revenue: 760000 },
+  { day: 'T5', revenue: 1580000 }, { day: 'T6', revenue: 2010000 }, { day: 'T7', revenue: 1750000 },
+  { day: 'CN', revenue: 2360000 },
+];
+
+/* ============================== HÀM TIỆN ÍCH ============================== */
+
+const formatVND = (n) => '₫' + Math.round(n).toLocaleString('vi-VN');
+const formatSold = (n) => (n >= 1000 ? (n / 1000).toFixed(1).replace('.0', '') + 'k' : String(n));
+const cartKey = (productId, variant) => `${productId}__${variant}`;
+
+/* ---------- Giỏ hàng / Yêu thích / Đã xem — lưu cục bộ cho KHÁCH (chưa đăng nhập) ---------- */
+// Chỉ dùng cho khách; khi đã đăng nhập, Supabase (cart_items/wishlist_items/
+// viewed_products theo auth.uid()) là nguồn sự thật duy nhất — KHÔNG dùng
+// localStorage hay app_state để đọc/ghi 3 dữ liệu này nữa.
+const GUEST_CART_LS_KEY = 'kimshop_guest_cart_v1';
+const GUEST_WISHLIST_LS_KEY = 'kimshop_guest_wishlist_v1';
+const GUEST_VIEWED_LS_KEY = 'kimshop_guest_viewed_v1';
+
+const readLocalJSON = (key, fallback) => {
+  if (typeof window === 'undefined') return fallback;
+  try {
+    const raw = window.localStorage.getItem(key);
+    return raw ? JSON.parse(raw) : fallback;
+  } catch {
+    return fallback;
+  }
+};
+
+const writeLocalJSON = (key, value) => {
+  if (typeof window === 'undefined') return;
+  try {
+    window.localStorage.setItem(key, JSON.stringify(value));
+  } catch {
+    // localStorage không khả dụng (Safari riêng tư đầy dung lượng, v.v.) — bỏ qua.
+  }
+};
+
+const clearGuestStorage = () => {
+  writeLocalJSON(GUEST_CART_LS_KEY, []);
+  writeLocalJSON(GUEST_WISHLIST_LS_KEY, []);
+  writeLocalJSON(GUEST_VIEWED_LS_KEY, []);
+};
+
+// Chuẩn hóa 1 dòng cart_items từ Supabase về đúng shape mà App dùng khắp nơi
+// ({ key, productId, variant, qty }), để cartItems/groupedCart... hoạt động
+// giống hệt khi cart tới từ localStorage (khách) hay từ Supabase (đã đăng nhập).
+const rowToCartItem = (row: any) => ({
+  key: cartKey(row.product_id, row.variant || ''),
+  productId: row.product_id,
+  variant: row.variant || '',
+  qty: row.qty,
+});
