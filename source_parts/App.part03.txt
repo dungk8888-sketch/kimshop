@@ -1,0 +1,174 @@
+  // Chi tiết sản phẩm
+  const [selectedProductId, setSelectedProductId] = useState(null);
+  const [selectedVariant, setSelectedVariant] = useState('');
+  const [selectedQty, setSelectedQty] = useState(1);
+
+  // Giỏ hàng
+  const [isCartHoverOpen, setIsCartHoverOpen] = useState(false);
+  const [selectedCartIds, setSelectedCartIds] = useState([]);
+  const [cartBump, setCartBump] = useState(false);
+  const cartIconRef = useRef(null);
+  const productImgRef = useRef(null);
+
+  // Mua Ngay (bỏ qua giỏ hàng, đi thẳng tới Thanh Toán)
+  const [buyNowItem, setBuyNowItem] = useState(null); // { productId, variant, qty }
+
+  // Đơn mua (phía người mua)
+  const [purchaseTab, setPurchaseTab] = useState('TatCa');
+  const [purchaseSearch, setPurchaseSearch] = useState('');
+  const [reviewOrderId, setReviewOrderId] = useState(null);
+  const [reviewStars, setReviewStars] = useState(5);
+  const [reviewComment, setReviewComment] = useState('');
+
+  // Thanh toán
+  const [checkoutInfo, setCheckoutInfo] = useState({ name: '', phone: '', address: '', payment: 'cod', note: '', voucher: '' });
+  const [placingOrder, setPlacingOrder] = useState(false);
+  const [voucherMsg, setVoucherMsg] = useState('');
+
+  // Người bán - đơn hàng
+  const [sellerOrderTab, setSellerOrderTab] = useState('TatCa');
+  const [sellerOrderSearchField, setSellerOrderSearchField] = useState('id');
+  const [sellerOrderSearch, setSellerOrderSearch] = useState('');
+
+  // Người bán - Giao Hàng Loạt
+  const [pickupBatches, setPickupBatches] = useState([]);
+  const [bulkSelectedIds, setBulkSelectedIds] = useState([]);
+  const [bulkCarrierTab, setBulkCarrierTab] = useState('SPX Express');
+  const [bulkOrderTypeTab, setBulkOrderTypeTab] = useState('thuong'); // thuong | hoatoc
+  const [pickupDateChoice, setPickupDateChoice] = useState('');
+  const dataReadyRef = useRef(false);
+
+  // Người bán - Bàn Giao Đơn Hàng
+  const [handoverMethodTab, setHandoverMethodTab] = useState('pickup'); // pickup | dropoff
+  const [handoverStatusTab, setHandoverStatusTab] = useState('cho'); // cho | da
+
+  // Người bán - Trả hàng/Hoàn tiền/Hủy
+  const [returnsTab, setReturnsTab] = useState('TatCa'); // TatCa | TraHang | DonHuy
+  const [returnsSearch, setReturnsSearch] = useState('');
+
+  // Người bán - chi tiết đơn hàng
+  const [viewingOrderId, setViewingOrderId] = useState(null);
+  const [orderDetailBackTo, setOrderDetailBackTo] = useState('orders');
+  const [orderNotes, setOrderNotes] = useState({});
+  const [noteDraft, setNoteDraft] = useState('');
+
+  // Người bán - quản lý sản phẩm (trang Thêm/Sửa)
+  const [editingProduct, setEditingProduct] = useState(null);
+  const [showAdvancedFields, setShowAdvancedFields] = useState(false);
+  const fileInputRef = useRef(null);
+
+  // Thông báo
+  const [toast, setToast] = useState('');
+  const showToast = (msg) => {
+    setToast(msg);
+    setTimeout(() => setToast(''), 2600);
+  };
+
+  /* ---------- Tài khoản / phân quyền ---------- */
+  // Dữ liệu mới nhất của người dùng đang đăng nhập (currentUser chỉ giữ id/tham chiếu ban đầu)
+  const myUser = currentUser ? (users.find((u) => u.id === currentUser.id) || currentUser) : null;
+  const myShop = currentUser ? shops.find((s) => s.ownerId === currentUser.id) : null;
+  // Admin quản lý TẤT CẢ shop trong hệ thống; seller chỉ quản lý shop của chính mình
+  const managedShopIds = myUser?.role === 'admin' ? shops.map((s) => s.id) : (myShop ? [myShop.id] : []);
+  const myPendingApplication = currentUser ? sellerApplications.find((a) => a.userId === currentUser.id && a.status === 'pending') : null;
+
+  useEffect(() => {
+    setProfileDraft({ name: myUser?.name || '', phone: myUser?.phone || '' });
+  }, [currentUser?.id]);
+
+  // Lưu giỏ hàng/yêu thích/đã xem của KHÁCH vào localStorage (khi đã đăng
+  // nhập, cart/wishlist/viewedProducts đến từ Supabase — không ghi localStorage
+  // nữa để tránh dữ liệu khách cũ "rò" sang phiên đăng nhập kế tiếp).
+  useEffect(() => {
+    if (currentUser) return;
+    writeLocalJSON(GUEST_CART_LS_KEY, cart);
+  }, [cart, currentUser]);
+
+  useEffect(() => {
+    if (currentUser) return;
+    writeLocalJSON(GUEST_WISHLIST_LS_KEY, wishlist);
+  }, [wishlist, currentUser]);
+
+  useEffect(() => {
+    if (currentUser) return;
+    writeLocalJSON(GUEST_VIEWED_LS_KEY, viewedProducts);
+  }, [viewedProducts, currentUser]);
+
+  useEffect(() => {
+    // Nếu view đang ở Kênh Người Bán mà người dùng không còn quyền (đăng xuất, bị đổi vai trò...) thì đưa về trang mua hàng
+    if (view === 'seller' && !(myUser && (myUser.role === 'admin' || myUser.role === 'seller'))) {
+      setView('buyer');
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [view, myUser?.role]);
+
+  // Nạp hồ sơ + giỏ hàng/yêu thích/đã xem của user hiện tại từ Supabase.
+  // Dùng chung cho: khởi động app (restore session), đăng nhập, refresh token,
+  // và mọi thay đổi trạng thái Auth khác — một nguồn sự thật duy nhất, tránh
+  // các luồng doLogin/doRegister/F5 tự set state theo kiểu khác nhau dễ lệch.
+  const loadUserSession = async (session: any) => {
+    if (!session?.user) {
+      // Đăng xuất / hết phiên: quay lại đọc giỏ hàng/yêu thích/đã xem của
+      // KHÁCH từ localStorage (không phải mảng rỗng) — khớp đúng thiết kế
+      // đã thống nhất ở CHANGELOG-CART.
+      setCurrentUser(null); setUsers([]);
+      setCart(readLocalJSON(GUEST_CART_LS_KEY, []));
+      setWishlist(readLocalJSON(GUEST_WISHLIST_LS_KEY, []));
+      setViewedProducts(readLocalJSON(GUEST_VIEWED_LS_KEY, []));
+      setSelectedCartIds([]);
+      return;
+    }
+    const { data: profile, error } = await supabase.from('profiles').select('*').eq('id', session.user.id).single();
+    if (error || !profile) { console.error('Không tải được hồ sơ tài khoản', error); return; }
+    const u = { ...profile, id: profile.id, username: profile.username, name: profile.full_name, phone: profile.phone, role: profile.role };
+    setUsers([u]); setCurrentUser(u);
+    const [{ data: cs }, { data: ws }, { data: vs }] = await Promise.all([
+      supabase.from('cart_items').select('*').eq('user_id', profile.id).order('sort_order'),
+      supabase.from('wishlist_items').select('*').eq('user_id', profile.id).order('sort_order'),
+      supabase.from('viewed_products').select('*').eq('user_id', profile.id).order('viewed_at', { ascending: false }),
+    ]);
+    let dbCart = (cs || []).map(rowToCartItem);
+    let dbWishlistIds = (ws || []).map((x: any) => x.product_id);
+    let dbViewedIds = (vs || []).map((x: any) => x.product_id);
+
+    // Nếu vẫn còn dữ liệu KHÁCH trong localStorage (thêm trước khi đăng
+    // nhập), gộp vào dữ liệu thật vừa tải từ Supabase rồi ghi lại lên DB —
+    // đúng hành vi đã mô tả ở CHANGELOG-CART (trước đây bị mất khi merge).
+    const guestCart = readLocalJSON(GUEST_CART_LS_KEY, []);
+    const guestWishlist = readLocalJSON(GUEST_WISHLIST_LS_KEY, []);
+    const guestViewed = readLocalJSON(GUEST_VIEWED_LS_KEY, []);
+    if (guestCart.length || guestWishlist.length || guestViewed.length) {
+      guestCart.forEach((gc: any) => {
+        const idx = dbCart.findIndex((c: any) => c.productId === gc.productId && c.variant === gc.variant);
+        const mergedQty = idx >= 0 ? dbCart[idx].qty + gc.qty : gc.qty;
+        if (idx >= 0) dbCart[idx] = { ...dbCart[idx], qty: mergedQty };
+        else dbCart.push(gc);
+        upsertCartItemDb(profile.id, gc.productId, gc.variant, mergedQty);
+      });
+      const newWishlistIds = guestWishlist.filter((id: string) => !dbWishlistIds.includes(id));
+      dbWishlistIds = [...new Set([...dbWishlistIds, ...guestWishlist])];
+      newWishlistIds.forEach((id: string) => addWishlistItemDb(profile.id, id));
+      dbViewedIds = [...new Set([...guestViewed, ...dbViewedIds])].slice(0, 20);
+      guestViewed.forEach((id: string) => touchViewedProductDb(profile.id, id));
+      clearGuestStorage();
+    }
+
+    setCart(dbCart); setWishlist(dbWishlistIds); setViewedProducts(dbViewedIds);
+    setSelectedCartIds(dbCart.map((c: any) => c.key));
+  };
+
+  useEffect(() => {
+    let cancelled=false;
+    (async()=>{ try { const d=await loadRemoteData(); if(cancelled)return; setProducts(d.products); setShops(d.shops); setOrders(d.orders); setSellerApplications(d.sellerApplications); dataReadyRef.current=true; } catch(e){ console.error(e); } })();
+
+    // supabase-js v2 phát sự kiện INITIAL_SESSION ngay khi subscribe với session
+    // hiện có (đã được autoRefreshToken/persistSession khôi phục từ localStorage
+    // nếu còn hiệu lực), nên chỉ cần một listener duy nhất là đủ để: khôi phục
+    // phiên đăng nhập lúc khởi động, xử lý đăng nhập/đăng xuất, và tự cập nhật
+    // khi access token được refresh ngầm.
+    const { data: authListener } = supabase.auth.onAuthStateChange((_event, session) => {
+      loadUserSession(session);
+    });
+
+    const refreshCatalog=()=>loadRemoteData().then(d=>{if(!cancelled){setProducts(d.products);setShops(d.shops);setOrders(d.orders);setSellerApplications(d.sellerApplications)}});
+    const ch=supabase.channel('kimshop-live')
