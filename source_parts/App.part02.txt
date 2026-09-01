@@ -1,0 +1,206 @@
+/* ---------- Đồng bộ giỏ hàng/yêu thích/đã xem lên Supabase (chỉ khi đã đăng nhập) ---------- */
+const upsertCartItemDb = async (userId: string, productId: string, variant: string, qty: number) => {
+  const { error } = await supabase
+    .from('cart_items')
+    .upsert({ user_id: userId, product_id: productId, variant: variant || '', qty }, { onConflict: 'user_id,product_id,variant' });
+  if (error) console.error('Đồng bộ giỏ hàng thất bại', error);
+};
+
+const deleteCartItemDb = async (userId: string, productId: string, variant: string) => {
+  const { error } = await supabase
+    .from('cart_items')
+    .delete()
+    .eq('user_id', userId).eq('product_id', productId).eq('variant', variant || '');
+  if (error) console.error('Xóa giỏ hàng (DB) thất bại', error);
+};
+
+const addWishlistItemDb = async (userId: string, productId: string) => {
+  const { error } = await supabase
+    .from('wishlist_items')
+    .upsert({ user_id: userId, product_id: productId }, { onConflict: 'user_id,product_id' });
+  if (error) console.error('Đồng bộ yêu thích thất bại', error);
+};
+
+const removeWishlistItemDb = async (userId: string, productId: string) => {
+  const { error } = await supabase
+    .from('wishlist_items')
+    .delete()
+    .eq('user_id', userId).eq('product_id', productId);
+  if (error) console.error('Xóa yêu thích (DB) thất bại', error);
+};
+
+const touchViewedProductDb = async (userId: string, productId: string) => {
+  const { error } = await supabase
+    .from('viewed_products')
+    .upsert({ user_id: userId, product_id: productId, viewed_at: new Date().toISOString() }, { onConflict: 'user_id,product_id' });
+  if (error) { console.error('Đồng bộ sản phẩm đã xem thất bại', error); return; }
+  // Giữ tối đa 20 sản phẩm đã xem gần nhất, dọn bớt các dòng cũ hơn.
+  const { data: rows } = await supabase
+    .from('viewed_products').select('id').eq('user_id', userId).order('viewed_at', { ascending: false });
+  const staleIds = (rows || []).slice(20).map((r: any) => r.id);
+  if (staleIds.length) await supabase.from('viewed_products').delete().in('id', staleIds);
+};
+const todayStr = () => {
+  const d = new Date();
+  return `${String(d.getDate()).padStart(2, '0')}-${String(d.getMonth() + 1).padStart(2, '0')}-${d.getFullYear()}`;
+};
+const nowTimeStr = () => {
+  const d = new Date();
+  return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')} ${todayStr()}`;
+};
+const addDays = (days) => {
+  const d = new Date();
+  d.setDate(d.getDate() + days);
+  return `${String(d.getDate()).padStart(2, '0')}-${String(d.getMonth() + 1).padStart(2, '0')}-${d.getFullYear()}`;
+};
+
+const STATUS_STYLES = {
+  'Chờ thanh toán': 'bg-amber-50 text-amber-600',
+  'Vận chuyển': 'bg-blue-50 text-blue-600',
+  'Chờ giao hàng': 'bg-orange-50 text-[#EE4D2D]',
+  'Hoàn thành': 'bg-emerald-50 text-emerald-600',
+  'Đã hủy': 'bg-gray-100 text-gray-500',
+  'Trả hàng/Hoàn tiền': 'bg-rose-50 text-rose-600',
+};
+
+const ORDER_STATUS_OPTIONS = ['Chờ thanh toán', 'Vận chuyển', 'Chờ giao hàng', 'Hoàn thành', 'Đã hủy', 'Trả hàng/Hoàn tiền'];
+
+const CARRIERS = ['SPX Express', 'Giao Hàng Nhanh', 'Ninja Van', 'VNPost Nhanh', 'J&T Express', 'GHN - Hàng Cồng Kềnh'];
+
+// Nhãn tab cho Kênh Người Bán, ánh xạ sang trạng thái đơn hàng nội bộ
+const SELLER_ORDER_TABS = [
+  { key: 'TatCa', label: 'Tất cả', status: null },
+  { key: 'ChoXacNhan', label: 'Chờ xác nhận', status: 'Chờ thanh toán' },
+  { key: 'ChoLayHang', label: 'Chờ lấy hàng', status: 'Chờ giao hàng' },
+  { key: 'DangGiao', label: 'Đang giao', status: 'Vận chuyển' },
+  { key: 'DaGiao', label: 'Đã giao', status: 'Hoàn thành' },
+  { key: 'DonHuy', label: 'Đơn Hủy', status: 'Đã hủy' },
+  { key: 'TraHang', label: 'Trả hàng/Hoàn tiền', status: 'Trả hàng/Hoàn tiền' },
+];
+
+// Cấu trúc menu Kênh Người Bán
+const SELLER_MENU = [
+  {
+    group: 'Quản Lý Đơn Hàng',
+    items: [
+      { key: 'orders', label: 'Tất cả' },
+      { key: 'bulkShipping', label: 'Giao Hàng Loạt', icon: Truck },
+      { key: 'handover', label: 'Bàn Giao Đơn Hàng', icon: Truck },
+      { key: 'returns', label: 'Đơn Trả hàng/Hoàn tiền hoặc Đơn hủy', icon: RotateCcw },
+      { key: 'placeholder', label: 'Cài Đặt Vận Chuyển', icon: Settings },
+    ],
+  },
+  {
+    group: 'Quản Lý Sản Phẩm',
+    items: [
+      { key: 'products', label: 'Tất Cả Sản Phẩm' },
+      { key: 'addProduct', label: 'Thêm Sản Phẩm' },
+      { key: 'placeholder', label: 'Sản phẩm tiêu chuẩn', icon: Package },
+      { key: 'placeholder', label: 'Công cụ Tối ưu AI', icon: Sparkles },
+    ],
+  },
+  {
+    group: 'Kênh Marketing',
+    items: [
+      { key: 'shopDecor', label: 'Trang Trí Shop', icon: Sparkles },
+      { key: 'flashSaleAdmin', label: 'Flash Sale Của Shop', icon: Zap },
+    ],
+  },
+  {
+    group: 'Chăm Sóc Khách Hàng',
+    items: [
+      { key: 'placeholder', label: 'Quản Lý Chat', icon: MessageCircle },
+      { key: 'reviews', label: 'Quản Lý Đánh Giá' },
+    ],
+  },
+  {
+    group: 'Tài Chính',
+    items: [
+      { key: 'finance', label: 'Doanh Thu' },
+      { key: 'placeholder', label: 'Số dư TK Shopee Mini', icon: Wallet },
+      { key: 'placeholder', label: 'Tài Khoản Ngân Hàng', icon: CreditCard },
+    ],
+  },
+  {
+    group: 'Dữ Liệu',
+    items: [
+      { key: 'analytics', label: 'Phân Tích Bán Hàng' },
+      { key: 'placeholder', label: 'Hiệu Quả Hoạt Động', icon: TrendingUp },
+    ],
+  },
+];
+
+function StarRating({ value, size = 12, showValue = false }) {
+  const stars = [1, 2, 3, 4, 5];
+  return (
+    <span className="inline-flex items-center gap-0.5">
+      {stars.map((s) => (
+        <Star
+          key={s}
+          size={size}
+          className={s <= Math.round(value) ? 'fill-[#EE4D2D] text-[#EE4D2D]' : 'fill-gray-200 text-gray-200'}
+        />
+      ))}
+      {showValue && <span className="ml-1 text-gray-500">{value.toFixed(1)}</span>}
+    </span>
+  );
+}
+
+function EmptyState({ icon, text }) {
+  return (
+    <div className="bg-white p-12 text-center text-gray-400 space-y-2 rounded-sm">
+      <div className="flex justify-center">{icon}</div>
+      <div>{text}</div>
+    </div>
+  );
+}
+
+/* ============================== APP CHÍNH ============================== */
+
+export default function App() {
+  // Dữ liệu lõi
+  const [products, setProducts] = useState<any[]>([]);
+  const [orders, setOrders] = useState<any[]>([]);
+  // Khởi tạo từ localStorage cho KHÁCH (chưa đăng nhập) để F5 không mất giỏ
+  // hàng/yêu thích/đã xem. Nếu có phiên đăng nhập, loadUserSession() sẽ nạp
+  // đè lại từ Supabase ngay sau khi mount (xem useEffect bên dưới).
+  const [cart, setCart] = useState<any[]>(() => readLocalJSON(GUEST_CART_LS_KEY, []));
+  const [wishlist, setWishlist] = useState<any[]>(() => readLocalJSON(GUEST_WISHLIST_LS_KEY, []));
+  const [viewedProducts, setViewedProducts] = useState<any[]>(() => readLocalJSON(GUEST_VIEWED_LS_KEY, []));
+
+  // Tài khoản / phân quyền
+  const [users, setUsers] = useState<any[]>([]);
+  const [currentUser, setCurrentUser] = useState(null); // null = khách (guest)
+  const [shops, setShops] = useState<any[]>([]);
+  const [sellerApplications, setSellerApplications] = useState<any[]>([]);
+  const [allUsers, setAllUsers] = useState<any[]>([]); // chỉ Admin nạp danh sách này (trang Quản Lý Người Dùng)
+  const [guestOrderIds, setGuestOrderIds] = useState([]); // đơn hàng đặt khi chưa đăng nhập, chỉ lưu trong phiên hiện tại
+  const [authModal, setAuthModal] = useState(null); // null | 'login' | 'register' | 'apply'
+  const [authForm, setAuthForm] = useState({ username: '', password: '', name: '', phone: '' });
+  const [applyForm, setApplyForm] = useState({ shopName: '', phone: '', address: '', category: CATEGORIES[1] });
+  const [profileDraft, setProfileDraft] = useState({ name: '', phone: '' });
+  const [addressDraft, setAddressDraft] = useState('');
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const [confirmDialog, setConfirmDialog] = useState(null); // { title, message, confirmLabel, danger, onConfirm }
+
+  // Điều hướng
+  const [view, setView] = useState('buyer'); // buyer | seller
+  const [buyerPage, setBuyerPage] = useState('home'); // home | product | cart | checkout | purchase | wishlist
+  // overview | products | addProduct | orders | bulkShipping | handover | returns | reviews | finance | analytics | placeholder
+  const [sellerPage, setSellerPage] = useState('overview');
+  const [placeholderLabel, setPlaceholderLabel] = useState('');
+
+  // Trang chủ / danh mục
+  const [selectedCategory, setSelectedCategory] = useState('Tất cả');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchDraft, setSearchDraft] = useState('');
+  const [sortBy, setSortBy] = useState('popular');
+
+  // Banner trang chủ (chỉnh sửa từ Kênh Người Bán > Trang Trí Shop)
+  const [heroBanner, setHeroBanner] = useState({
+    tag: 'ƯU ĐÃI TUẦN NÀY',
+    title: 'SIÊU SALE PHỤ KIỆN CÔNG NGHỆ',
+    subtitle: `Giảm đến 50% · Freeship cho đơn từ ${formatVND(FREE_SHIP_THRESHOLD)}`,
+  });
+  const [bannerDraft, setBannerDraft] = useState(heroBanner);
+
