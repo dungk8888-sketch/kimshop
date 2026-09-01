@@ -7,17 +7,21 @@ if (!supabaseUrl || !supabaseKey) {
   throw new Error('Thiếu VITE_SUPABASE_URL hoặc VITE_SUPABASE_ANON_KEY trên Vercel.');
 }
 
-export const supabase = createClient(supabaseUrl, supabaseKey);
+export const supabase = createClient(supabaseUrl, supabaseKey, {
+  auth: {
+    persistSession: true,
+    autoRefreshToken: true,
+    detectSessionInUrl: true,
+    storage: typeof window !== 'undefined' ? window.localStorage : undefined,
+    storageKey: 'kimshop-auth',
+  },
+});
 
-// Tài khoản admin cũ trong Auth bị lỗi metadata nội bộ. Giữ nguyên trải nghiệm
-// đăng nhập bằng username "admin", nhưng chuyển email kỹ thuật sang Auth user hợp lệ.
-const originalSignInWithPassword = supabase.auth.signInWithPassword.bind(supabase.auth);
-supabase.auth.signInWithPassword = ((credentials: any) => {
-  if (credentials?.email?.toLowerCase() === 'admin@kimshop.local') {
-    return originalSignInWithPassword({
-      ...credentials,
-      email: 'admin.auth@kimshop.local',
-    });
-  }
-  return originalSignInWithPassword(credentials);
-}) as typeof supabase.auth.signInWithPassword;
+export const LOCAL_EMAIL_DOMAIN = 'kimshop.local';
+
+export const usernameToEmail = (usernameOrEmail: string) => {
+  const v = (usernameOrEmail || '').trim().toLowerCase();
+  return v.includes('@') ? v : `${v}@${LOCAL_EMAIL_DOMAIN}`;
+};
+
+export const isValidUsername = (username: string) => /^[a-z0-9._-]{3,32}$/.test(username);
