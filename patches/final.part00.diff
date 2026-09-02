@@ -4,3 +4,107 @@
 -import React, { useState, useRef, useEffect } from 'react';
 +import React, { useState, useRef, useEffect, lazy, Suspense } from 'react';
  import { supabase, usernameToEmail, isValidUsername } from './supabaseClient';
+ import {
+   ShoppingCart, Search, Heart, Star, Bell, HelpCircle, MessageCircle, Store,
+@@ -7,12 +7,29 @@
+   CreditCard, Sparkles, RotateCcw, Settings, TrendingUp, Users, ChevronDown, Copy, Zap,
+   User, LogIn, UserPlus, MapPin, Eye, EyeOff, Lock, Mail, ShieldCheck, Loader2, Menu, ZoomIn, Landmark,
+ } from 'lucide-react';
+-import {
+-  BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid,
+-} from 'recharts';
+ import { fetchStorefrontBanner, fetchAdminBanner, saveHomepageBanner, emptyBannerDraft } from './homepageBanner';
+ import type { HomepageBanner, HomepageBannerDraft } from './homepageBanner';
+-import { HomepageHeroBanner, HomepageBannerEditor } from './HomepageBanner';
++import { HomepageHeroBanner } from './HomepageBanner';
++import type { AIProductDraft } from './AIProductAssistant';
++
++/* ------------------------------------------------------------------------
++ * Speed Task 2 — code splitting: các khu vực chỉ dùng trong Seller/Admin
++ * (biểu đồ recharts, AI assistant panel, banner editor) được tách thành
++ * chunk riêng và chỉ tải khi thực sự render, thay vì nằm trong bundle chính
++ * mà mọi buyer đều phải tải khi mở trang.
++ * ------------------------------------------------------------------------ */
++const RevenueTrendBarChart = lazy(() => import('./RevenueCharts').then((m) => ({ default: m.RevenueTrendBarChart })));
++const ProductRevenueBarChart = lazy(() => import('./RevenueCharts').then((m) => ({ default: m.ProductRevenueBarChart })));
++const AIProductAssistantPanel = lazy(() => import('./AIProductAssistant').then((m) => ({ default: m.AIProductAssistantPanel })));
++const HomepageBannerEditor = lazy(() => import('./HomepageBanner').then((m) => ({ default: m.HomepageBannerEditor })));
++
++function ChartFallback({ height = 220 }: { height?: number }) {
++  return (
++    <div style={{ height }} className="w-full flex items-center justify-center text-gray-300 text-xs">
++      <Loader2 size={16} className="animate-spin mr-2" /> Đang tải biểu đồ...
++    </div>
++  );
++}
+ 
+ /* ============================== DỮ LIỆU MẪU ============================== */
+ 
+@@ -122,52 +139,90 @@
+ // Supabase (kể cả bằng anon key, bỏ qua toàn bộ UI) đều có thể ghi đè dữ liệu
+ // mà TẤT CẢ người dùng khác nhìn thấy — bao gồm cả quyền admin/seller. Đọc từ
+ // bảng thật + RLS theo từng dòng mới là ranh giới bảo mật thật sự.
+-const loadRemoteData = async () => {
+-  const [ps, ss, os, apps, cats, vs] = await Promise.all([
++// [PERF] loadRemoteData() được tách thành 3 bước nhỏ (loadCatalogCore /
++// loadProductRelations / loadAdminData) để lần khởi động app có thể vẽ
++// Trang chủ + danh sách sản phẩm ngay khi có products/shops/categories, KHÔNG
++// phải chờ dữ liệu quản trị (orders/seller_applications/vouchers — chỉ
++// Admin/Seller cần) hay ảnh phụ/biến thể/đánh giá (không cần cho card danh
++// sách, ảnh đại diện đã có sẵn ở products.image_url) nạp xong mới hiển thị.
++// Các hàm nhỏ này được ghép lại y hệt logic cũ ở cuối file (xem loadRemoteData
++// bên dưới) nên 100% các nơi đang gọi loadRemoteData() để nạp lại sau khi
++// sửa/xoá dữ liệu (lưu sản phẩm, đặt hàng, duyệt đơn bán...) không đổi hành vi.
++
++// Bước 1 (bắt buộc để vẽ Trang chủ/danh sách sản phẩm lần đầu): products +
++// shops + categories — 3 bảng độc lập, nạp song song bằng Promise.all.
++const loadCatalogCore = async () => {
++  const [ps, ss, cats] = await Promise.all([
+     supabase.from('products').select('*').neq('status','deleted').order('created_at',{ascending:false}),
+     supabase.from('shops').select('*').order('created_at',{ascending:false}),
+-    supabase.from('orders').select('*').order('created_at',{ascending:false}),
+-    supabase.from('seller_applications').select('*').order('created_at',{ascending:false}),
+     supabase.from('categories').select('*').order('sort_order',{ascending:true}),
+-    supabase.from('vouchers').select('*').order('created_at',{ascending:false}),
+   ]);
+-  if(ps.error) throw ps.error; if(ss.error) throw ss.error; if(os.error) throw os.error; if(apps.error) throw apps.error; if(cats.error) throw cats.error; if(vs.error) throw vs.error;
++  if(ps.error) throw ps.error; if(ss.error) throw ss.error; if(cats.error) throw cats.error;
+   const categories=(cats.data||[]).map(dbCategoryToUi);
+-  const categoryById=(id:string)=>categories.find((c:any)=>c.id===id);
+-  const vouchers=(vs.data||[]).map(dbVoucherToUi);
+-  const ids=(ps.data||[]).map((p:any)=>p.id);
+-  const orderIds=(os.data||[]).map((o:any)=>o.id);
+-  const [imgs, vars, orderItems, reviews] = await Promise.all([
+-    ids.length ? supabase.from('product_images').select('*').in('product_id',ids) : Promise.resolve({data:[],error:null} as any),
+-    ids.length ? supabase.from('product_variants').select('*').in('product_id',ids) : Promise.resolve({data:[],error:null} as any),
+-    // QUAN TRỌNG: order_items từng KHÔNG được nạp ở đây — mọi nơi trong UI
+-    // (Đơn Mua, Quản Lý Đơn Hàng, Trả Hàng, Chi Tiết Đơn) đều đọc `order.items`,
+-    // nên nếu thiếu bước này, các trang đó vỡ ngay khi render (o.items.map
+-    // trên undefined). order_items là bảng riêng (xem 0005_orders_checkout.sql),
+-    // phải join thủ công theo order_id ở đây.
+-    orderIds.length ? supabase.from('order_items').select('*').in('order_id',orderIds) : Promise.resolve({data:[],error:null} as any),
++  const shops=(ss.data||[]).map((s:any)=>({id:s.id,name:s.name,ownerId:s.owner_id,status:s.status,logo:s.logo_url,description:s.description}));
++  return { rawProducts: (ps.data||[]) as any[], shops, categories };
++};
++
++// Bước 2 (không chặn lần vẽ đầu tiên): ảnh phụ/biến thể/đánh giá theo từng
++// sản phẩm — card danh sách đã có ảnh đại diện (products.image_url, xem
++// dbProductToUi) nên phần này nạp SAU, rồi gắn đè vào state products khi xong.
++const loadProductRelations = async (rawProducts: any[]) => {
++  const ids = rawProducts.map((p:any)=>p.id);
++  if(!ids.length) return { imgs: [] as any[], vars: [] as any[], reviews: [] as any[] };
++  const [imgs, vars, reviews] = await Promise.all([
++    supabase.from('product_images').select('*').in('product_id',ids),
++    supabase.from('product_variants').select('*').in('product_id',ids),
+     // QUAN TRỌNG: product_reviews cũng từng KHÔNG được nạp — "ĐÁNH GIÁ SẢN
+     // PHẨM" (trang mua) và "Quản Lý Đánh Giá" (Kênh Người Bán) đều đọc
+     // `product.reviews.length` / `.map(...)`, nên thiếu bước này thì 2 trang
+     // đó vỡ ngay khi mở với bất kỳ sản phẩm thật nào (xem 0008_reviews_marketing.sql).
+-    ids.length ? supabase.from('product_reviews').select('*').in('product_id',ids).order('created_at',{ascending:false}) : Promise.resolve({data:[],error:null} as any),
++    supabase.from('product_reviews').select('*').in('product_id',ids).order('created_at',{ascending:false}),
+   ]);
+-  const shops=(ss.data||[]).map((s:any)=>({id:s.id,name:s.name,ownerId:s.owner_id,status:s.status,logo:s.logo_url,description:s.description}));
++  if(imgs.error) throw imgs.error; if(vars.error) throw vars.error; if(reviews.error) throw reviews.error;
++  return { imgs: (imgs.data||[]) as any[], vars: (vars.data||[]) as any[], reviews: (reviews.data||[]) as any[] };
++};
++
