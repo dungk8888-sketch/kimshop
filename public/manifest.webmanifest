@@ -1,0 +1,21 @@
+{
+  "name": "KIMSHOP",
+  "short_name": "KIMSHOP",
+  "description": "Ứng dụng mua sắm KIMSHOP",
+  "lang": "vi",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "display_override": ["standalone", "fullscreen"],
+  "orientation": "portrait-primary",
+  "background_color": "#ffffff",
+  "theme_color": "#ee4d2d",
+  "icons": [
+    {
+      "src": "/kimshop-icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
