@@ -7,12 +7,22 @@ import './styles.css';
 // LƯU Ý BẢO MẬT: Cơ chế bootstrap admin hardcode đã được gỡ bỏ.
 // Admin được quản lý an toàn qua Supabase Auth + profiles/RLS.
 
-// PWA: đăng ký service worker sau khi trang tải xong.
+// iOS icon hotfix: gỡ toàn bộ service worker/cache cũ để Safari luôn lấy manifest/icon mới từ network.
 if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js').catch((error) => {
-      console.warn('KIMSHOP service worker registration failed:', error);
-    });
+  window.addEventListener('load', async () => {
+    try {
+      const registrations = await navigator.serviceWorker.getRegistrations();
+      await Promise.all(registrations.map((registration) => registration.unregister()));
+    } catch (error) {
+      console.warn('KIMSHOP service worker cleanup failed:', error);
+    }
+
+    try {
+      const keys = await caches.keys();
+      await Promise.all(keys.map((key) => caches.delete(key)));
+    } catch (error) {
+      console.warn('KIMSHOP cache cleanup failed:', error);
+    }
   });
 }
 
