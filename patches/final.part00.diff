@@ -1,0 +1,6 @@
+--- src/App.tsx
++++ src/App.tsx
+@@ -1,4 +1,4 @@
+-import React, { useState, useRef, useEffect } from 'react';
++import React, { useState, useRef, useEffect, lazy, Suspense } from 'react';
+ import { supabase, usernameToEmail, isValidUsername } from './supabaseClient';
