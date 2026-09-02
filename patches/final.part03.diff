@@ -1,0 +1,121 @@
+   const galleryImagesForDisplay = activeVariantImage
+     ? Array.from(new Set([activeVariantImage, ...selectedProductImages]))
+     : selectedProductImages;
+@@ -1824,8 +1982,15 @@
+     }, 620);
+   };
+ 
+-  // Danh sách sản phẩm dùng cho trang Thanh Toán: ưu tiên Mua Ngay, ngược lại lấy từ giỏ hàng đã chọn
+-  const checkoutItems = buyNowItem
++  // Danh sách sản phẩm dùng cho trang Thanh Toán: ưu tiên Mua Ngay (multi-variant trước, rồi
++  // đơn lẻ), ngược lại lấy từ giỏ hàng đã chọn. Mỗi dòng multi-variant giữ đúng
++  // variant_id/variant name/qty/ảnh của đúng tổ hợp qua findCartVariant/cartItemImage —
++  // backend checkout_place_order (0013) vẫn tự tra lại giá/stock thật theo tên variant.
++  const checkoutItems = (buyNowItems && buyNowItems.length > 0)
++    ? buyNowItems
++        .map((bi) => ({ key: cartKey(bi.productId, bi.variant), productId: bi.productId, variant: bi.variant, qty: bi.qty, product: products.find((p) => p.id === bi.productId) }))
++        .filter((c) => c.product)
++    : buyNowItem
+     ? [{ key: cartKey(buyNowItem.productId, buyNowItem.variant), productId: buyNowItem.productId, variant: buyNowItem.variant, qty: buyNowItem.qty, product: products.find((p) => p.id === buyNowItem.productId) }].filter((c) => c.product)
+     : selectedItems;
+   const checkoutSubtotal = checkoutItems.reduce((s, c) => s + cartUnitPrice(c.product, c.variant) * c.qty, 0);
+@@ -1888,7 +2053,9 @@
+ 
+   const updateCheckoutQty = (item, delta) => {
+     const max = item.product ? cartAvailableStock(item.product, item.variant) : 99;
+-    if (buyNowItem) {
++    if (buyNowItems && buyNowItems.length > 0) {
++      setBuyNowItems((prev) => (prev || []).map((bi) => (cartKey(bi.productId, bi.variant) === item.key ? { ...bi, qty: Math.max(1, Math.min(bi.qty + delta, max)) } : bi)));
++    } else if (buyNowItem) {
+       setBuyNowItem((prev) => (prev ? { ...prev, qty: Math.max(1, Math.min(prev.qty + delta, max)) } : prev));
+     } else {
+       updateCartQty(item.key, delta);
+@@ -1898,6 +2065,7 @@
+   const goToCheckout = () => {
+     if (selectedItems.length === 0) { showToast('Vui lòng chọn sản phẩm để thanh toán'); return; }
+     setBuyNowItem(null);
++    setBuyNowItems(null);
+     setBuyerPage('checkout');
+     window.scrollTo?.({ top: 0 });
+   };
+@@ -1933,9 +2101,12 @@
+         return;
+       }
+       // Đơn hàng + trừ tồn kho đã được ghi thật trong DB — nạp lại để đồng bộ UI.
++      catalogGenRef.current++; adminGenRef.current++; // [PERF] báo cho các lần nạp nền cũ hơn biết để không ghi đè kết quả mới nhất này
+       const d = await loadRemoteData();
+       setProducts(d.products); setShops(d.shops); setOrders(d.orders); setSellerApplications(d.sellerApplications); setCategories(d.categories); setVouchers(d.vouchers);
+-      if (buyNowItem) {
++      if (buyNowItems && buyNowItems.length > 0) {
++        setBuyNowItems(null);
++      } else if (buyNowItem) {
+         setBuyNowItem(null);
+       } else {
+         const purchasedKeys = checkoutItems.map((i) => i.key);
+@@ -2264,6 +2435,34 @@
+       return { ...prev, images: imgs, image: imgs[0] || '' };
+     });
+   };
++  // Áp dụng bản nháp từ panel "Thêm sản phẩm bằng AI" vào form Thêm/Sửa sản
++  // phẩm hiện tại. CHỈ điền vào state form (người bán vẫn phải tự bấm "Lưu &
++  // Hiển Thị" như bình thường) — không tự lưu Supabase, không tự đăng sản
++  // phẩm. Giá/giá gốc chỉ được set nếu AI trả về (tức người bán đã tự nhập
++  // trước đó — xem generateAIProductDraft), không tự áp giá do AI bịa ra.
++  const applyAIDraft = (draft: AIProductDraft) => {
++    setEditingProduct((prev) => {
++      if (!prev) return prev;
++      const newGroups = draft.variantGroups.length
++        ? draft.variantGroups.map((g, i) => ({ id: `ai_g${i}_${g.name}`, name: g.name, values: g.values }))
++        : prev.variantGroups || [];
++      const next = {
++        ...prev,
++        name: draft.name || prev.name,
++        description: draft.description || prev.description,
++        categoryId: draft.categoryId || prev.categoryId,
++        category: draft.categoryName || prev.category,
++        price: draft.price || prev.price,
++        originalPrice: draft.originalPrice || prev.originalPrice,
++        variantGroups: newGroups,
++        variantCombos: regenerateVariantCombos(newGroups, prev.variantCombos || []),
++      };
++      return next;
++    });
++    setShowAdvancedFields(true);
++    setShowAIAssistant(false);
++    showToast('Đã điền nội dung AI vào form — vui lòng kiểm tra lại trước khi lưu');
++  };
+   const [savingProduct, setSavingProduct] = useState(false);
+   const saveProduct = async () => {
+     if (!editingProduct.name.trim() || !editingProduct.price) { showToast('Vui lòng nhập tên và giá sản phẩm'); return; }
+@@ -2325,6 +2524,7 @@
+       }
+       // 4) Nạp lại danh sách sản phẩm thật từ Supabase để "Quản lý sản phẩm"
+       //    hiện đúng ngay lập tức, không phụ thuộc realtime.
++      catalogGenRef.current++; adminGenRef.current++; // [PERF] báo cho các lần nạp nền cũ hơn biết để không ghi đè kết quả mới nhất này
+       const d = await loadRemoteData();
+       setProducts(d.products); setShops(d.shops); setOrders(d.orders); setSellerApplications(d.sellerApplications); setCategories(d.categories); setVouchers(d.vouchers);
+       showToast(isEdit ? 'Cập nhật sản phẩm thành công!' : 'Đã thêm sản phẩm mới!');
+@@ -2347,6 +2547,7 @@
+       // chiếu tới sản phẩm này; loadRemoteData đã lọc .neq('status','deleted').
+       const { error } = await supabase.from('products').update({ status: 'deleted' }).eq('id', id);
+       if (error) throw error;
++      catalogGenRef.current++; adminGenRef.current++; // [PERF] báo cho các lần nạp nền cũ hơn biết để không ghi đè kết quả mới nhất này
+       const d = await loadRemoteData();
+       setProducts(d.products); setShops(d.shops); setOrders(d.orders); setSellerApplications(d.sellerApplications); setCategories(d.categories); setVouchers(d.vouchers);
+       showToast('Đã xóa sản phẩm');
+@@ -2784,7 +2985,7 @@
+                                 onClick={() => { openProduct(item.product); setIsCartHoverOpen(false); }}
+                                 className="flex items-center gap-2.5 px-4 py-2 hover:bg-gray-50 cursor-pointer"
+                               >
+-                                <img src={item.product.image} className="w-9 h-9 object-cover rounded-sm border border-gray-100 flex-shrink-0" />
++                                <img src={item.product.image} loading="lazy" decoding="async" className="w-9 h-9 object-cover rounded-sm border border-gray-100 flex-shrink-0" />
+                                 <div className="flex-1 line-clamp-1 text-gray-700 text-[11px]">{item.product.name}</div>
+                                 <div className="text-[#EE4D2D] font-medium text-[11px] flex-shrink-0">{formatVND(cartUnitPrice(item.product, item.variant))}</div>
+                               </div>
+@@ -2847,7 +3048,7 @@
+                       return (
+                         <div key={p.id} onClick={() => openProduct(p)} className="cursor-pointer border border-rose-100 rounded-lg overflow-hidden hover:shadow-md transition-shadow">
+                           <div className="relative">
+-                            <img src={p.image} className="w-full h-24 object-cover" />
++                            <img src={p.image} loading="lazy" decoding="async" className="w-full h-24 object-cover" />
+                             {fDiscount > 0 && <span className="absolute top-1 left-1 bg-[#EE4D2D] text-white text-[9px] font-bold px-1.5 py-0.5 rounded">-{fDiscount}%</span>}
