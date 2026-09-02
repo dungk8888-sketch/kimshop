@@ -1,0 +1,128 @@
++// Ghép rawProducts (từ bước 1) + imgs/vars/reviews (từ bước 2, mặc định rỗng
++// nếu chưa nạp xong) thành đúng shape UI đang dùng khắp nơi.
++const buildProducts = (rawProducts: any[], shops: any[], categories: any[], imgs: any[] = [], vars: any[] = [], reviews: any[] = []) => {
++  const categoryById=(id:string)=>categories.find((c:any)=>c.id===id);
+   const shopById=(id:string)=>shops.find((s:any)=>s.id===id);
+   // product_reviews (DB) -> shape mà UI dùng khắp nơi: { id, user, rating, comment, date }
+-  const reviewsByProduct=(reviews.data||[]).reduce((acc:any,r:any)=>{
++  const reviewsByProduct=(reviews||[]).reduce((acc:any,r:any)=>{
+     (acc[r.product_id] ||= []).push({
+       id: r.id, user: r.reviewer_name || 'Khách hàng KimShop', rating: Number(r.rating||0),
+       comment: r.comment || '', date: formatDateDMY(r.created_at),
+     });
+     return acc;
+   },{});
+-  const products=(ps.data||[]).map((p:any)=>{
+-    const ui=dbProductToUi(p,(imgs.data||[]).filter((x:any)=>x.product_id===p.id),(vars.data||[]).filter((x:any)=>x.product_id===p.id));
++  return (rawProducts||[]).map((p:any)=>{
++    const ui=dbProductToUi(p,(imgs||[]).filter((x:any)=>x.product_id===p.id),(vars||[]).filter((x:any)=>x.product_id===p.id));
+     return {...ui, shopId:p.shop_id, shopName:shopById(p.shop_id)?.name || SELLER_SHOP, categoryId:p.category_id, categoryName:categoryById(p.category_id)?.name || p.category || '', reviews: reviewsByProduct[p.id] || []};
+   });
++};
++
++// Bước 3 (dữ liệu quản trị — chỉ Admin/Seller cần, không chặn lần vẽ Trang
++// chủ/Chi tiết sản phẩm đầu tiên): orders + seller_applications + vouchers,
++// rồi order_items (phụ thuộc danh sách order vừa nạp).
++const loadAdminData = async (shops: any[]) => {
++  const [os, apps, vs] = await Promise.all([
++    supabase.from('orders').select('*').order('created_at',{ascending:false}),
++    supabase.from('seller_applications').select('*').order('created_at',{ascending:false}),
++    supabase.from('vouchers').select('*').order('created_at',{ascending:false}),
++  ]);
++  if(os.error) throw os.error; if(apps.error) throw apps.error; if(vs.error) throw vs.error;
++  const vouchers=(vs.data||[]).map(dbVoucherToUi);
++  const orderIds=(os.data||[]).map((o:any)=>o.id);
++  // QUAN TRỌNG: order_items từng KHÔNG được nạp ở đây — mọi nơi trong UI
++  // (Đơn Mua, Quản Lý Đơn Hàng, Trả Hàng, Chi Tiết Đơn) đều đọc `order.items`,
++  // nên nếu thiếu bước này, các trang đó vỡ ngay khi render (o.items.map
++  // trên undefined). order_items là bảng riêng (xem 0005_orders_checkout.sql),
++  // phải join thủ công theo order_id ở đây.
++  const oiRes = orderIds.length ? await supabase.from('order_items').select('*').in('order_id',orderIds) : {data:[] as any[], error:null as any};
++  if(oiRes.error) throw oiRes.error;
++  const shopById=(id:string)=>shops.find((s:any)=>s.id===id);
+   // order_items -> shape mà UI dùng khắp nơi: { productId, name, image, variant, qty, price, originalPrice }
+-  const itemsByOrder=(orderItems.data||[]).reduce((acc:any,it:any)=>{
++  const itemsByOrder=(oiRes.data||[]).reduce((acc:any,it:any)=>{
+     (acc[it.order_id] ||= []).push({
+       productId: it.product_id, name: it.product_name, image: it.product_image || it.product_image_url || '',
+       variant: it.variant || it.variant_name || '', qty: Number(it.qty ?? it.quantity ?? 0), price: Number(it.unit_price||0),
+@@ -187,7 +242,21 @@
+     id:a.id, userId:a.user_id, username:a.username, shopName:a.shop_name, phone:a.phone,
+     address:a.address, category:a.category, status:a.status, shopId:a.shop_id, createdAt:a.created_at,
+   }));
+-  return {products,shops,orders,sellerApplications,categories,vouchers};
++  return {orders,sellerApplications,vouchers};
++};
++
++// Hàm này giữ NGUYÊN chữ ký/kết quả trả về như trước (dùng cho mọi chỗ nạp lại
++// toàn bộ dữ liệu sau khi sửa/xoá) — chỉ đổi cách ghép bên trong để tái dùng 3
++// bước nhỏ ở trên; lần khởi động app KHÔNG gọi hàm này nữa (xem useEffect nạp
++// dữ liệu ban đầu bên dưới) để không chặn lần vẽ Trang chủ đầu tiên.
++const loadRemoteData = async () => {
++  const { rawProducts, shops, categories } = await loadCatalogCore();
++  const [{ imgs, vars, reviews }, admin] = await Promise.all([
++    loadProductRelations(rawProducts),
++    loadAdminData(shops),
++  ]);
++  const products = buildProducts(rawProducts, shops, categories, imgs, vars, reviews);
++  return { products, shops, categories, ...admin };
+ };
+ 
+ 
+@@ -513,6 +582,8 @@
+             ref={mainRef}
+             src={active}
+             alt={alt}
++            loading="eager"
++            fetchPriority="high"
+             className="w-full h-72 object-cover rounded-xl border border-gray-100 shadow-sm"
+           />
+         ) : (
+@@ -536,7 +607,7 @@
+               className={`w-14 h-14 flex-shrink-0 rounded-lg overflow-hidden border-2 transition-colors ${i === activeIndex ? 'border-[#EE4D2D]' : 'border-gray-100 hover:border-gray-300'}`}
+               aria-label={`Ảnh ${i + 1}`}
+             >
+-              <img src={src} alt="" className="w-full h-full object-cover" />
++              <img src={src} alt="" loading="lazy" decoding="async" className="w-full h-full object-cover" />
+             </button>
+           ))}
+         </div>
+@@ -807,6 +878,11 @@
+   // gửi vào cart/checkout — KHÔNG đổi cơ chế đó.
+   const [selectedAttrs, setSelectedAttrs] = useState<Record<string, string>>({});
+   const [selectedQty, setSelectedQty] = useState(1);
++  // TASK 1 — chọn số lượng RIÊNG cho NHIỀU tổ hợp variant cùng lúc (VD: Trắng/Vỏ: 20,
++  // Trắng/Xương: 10...). State độc lập, key theo product_variants.id thật, để Task 2 nối
++  // vào giỏ hàng sau. KHÔNG đụng gì tới selectedVariant/selectedQty và addToCart/Mua Ngay
++  // hiện có — cơ chế thêm-1-tổ-hợp cũ vẫn hoạt động y nguyên.
++  const [multiVariantQty, setMultiVariantQty] = useState<Record<string, number>>({});
+ 
+   // Giỏ hàng
+   const [isCartHoverOpen, setIsCartHoverOpen] = useState(false);
+@@ -820,6 +896,11 @@
+ 
+   // Mua Ngay (bỏ qua giỏ hàng, đi thẳng tới Thanh Toán)
+   const [buyNowItem, setBuyNowItem] = useState(null); // { productId, variant, qty }
++  // TASK 2 — Mua Ngay cho NHIỀU tổ hợp variant cùng lúc (bảng multiVariantQty của Task 1).
++  // Khi có giá trị (mảng không rỗng), checkoutItems ưu tiên dùng mảng này thay vì buyNowItem
++  // đơn lẻ. Không đổi hành vi buyNowItem cũ (sản phẩm không variant / chọn 1 tổ hợp vẫn y
++  // như trước).
++  const [buyNowItems, setBuyNowItems] = useState<{ productId: string; variant: string; qty: number }[] | null>(null);
+ 
+   // Đơn mua (phía người mua)
+   const [purchaseTab, setPurchaseTab] = useState('TatCa');
+@@ -850,6 +931,15 @@
+   const [bulkOrderTypeTab, setBulkOrderTypeTab] = useState('thuong'); // thuong | hoatoc
+   const [pickupDateChoice, setPickupDateChoice] = useState('');
+   const dataReadyRef = useRef(false);
++  // [PERF] Chống race condition: lần nạp catalog (products/shops/categories)
++  // và nạp dữ liệu quản trị (orders/seller_applications/vouchers) gần đây
++  // nhất luôn "thắng" — nếu một lần nạp cũ hơn (initial load nạp ảnh/biến
++  // thể/đánh giá theo sau, hoặc refreshCatalog do realtime kích hoạt) vừa
++  // xong SAU MỘT LẦN NẠP MỚI HƠN (do người dùng sửa/xoá sản phẩm, hoặc
++  // realtime khác kích hoạt), kết quả cũ đó sẽ bị bỏ qua thay vì ghi đè lên
++  // dữ liệu mới hơn đang hiển thị.
++  const catalogGenRef = useRef(0);
++  const adminGenRef = useRef(0);
+ 
+   // Người bán - Bàn Giao Đơn Hàng
