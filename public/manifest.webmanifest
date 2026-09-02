@@ -12,7 +12,7 @@
   "theme_color": "#ee4d2d",
   "icons": [
     {
-      "src": "/kimshop-icon.svg",
+      "src": "/kimshop-icon-approved.svg",
       "sizes": "any",
       "type": "image/svg+xml",
       "purpose": "any maskable"
