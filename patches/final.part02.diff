@@ -1,0 +1,119 @@
+   const [handoverMethodTab, setHandoverMethodTab] = useState('pickup'); // pickup | dropoff
+@@ -868,6 +958,7 @@
+   // Người bán - quản lý sản phẩm (trang Thêm/Sửa)
+   const [editingProduct, setEditingProduct] = useState(null);
+   const [showAdvancedFields, setShowAdvancedFields] = useState(false);
++  const [showAIAssistant, setShowAIAssistant] = useState(false);
+   const fileInputRef = useRef(null);
+   // Gallery nhiều ảnh sản phẩm (tối đa MAX_PRODUCT_IMAGES): ô nhập link URL
+   // để thêm thủ công 1 ảnh vào editingProduct.images (ngoài chọn file).
+@@ -1008,7 +1099,38 @@
+ 
+   useEffect(() => {
+     let cancelled=false;
+-    (async()=>{ try { const d=await loadRemoteData(); if(cancelled)return; setProducts(d.products); setShops(d.shops); setOrders(d.orders); setSellerApplications(d.sellerApplications); setCategories(d.categories); setVouchers(d.vouchers); dataReadyRef.current=true; } catch(e){ console.error(e); } })();
++    // [PERF] Khởi động: chỉ chờ products/shops/categories (đủ để vẽ Trang chủ
++    // + danh sách sản phẩm với ảnh đại diện có sẵn) rồi setProducts NGAY.
++    // Ảnh phụ/biến thể/đánh giá (loadProductRelations) và dữ liệu quản trị
++    // orders/seller_applications/vouchers (loadAdminData, chỉ Admin/Seller
++    // cần) được bắn song song ngay sau đó nhưng KHÔNG chặn lần vẽ đầu tiên —
++    // gắn đè vào state khi từng phần nạp xong.
++    (async()=>{
++      const myGen = ++catalogGenRef.current;
++      const myAdminGen = ++adminGenRef.current;
++      try {
++        const { rawProducts, shops, categories } = await loadCatalogCore();
++        if (cancelled || catalogGenRef.current !== myGen) return;
++        setProducts(buildProducts(rawProducts, shops, categories));
++        setShops(shops);
++        setCategories(categories);
++        dataReadyRef.current = true;
++        loadProductRelations(rawProducts)
++          .then(({ imgs, vars, reviews }) => {
++            if (cancelled || catalogGenRef.current !== myGen) return;
++            setProducts(buildProducts(rawProducts, shops, categories, imgs, vars, reviews));
++          })
++          .catch((e) => console.error('Không tải được ảnh/biến thể/đánh giá sản phẩm', e));
++        loadAdminData(shops)
++          .then(({ orders, sellerApplications, vouchers }) => {
++            if (cancelled || adminGenRef.current !== myAdminGen) return;
++            setOrders(orders);
++            setSellerApplications(sellerApplications);
++            setVouchers(vouchers);
++          })
++          .catch((e) => console.error('Không tải được đơn hàng/hồ sơ đăng ký bán/voucher', e));
++      } catch (e) { console.error(e); }
++    })();
+     // Banner trang chủ: đọc trực tiếp từ Supabase ngay khi app khởi động,
+     // kể cả khách chưa đăng nhập (RLS tự lọc is_active=true, xem migration
+     // 0006_homepage_banners.sql) — không phụ thuộc vào loadRemoteData ở trên.
+@@ -1023,7 +1145,15 @@
+       loadUserSession(session);
+     });
+ 
+-    const refreshCatalog=()=>loadRemoteData().then(d=>{if(!cancelled){setProducts(d.products);setShops(d.shops);setOrders(d.orders);setSellerApplications(d.sellerApplications);setCategories(d.categories);setVouchers(d.vouchers)}});
++    const refreshCatalog=()=>{
++      const myGen = ++catalogGenRef.current;
++      const myAdminGen = ++adminGenRef.current;
++      return loadRemoteData().then(d=>{
++        if(cancelled) return;
++        if(catalogGenRef.current===myGen){setProducts(d.products);setShops(d.shops);setCategories(d.categories);}
++        if(adminGenRef.current===myAdminGen){setOrders(d.orders);setSellerApplications(d.sellerApplications);setVouchers(d.vouchers);}
++      });
++    };
+     // Banner trang chủ đổi (do admin lưu, kể cả từ tab/máy khác) -> mọi
+     // storefront đang mở tự cập nhật, không cần F5.
+     const refreshBanner=()=>fetchStorefrontBanner().then(b=>{if(!cancelled) setHomepageBanner(b);}).catch(e=>console.error('Không tải được banner trang chủ', e));
+@@ -1362,6 +1492,7 @@
+         showToast(error.message?.includes('vouchers_scope_code_unique_idx') ? 'Mã voucher này đã tồn tại trong phạm vi của bạn' : (error.message || 'Không thể lưu voucher (kiểm tra lại quyền/dữ liệu)'));
+         return;
+       }
++      catalogGenRef.current++; adminGenRef.current++; // [PERF] báo cho các lần nạp nền cũ hơn biết để không ghi đè kết quả mới nhất này
+       const d = await loadRemoteData();
+       setProducts(d.products); setShops(d.shops); setOrders(d.orders); setSellerApplications(d.sellerApplications); setCategories(d.categories); setVouchers(d.vouchers);
+       showToast(voucherDraft.id ? 'Đã cập nhật voucher' : 'Đã tạo voucher mới');
+@@ -1437,6 +1568,7 @@
+       }
+       const { error } = await supabase.from('categories').upsert(row);
+       if (error) throw error;
++      catalogGenRef.current++; adminGenRef.current++; // [PERF] báo cho các lần nạp nền cũ hơn biết để không ghi đè kết quả mới nhất này
+       const d = await loadRemoteData();
+       setProducts(d.products); setCategories(d.categories);
+       showToast(editingCategory.id ? 'Đã cập nhật danh mục' : 'Đã thêm danh mục mới');
+@@ -1663,6 +1795,7 @@
+       setSelectedVariant((product.variants && product.variants[0]) ? product.variants[0].name : '');
+     }
+     setSelectedQty(1);
++    setMultiVariantQty({});
+     setGalleryIndex(0);
+     setLightboxOpen(false);
+     setBuyerPage('product');
+@@ -1690,6 +1823,31 @@
+   const displayStock = activeVariant ? activeVariant.stock : (selectedProduct?.stock || 0);
+   const activeVariantImage = activeVariant?.imageUrl || '';
+   const variantChoiceDisabled = selectedVariantInfo.isGrouped && (!matchedVariantCombo || matchedVariantCombo.isActive === false || matchedVariantCombo.stock <= 0);
++  // TASK 1 — bảng chọn số lượng theo NHIỀU tổ hợp variant cùng lúc. Chỉ hiển thị các tổ hợp
++  // hợp lệ + active (isActive !== false); tổ hợp hết hàng vẫn hiện nhưng bị disable + "Hết
++  // hàng". State này được TASK 2 nối vào addToCart/checkout bên dưới (multiVariantActive/
++  // multiVariantSelectedLines).
++  const multiVariantList = (selectedProduct?.variants || []).filter((v: any) => v && v.isActive !== false);
++  const multiVariantQtyOf = (id: string) => Number(multiVariantQty[id] || 0);
++  const setMultiVariantQtyFor = (v: any, raw: number | string) => {
++    let n = Math.floor(Number(raw));
++    if (!Number.isFinite(n) || n < 0) n = 0;
++    const max = Number(v.stock || 0);
++    if (n > max) n = max;
++    setMultiVariantQty((prev) => ({ ...prev, [v.id]: n }));
++  };
++  const multiVariantTotalQty = multiVariantList.reduce((s: number, v: any) => s + multiVariantQtyOf(v.id), 0);
++  const multiVariantTotalPrice = multiVariantList.reduce((s: number, v: any) => s + multiVariantQtyOf(v.id) * Number(v.price || 0), 0);
++  // TASK 2 — nối bảng multi-variant (Task 1) vào Add to cart/Buy now: khi người dùng đã nhập
++  // số lượng > 0 cho ít nhất 1 tổ hợp trong bảng, 2 nút bên dưới dùng TẤT CẢ các dòng có
++  // quantity > 0 (giữ đúng variant_id/name/qty từng dòng) thay vì chỉ dùng
++  // selectedVariant/selectedQty đơn lẻ như trước. Nếu bảng chưa nhập gì (multiVariantTotalQty
++  // === 0) thì giữ nguyên hành vi cũ 100%.
++  const multiVariantActive = multiVariantList.length > 1 && multiVariantTotalQty > 0;
++  const multiVariantSelectedLines = multiVariantActive
++    ? multiVariantList.map((v: any) => ({ v, qty: multiVariantQtyOf(v.id) })).filter(({ qty }) => qty > 0)
++    : [];
++  const purchaseActionDisabled = multiVariantActive ? false : (displayStock === 0 || variantChoiceDisabled);
