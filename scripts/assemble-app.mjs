@@ -1,5 +1,6 @@
 import { readFileSync, writeFileSync, readdirSync } from 'node:fs';
 import { gunzipSync } from 'node:zlib';
+import { execFileSync } from 'node:child_process';
 
 const files = readdirSync('source_parts')
   .filter((name) => /^App\.gz\.b64\.part\d+\.txt$/.test(name))
@@ -14,6 +15,16 @@ const encoded = files
   .join('');
 
 const source = gunzipSync(Buffer.from(encoded, 'base64')).toString('utf8');
-
 writeFileSync('src/App.tsx', source);
-console.log(`Assembled src/App.tsx from ${files.length} compressed source parts (${source.length} chars).`);
+
+const patchParts = readdirSync('patches')
+  .filter((name) => /^final\.part\d+\.diff$/.test(name))
+  .sort();
+
+if (patchParts.length) {
+  const patchFile = '/tmp/kimshop-final.patch';
+  writeFileSync(patchFile, patchParts.map((name) => readFileSync(`patches/${name}`, 'utf8')).join(''));
+  execFileSync('git', ['apply', '-p0', '--whitespace=nowarn', '--recount', patchFile], { stdio: 'inherit' });
+}
+
+console.log(`Assembled src/App.tsx from ${files.length} compressed source parts and applied ${patchParts.length} final patch parts.`);
