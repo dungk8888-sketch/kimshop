@@ -12,10 +12,16 @@
   "theme_color": "#ee4d2d",
   "icons": [
     {
-      "src": "/kimshop-icon-approved.svg",
-      "sizes": "any",
-      "type": "image/svg+xml",
-      "purpose": "any maskable"
+      "src": "/apple-touch-icon-final.png",
+      "sizes": "180x180",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/kimshop-icon-192-final.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
     }
   ]
 }
