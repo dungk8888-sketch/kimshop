@@ -1,0 +1,61 @@
+                                 <td className="p-3 text-gray-600">{o.customerName}</td>
+                                 <td className="p-3 text-gray-600">SPX Express</td>
+@@ -4887,7 +5172,7 @@
+                           </div>
+                           {o.items.map((it, idx) => (
+                             <div key={idx} className="flex items-center gap-3">
+-                              <img src={it.image} className="w-14 h-14 object-cover rounded-sm border border-gray-200" />
++                              <img src={it.image} loading="lazy" decoding="async" className="w-14 h-14 object-cover rounded-sm border border-gray-200" />
+                               <div className="flex-1">
+                                 <div className="text-gray-800 line-clamp-1">{it.name}</div>
+                                 <div className="text-gray-400">{it.variant ? `Phân loại: ${it.variant} x${it.qty}` : `x${it.qty}`}</div>
+@@ -4979,7 +5264,7 @@
+                             <h4 className="font-bold text-gray-700 mb-1">Thông tin vận chuyển</h4>
+                             <p className="text-gray-600 mb-2">Kiện hàng 1: Nhanh | {o.orderStatus === 'Vận chuyển' || o.orderStatus === 'Hoàn thành' ? 'SPX Express' : 'Chưa chọn đơn vị vận chuyển'}</p>
+                             <div className="flex items-center gap-2">
+-                              <img src={o.items[0].image} className="w-10 h-10 object-cover rounded-sm border border-gray-100" />
++                              <img src={o.items[0].image} loading="lazy" decoding="async" className="w-10 h-10 object-cover rounded-sm border border-gray-100" />
+                               <span className="text-gray-500">Total {totalQty} products</span>
+                             </div>
+                           </div>
+@@ -5009,7 +5294,7 @@
+                                 {o.items.map((it, idx) => (
+                                   <tr key={idx}>
+                                     <td className="py-2.5 flex items-center gap-2">
+-                                      <img src={it.image} className="w-10 h-10 object-cover rounded-sm border border-gray-100 flex-shrink-0" />
++                                      <img src={it.image} loading="lazy" decoding="async" className="w-10 h-10 object-cover rounded-sm border border-gray-100 flex-shrink-0" />
+                                       <div>
+                                         <div className="flex items-center gap-1.5">
+                                           {isCancelledLike && <span className="bg-gray-200 text-gray-600 text-[9px] font-bold px-1 rounded-sm">{o.orderStatus === 'Đã hủy' ? 'Hủy' : 'Trả hàng'}</span>}
+@@ -5093,13 +5378,15 @@
+ 
+               {/* BANNER TRANG CHỦ (chỉ admin — banner dùng chung toàn site, không thuộc riêng shop nào) */}
+               {sellerPage === 'shopDecor' && myUser?.role === 'admin' && (
+-                <HomepageBannerEditor
+-                  draft={bannerDraft}
+-                  setDraft={setBannerDraft}
+-                  onSave={saveBanner}
+-                  saving={savingBanner}
+-                  onImageFile={handleBannerImageFile}
+-                />
++                <Suspense fallback={<div className="text-gray-300 text-xs py-6 text-center">Đang tải trình chỉnh banner...</div>}>
++                  <HomepageBannerEditor
++                    draft={bannerDraft}
++                    setDraft={setBannerDraft}
++                    onSave={saveBanner}
++                    saving={savingBanner}
++                    onImageFile={handleBannerImageFile}
++                  />
++                </Suspense>
+               )}
+               {sellerPage === 'shopDecor' && myUser?.role !== 'admin' && (
+                 <div className="max-w-3xl text-center text-gray-400 text-[12px] py-10">
+@@ -5129,7 +5416,7 @@
+                           return (
+                             <tr key={p.id}>
+                               <td className="p-3"><input type="checkbox" checked={!!p.flashSale} onChange={(e) => toggleFlashSale(p.id, e.target.checked)} className="accent-[#EE4D2D] w-4 h-4" /></td>
+-                              <td className="p-3 flex items-center gap-2"><img src={p.image} className="w-10 h-10 object-cover rounded-sm" /><span className="line-clamp-1 max-w-[220px]">{p.name}</span></td>
++                              <td className="p-3 flex items-center gap-2"><img src={p.image} loading="lazy" decoding="async" className="w-10 h-10 object-cover rounded-sm" /><span className="line-clamp-1 max-w-[220px]">{p.name}</span></td>
+                               <td className="p-3 text-gray-500">{formatVND(p.price)}</td>
+                               <td className="p-3">
+                                 <input
