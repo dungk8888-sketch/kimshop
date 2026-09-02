@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="112" fill="#ee4d2d"/>
+  <path d="M132 182h248l-25 194c-4 29-28 50-57 50h-84c-29 0-53-21-57-50l-25-194z" fill="#fff"/>
+  <path d="M192 194v-24c0-36 29-65 64-65s64 29 64 65v24" fill="none" stroke="#fff" stroke-width="28" stroke-linecap="round"/>
+  <text x="256" y="326" text-anchor="middle" font-family="Arial,Helvetica,sans-serif" font-size="112" font-weight="700" fill="#ee4d2d">K</text>
+</svg>
