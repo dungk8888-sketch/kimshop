@@ -40,47 +40,19 @@ applyEncodedPatch([
   'patches/checkout-complete.b64',
 ], '/tmp/checkout-complete.diff');
 
-// Mobile startup performance patch:
-// Render the buyer catalog before loading order/admin-only tables.
-let appSource = readFileSync('src/App.tsx', 'utf8');
-const loadRemoteMarker = 'const loadRemoteData = async () => {';
-if (!appSource.includes(loadRemoteMarker)) {
-  throw new Error('Performance patch failed: loadRemoteData marker not found');
+// Temporary build diagnostics: print only small source windows around current
+// performance markers so we can inspect the exact assembled startup path.
+const assembled = readFileSync('src/App.tsx', 'utf8');
+for (const needle of ['catalogGenRef', 'loadCatalog', 'loadRemoteData()']) {
+  let from = 0;
+  let count = 0;
+  while (count < 6) {
+    const idx = assembled.indexOf(needle, from);
+    if (idx < 0) break;
+    console.log(`\n[STARTUP-DIAG ${needle} #${count + 1}]\n${assembled.slice(Math.max(0, idx - 550), idx + 1250)}\n[/STARTUP-DIAG]\n`);
+    from = idx + needle.length;
+    count++;
+  }
 }
 
-const fastCatalogLoader = `const loadCatalogFast = async () => {
-  const [ps, ss] = await Promise.all([
-    supabase.from('products').select('*').neq('status','deleted').order('created_at',{ascending:false}),
-    supabase.from('shops').select('*').order('created_at',{ascending:false}),
-  ]);
-  if(ps.error) throw ps.error; if(ss.error) throw ss.error;
-  const ids=(ps.data||[]).map((p:any)=>p.id);
-  const [imgs, vars] = await Promise.all([
-    ids.length ? supabase.from('product_images').select('*').in('product_id',ids) : Promise.resolve({data:[],error:null} as any),
-    ids.length ? supabase.from('product_variants').select('*').in('product_id',ids) : Promise.resolve({data:[],error:null} as any),
-  ]);
-  if(imgs.error) throw imgs.error; if(vars.error) throw vars.error;
-  const shops=(ss.data||[]).map((s:any)=>({id:s.id,name:s.name,ownerId:s.owner_id,status:s.status,logo:s.logo_url,description:s.description}));
-  const shopById=(id:string)=>shops.find((s:any)=>s.id===id);
-  const products=(ps.data||[]).map((p:any)=>{
-    const ui=dbProductToUi(p,(imgs.data||[]).filter((x:any)=>x.product_id===p.id),(vars.data||[]).filter((x:any)=>x.product_id===p.id));
-    return {...ui, shopId:p.shop_id, shopName:shopById(p.shop_id)?.name || SELLER_SHOP};
-  });
-  return {products,shops};
-};
-
-`;
-appSource = appSource.replace(loadRemoteMarker, fastCatalogLoader + loadRemoteMarker);
-
-const initialLoadPattern = /\(async\s*\(\)\s*=>\s*\{\s*try\s*\{\s*const\s+d\s*=\s*await\s+loadRemoteData\(\);[\s\S]{0,900}?dataReadyRef\.current\s*=\s*true;[\s\S]{0,300}?\}\s*catch\s*\(e\)\s*\{\s*console\.error\(e\);?\s*\}\s*\}\)\(\);/;
-const newInitialLoad = `(async()=>{ try { const d=await loadCatalogFast(); if(cancelled)return; setProducts(d.products); setShops(d.shops); dataReadyRef.current=true; setTimeout(()=>{ if(cancelled)return; loadRemoteData().then(full=>{ if(cancelled)return; setProducts(full.products); setShops(full.shops); setOrders(full.orders); setSellerApplications(full.sellerApplications); }).catch(console.error); },1500); } catch(e){ console.error(e); } })();`;
-if (!initialLoadPattern.test(appSource)) {
-  const idx = appSource.indexOf('await loadRemoteData()');
-  const nearby = idx >= 0 ? appSource.slice(Math.max(0, idx - 180), idx + 850) : 'loadRemoteData call not found';
-  throw new Error(`Performance patch failed: startup pattern not found. Nearby source: ${nearby}`);
-}
-appSource = appSource.replace(initialLoadPattern, newInitialLoad);
-
-writeFileSync('src/App.tsx', appSource);
-
-console.log(`Assembled src/App.tsx and applied variant UX, compact quantity, checkout Task 1-3B, and fast mobile catalog patches.`);
+console.log(`Assembled src/App.tsx and applied variant UX, compact quantity, and checkout Task 1-3B patches.`);
