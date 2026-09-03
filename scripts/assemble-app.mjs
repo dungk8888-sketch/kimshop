@@ -30,6 +30,6 @@ const patchEncoded = [
 const patch = gunzipSync(Buffer.from(patchEncoded, 'base64'));
 const patchPath = '/tmp/variant-ux.diff';
 writeFileSync(patchPath, patch);
-execFileSync('git', ['apply', '--whitespace=nowarn', '--recount', patchPath], { stdio: 'inherit' });
+execFileSync('git', ['apply', '-p0', '--whitespace=nowarn', '--recount', patchPath], { stdio: 'inherit' });
 
 console.log(`Assembled exact final src/App.tsx (${source.length} chars) and applied simplified variant UX patch.`);
