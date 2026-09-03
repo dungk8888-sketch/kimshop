@@ -1,40 +1,24 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
 html,body,#root{min-height:100%;margin:0}
-html{-webkit-text-size-adjust:100%;text-size-adjust:100%;background:#f6f6f6}
-body{font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#f6f6f6;overscroll-behavior-y:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
-input,textarea,select,[contenteditable="true"]{-webkit-user-select:text;user-select:text}
+body{font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#f6f6f6}
 
 /* ============================================================
    MOBILE RESPONSIVE / UX — an toàn ngang (không đổi hành vi desktop)
    ============================================================ */
-html,body{overflow-x:hidden;width:100%;max-width:100%}
-#root{overflow-x:hidden;width:100%;max-width:100%;min-height:100dvh}
+/* Chặn overflow ngang toàn trang ngoài ý muốn, cho phép các thành phần
+   con tự scroll ngang khi cần (vd: menu tab, bảng dữ liệu). */
+html,body{overflow-x:hidden}
+#root{overflow-x:hidden}
 
-/* Safe-area cho iPhone khi chạy từ Home Screen ở chế độ standalone. */
-@supports (padding: max(0px)){
-  body{
-    padding-left:env(safe-area-inset-left);
-    padding-right:env(safe-area-inset-right);
-  }
-}
-
-/* Dùng cho thanh menu/tab cần cuộn ngang trên mobile. */
+/* Dùng cho thanh menu/tab cần cuộn ngang trên mobile (ẩn thanh cuộn để
+   trông giống app di động, vẫn cuộn được bằng ngón tay/chuột). */
 .scrollbar-hide{-ms-overflow-style:none;scrollbar-width:none}
 .scrollbar-hide::-webkit-scrollbar{display:none}
 
-/* App-like: tránh double-tap zoom nhưng vẫn giữ thao tác cuộn/chạm bình thường. */
-button,a,[role="button"],input,select,textarea{touch-action:manipulation}
-img{max-width:100%;-webkit-user-drag:none}
-
-@media (display-mode:standalone){
-  html,body,#root{min-height:100dvh}
-  body{overscroll-behavior:none}
-}
-
-/* Đảm bảo vùng chạm tối thiểu ~40px trên mobile. */
+/* Đảm bảo vùng chạm tối thiểu ~40px cho các nút icon-only trên mobile mà
+   không đổi kích thước hiển thị trên desktop (chỉ áp dụng dưới 768px). */
 @media (max-width:767px){
   .tap-target{min-width:40px;min-height:40px}
 }
