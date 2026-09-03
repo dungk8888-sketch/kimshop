@@ -36,4 +36,8 @@ applyEncodedPatch([
   'patches/variant-qty-compact.b64',
 ], '/tmp/variant-qty-compact.diff');
 
-console.log(`Assembled exact final src/App.tsx (${source.length} chars), applied simplified variant UX and compact per-variant quantity patches.`);
+applyEncodedPatch([
+  'patches/checkout-complete.b64',
+], '/tmp/checkout-complete.diff');
+
+console.log(`Assembled src/App.tsx and applied variant UX, compact quantity, and checkout Task 1-3B patches.`);
