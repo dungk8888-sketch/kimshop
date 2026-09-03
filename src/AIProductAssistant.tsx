@@ -37,6 +37,7 @@ export interface AIProductAssistantInput {
   categories: AICategoryOption[];
 }
 const MAX_AI_IMAGES = 9;
+const norm = (s:any) => String(s || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/gi,'d').toLowerCase().trim();
 
 async function generateAIProductDraft(input: AIProductAssistantInput): Promise<AIProductDraft> {
   const { data: sessionData } = await supabase.auth.getSession();
@@ -73,11 +74,56 @@ async function generateAIProductDraft(input: AIProductAssistantInput): Promise<A
   }
   if (!data || typeof data !== 'object') throw new Error('AI backend trả về dữ liệu không hợp lệ.');
   const draft = data as AIProductDraft;
+  let variantGroups: AIVariantGroupDraft[] = Array.isArray(draft.variantGroups) ? draft.variantGroups : [];
+  let variantDetails: AIVariantDetailDraft[] = Array.isArray(draft.variantDetails) ? draft.variantDetails : [];
+
+  // AI chính đôi khi viết tên/mô tả đúng nhưng bỏ hẳn màu hoặc loại. Khi đó gọi
+  // detector chuyên dụng chỉ để rà biến thể từ toàn bộ ảnh + tên/mô tả, rồi GỘP
+  // vào kết quả chính thay vì thay thế dữ liệu đang có.
+  const textKey = norm(`${input.currentName} ${input.quickNote} ${draft.name || ''} ${draft.description || ''}`);
+  const hasColorGroup = variantGroups.some(g => /mau|color/.test(norm(g.name)));
+  const hasVoXuongGroup = variantGroups.some(g => g.values?.some(v => ['vo','xuong'].includes(norm(v))));
+  const needsDetector = variantGroups.length === 0 || (input.images.length > 0 && !hasColorGroup) || (textKey.includes('vo') && textKey.includes('xuong') && !hasVoXuongGroup);
+  if (needsDetector) {
+    try {
+      const { data: detected, error: detectError } = await supabase.functions.invoke('ai-variant-detector', {
+        body: { images: input.images, quickNote: input.quickNote, currentName: draft.name || input.currentName },
+        headers: { Authorization: `Bearer ${accessToken}` },
+      });
+      if (!detectError && detected && typeof detected === 'object') {
+        const detectedGroups: AIVariantGroupDraft[] = Array.isArray((detected as any).variantGroups) ? (detected as any).variantGroups : [];
+        const merged: AIVariantGroupDraft[] = variantGroups.map(g => ({ name:g.name, values:[...(g.values || [])] }));
+        for (const dg of detectedGroups) {
+          const key = norm(dg.name);
+          let target = merged.find(g => norm(g.name) === key);
+          // Cho phép ghép tên gần nghĩa như "Màu" và "Màu sắc".
+          if (!target && /mau|color/.test(key)) target = merged.find(g => /mau|color/.test(norm(g.name)));
+          if (!target && /loai|phan loai|type/.test(key)) target = merged.find(g => /loai|phan loai|type/.test(norm(g.name)));
+          if (!target) { target = { name: dg.name || 'Phân loại', values: [] }; merged.push(target); }
+          for (const v of (dg.values || [])) if (v && !target.values.some(x => norm(x) === norm(v))) target.values.push(v);
+        }
+        variantGroups = merged.filter(g => g.name && g.values?.length);
+        const dd = Array.isArray((detected as any).variantDetails) ? (detected as any).variantDetails : [];
+        if (dd.length) variantDetails = [...variantDetails, ...dd];
+      }
+    } catch {
+      // Detector phụ lỗi thì vẫn dùng kết quả AI chính, không làm hỏng toàn bộ thao tác.
+    }
+  }
+
+  // Bảo hiểm cuối: tên/mô tả có đủ "Vỏ" + "Xương" thì nhất định phải có nhóm Loại.
+  const afterKey = norm(`${input.currentName} ${input.quickNote} ${draft.name || ''} ${draft.description || ''}`);
+  if (afterKey.includes('vo') && afterKey.includes('xuong')) {
+    let typeGroup = variantGroups.find(g => /loai|phan loai|type/.test(norm(g.name)) || g.values.some(v => ['vo','xuong'].includes(norm(v))));
+    if (!typeGroup) { typeGroup = { name:'Loại', values:[] }; variantGroups.push(typeGroup); }
+    for (const v of ['Vỏ','Xương']) if (!typeGroup.values.some(x => norm(x) === norm(v))) typeGroup.values.push(v);
+  }
+
   return {
     name: draft.name || '', description: draft.description || '', categoryId: draft.categoryId ?? null,
     categoryName: draft.categoryName ?? null, price: draft.price || '', originalPrice: draft.originalPrice || '',
-    variantGroups: Array.isArray(draft.variantGroups) ? draft.variantGroups : [],
-    variantDetails: Array.isArray(draft.variantDetails) ? draft.variantDetails : [],
+    variantGroups,
+    variantDetails,
     skuSuggestion: draft.skuSuggestion || '', coverImageIndex: typeof draft.coverImageIndex === 'number' ? draft.coverImageIndex : 0,
     note: draft.note || 'Bản nháp do AI tạo — vui lòng kiểm tra kỹ trước khi lưu.', images: input.images,
   };
@@ -96,7 +142,7 @@ export function AIProductAssistantPanel({ open,onClose,categories,initialImages,
   const runGenerate=async()=>{setErrorMsg('');if(!images.length&&!quickNote.trim()&&!currentName.trim()){setErrorMsg('Vui lòng tải ít nhất 1 ảnh hoặc nhập mô tả nhanh');return;}setLoading(true);try{const result=await generateAIProductDraft({images,quickNote,currentName,currentPrice,currentOriginalPrice,currentCategoryId,currentVariantGroups,currentVariantCombos,categories});onApply(result);}catch(err){setErrorMsg(err instanceof Error&&err.message?err.message:'Tạo bằng AI thất bại, vui lòng thử lại');}finally{setLoading(false);}};
   return <div className="fixed inset-0 z-50 flex items-center justify-center p-3 bg-black/50" onClick={onClose}><div className="bg-white rounded-sm w-full max-w-2xl max-h-[90vh] overflow-y-auto" onClick={e=>e.stopPropagation()}>
     <div className="flex items-center justify-between px-5 py-3.5 border-b border-gray-200 sticky top-0 bg-white z-10"><div className="flex items-center gap-2"><Sparkles size={18} className="text-[#EE4D2D]"/><h3 className="font-bold text-sm text-gray-800">Thêm sản phẩm bằng AI</h3></div><button onClick={onClose} className="text-gray-400 hover:text-gray-700"><X size={18}/></button></div>
-    <div className="p-5 space-y-4"><p className="text-gray-500 text-[11px]">AI sẽ nhận cả thông tin đang có trong form. Khi sửa sản phẩm, AI không được làm mất nhóm phân loại, giá hay kho đang có; nếu ảnh/mô tả có thông tin mới rõ ràng thì mới bổ sung/cập nhật.</p>
+    <div className="p-5 space-y-4"><p className="text-gray-500 text-[11px]">AI sẽ rà kỹ cả màu sắc và loại sản phẩm. Nếu lượt AI chính bỏ sót phân loại, hệ thống tự chạy thêm bộ nhận diện biến thể để bổ sung trước khi điền form.</p>
       <div><label className="block text-gray-600 text-[11px] mb-1.5">Ảnh sản phẩm cho AI phân tích <span className="text-gray-400">({images.length}/{MAX_AI_IMAGES})</span></label><div className="flex flex-wrap gap-2.5">{images.map((img,idx)=><div key={idx} className="relative w-16 h-16 flex-shrink-0 border border-gray-200 rounded-sm overflow-hidden"><img src={img} className="w-full h-full object-cover"/><button type="button" onClick={()=>setImages(p=>p.filter((_,i)=>i!==idx))} className="absolute top-0.5 right-0.5 bg-black/60 text-white rounded-full p-0.5"><X size={9}/></button></div>)}{images.length<MAX_AI_IMAGES&&<label className="w-16 h-16 border-2 border-dashed border-gray-300 rounded-sm flex flex-col items-center justify-center text-gray-400 cursor-pointer"><ImagePlus size={16}/><span className="text-[8px]">Tải ảnh</span><input type="file" accept="image/png,image/jpeg" multiple onChange={handleFiles} className="hidden"/></label>}</div></div>
       <div><label className="block text-gray-600 text-[11px] mb-1.5">Mô tả nhanh cho AI</label><textarea value={quickNote} onChange={e=>setQuickNote(e.target.value)} placeholder="VD: có Vỏ và Xương; Vỏ 130k kho 20, Xương 80k kho 10..." className="w-full border border-gray-200 rounded-sm px-3 py-2 outline-none focus:border-[#EE4D2D]" rows={3}/><p className="text-gray-400 text-[10px] mt-1">AI chỉ điền giá/kho khi đọc được rõ từ ảnh, mô tả hoặc dữ liệu đang có; không tự đoán số.</p></div>
       {errorMsg&&<div><p className="text-red-500 text-[11px]">{errorMsg}</p><p className="text-gray-400 text-[10px]">Ảnh và mô tả vẫn được giữ nguyên để thử lại.</p></div>}
