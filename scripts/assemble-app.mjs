@@ -41,10 +41,7 @@ applyEncodedPatch([
 ], '/tmp/checkout-complete.diff');
 
 // Mobile startup performance patch:
-// The home page used to wait for products + shops + every order + seller
-// application + order_items before rendering the catalog. On mobile networks
-// that can make products appear many seconds late. Load only catalog-critical
-// tables first; hydrate order/admin data shortly after first paint.
+// Render the buyer catalog before loading order/admin-only tables.
 let appSource = readFileSync('src/App.tsx', 'utf8');
 const loadRemoteMarker = 'const loadRemoteData = async () => {';
 if (!appSource.includes(loadRemoteMarker)) {
@@ -75,12 +72,14 @@ const fastCatalogLoader = `const loadCatalogFast = async () => {
 `;
 appSource = appSource.replace(loadRemoteMarker, fastCatalogLoader + loadRemoteMarker);
 
-const oldInitialLoad = `(async()=>{ try { const d=await loadRemoteData(); if(cancelled)return; setProducts(d.products); setShops(d.shops); setOrders(d.orders); setSellerApplications(d.sellerApplications); dataReadyRef.current=true; } catch(e){ console.error(e); } })();`;
+const initialLoadPattern = /\(async\s*\(\)\s*=>\s*\{\s*try\s*\{\s*const\s+d\s*=\s*await\s+loadRemoteData\(\);[\s\S]{0,900}?dataReadyRef\.current\s*=\s*true;[\s\S]{0,300}?\}\s*catch\s*\(e\)\s*\{\s*console\.error\(e\);?\s*\}\s*\}\)\(\);/;
 const newInitialLoad = `(async()=>{ try { const d=await loadCatalogFast(); if(cancelled)return; setProducts(d.products); setShops(d.shops); dataReadyRef.current=true; setTimeout(()=>{ if(cancelled)return; loadRemoteData().then(full=>{ if(cancelled)return; setProducts(full.products); setShops(full.shops); setOrders(full.orders); setSellerApplications(full.sellerApplications); }).catch(console.error); },1500); } catch(e){ console.error(e); } })();`;
-if (!appSource.includes(oldInitialLoad)) {
-  throw new Error('Performance patch failed: initial catalog load marker not found');
+if (!initialLoadPattern.test(appSource)) {
+  const idx = appSource.indexOf('await loadRemoteData()');
+  const nearby = idx >= 0 ? appSource.slice(Math.max(0, idx - 180), idx + 850) : 'loadRemoteData call not found';
+  throw new Error(`Performance patch failed: startup pattern not found. Nearby source: ${nearby}`);
 }
-appSource = appSource.replace(oldInitialLoad, newInitialLoad);
+appSource = appSource.replace(initialLoadPattern, newInitialLoad);
 
 writeFileSync('src/App.tsx', appSource);
 
