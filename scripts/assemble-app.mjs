@@ -67,7 +67,7 @@ const checks = {
   thumbnailCdn: assembled.includes('productThumb(p.image, 480)'),
   voucherShipping: assembled.includes('<option value="shipping">Miễn phí vận chuyển</option>'),
   usernameRegisterFunction: assembled.includes("functions.invoke('register-username'"),
-  reviewRecipientName: assembled.includes("recipientName = order.customer_name") && assembled.includes("order.customer_name || order.recipient_name || 'Khách hàng KimShop'") && assembled.includes("user: order.customerName || 'Khách hàng KimShop'"),
+  reviewRecipientName: assembled.includes("recipientName = r.reviewer_name || order.customer_name || order.recipient_name") && assembled.includes("user: recipientName") && assembled.includes("user: order.customerName || 'Khách hàng KimShop'"),
   noHydratedProfileReviewName: !assembled.includes("profile?.full_name || profile?.username || r.reviewer_name"),
   detailRetry: assembled.includes('loadProductDetailRelations'),
   detailLoading: assembled.includes('productDetailLoading'),
