@@ -49,4 +49,16 @@ applyPlainPatch('patches/scale-storefront-1.diff');
 applyPlainPatch('patches/scale-storefront-2.diff');
 applyPlainPatch('patches/scale-storefront-3.diff');
 
-console.log(`Assembled src/App.tsx and applied variant UX, compact quantity, checkout Task 1-3B, Task 4 category/variant fixes, and scalable storefront patches.`);
+const assembled = readFileSync('src/App.tsx', 'utf8');
+const checks = {
+  categoryButtons: assembled.includes("categories.filter((c) => c.isActive)"),
+  categoryIdFilter: assembled.includes("categoryId:selectedCategory"),
+  variantRelations: assembled.includes("vars: (vars.error ? [] : (vars.data || []))"),
+  variantGroups: assembled.includes('variantGroups'),
+  selectedVariant: assembled.includes('selectedVariant'),
+  checkout: assembled.includes('checkout_place_order') || assembled.includes('placeOrder'),
+  pageSize24: assembled.includes('STOREFRONT_PAGE_SIZE = 24'),
+  thumbnailCdn: assembled.includes('productThumb(p.image, 480)'),
+};
+console.log('[KIMSHOP VERIFY]', JSON.stringify(checks));
+console.log(`Assembled src/App.tsx and applied variant UX, compact quantity, checkout Task 1-3B, Task 4 variant fix, and scalable storefront patches.`);
