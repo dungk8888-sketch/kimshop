@@ -50,6 +50,7 @@ applyPlainPatch('patches/scale-storefront-2.diff');
 applyPlainPatch('patches/scale-storefront-3.diff');
 execFileSync('node', ['scripts/apply-voucher-auth-fix.mjs'], { stdio: 'inherit' });
 execFileSync('node', ['scripts/apply-review-buyer-name-fix.mjs'], { stdio: 'inherit' });
+execFileSync('node', ['scripts/apply-review-recipient-name-fix.mjs'], { stdio: 'inherit' });
 execFileSync('node', ['scripts/apply-product-detail-hydration-fix.mjs'], { stdio: 'inherit' });
 execFileSync('node', ['scripts/apply-product-detail-cache.mjs'], { stdio: 'inherit' });
 execFileSync('node', ['scripts/apply-default-variant-form-cleanup.mjs'], { stdio: 'inherit' });
@@ -66,8 +67,7 @@ const checks = {
   thumbnailCdn: assembled.includes('productThumb(p.image, 480)'),
   voucherShipping: assembled.includes('<option value="shipping">Miễn phí vận chuyển</option>'),
   usernameRegisterFunction: assembled.includes("functions.invoke('register-username'"),
-  reviewBuyerProfile: assembled.includes("reviewer_name: profile?.full_name || profile?.username"),
-  localReviewBuyerName: assembled.includes("user: myUser?.name || currentUser.username || 'Khách hàng KimShop'"),
+  reviewRecipientName: assembled.includes("recipientName = order.customer_name") && assembled.includes("user: order.customerName"),
   detailRetry: assembled.includes('loadProductDetailRelations'),
   detailLoading: assembled.includes('productDetailLoading'),
   detailHydration: assembled.includes("supabase.from('products').select('*').eq('id', product.id).single()"),
@@ -78,4 +78,4 @@ const checks = {
 };
 if (Object.values(checks).some((v) => !v)) throw new Error(`KIMSHOP verify failed: ${JSON.stringify(checks)}`);
 console.log('[KIMSHOP VERIFY]', JSON.stringify(checks));
-console.log(`Assembled src/App.tsx and applied performance, variant, checkout, voucher, auth, review, detail cache, default variant, and seller form cleanup fixes.`);
+console.log(`Assembled src/App.tsx and applied performance, variant, checkout, voucher, auth, recipient review name, detail cache, default variant, and seller form cleanup fixes.`);
