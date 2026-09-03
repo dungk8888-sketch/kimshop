@@ -1,0 +1,166 @@
+--- src/App.tsx
++++ src/App.tsx
+@@ -41,6 +41,15 @@
+ const DEFAULT_SHOP_ID = null;
+ // Số ảnh tối đa cho 1 sản phẩm (bảng product_images, sort_order 0..MAX-1).
+ const MAX_PRODUCT_IMAGES = 9;
++// [SCALE] Storefront chỉ lấy từng trang nhỏ từ Supabase. Seller/Admin vẫn có thể
++// nạp toàn bộ catalog khi thật sự vào Kênh Người Bán.
++const STOREFRONT_PAGE_SIZE = 24;
++const productThumb = (src:any, width=480) => {
++  if (!src || typeof src !== 'string') return src || '';
++  if (typeof window === 'undefined') return src;
++  if (!src.includes('.supabase.co/storage/v1/object/public/')) return src;
++  return `/_vercel/image?url=${encodeURIComponent(src)}&w=${width}&q=65`;
++};
+ // Adapter AN TOÀN cho trải nghiệm xem ảnh sản phẩm: `product.images` (từ
+ // bảng product_images qua dbProductToUi) là nguồn chính, nhưng dữ liệu có
+ // thể không nhất quán (mảng object {public_url}/{url} còn sót từ chỗ khác,
+@@ -165,8 +174,41 @@
+ // bên dưới) nên 100% các nơi đang gọi loadRemoteData() để nạp lại sau khi
+ // sửa/xoá dữ liệu (lưu sản phẩm, đặt hàng, duyệt đơn bán...) không đổi hành vi.
+ 
+-// Bước 1 (bắt buộc để vẽ Trang chủ/danh sách sản phẩm lần đầu): products +
+-// shops + categories — 3 bảng độc lập, nạp song song bằng Promise.all.
++// [SCALE] Metadata nhỏ dùng chung cho storefront.
++const loadCatalogMeta = async () => {
++  const [ss, cats] = await Promise.all([
++    supabase.from('shops').select('*').order('created_at',{ascending:false}),
++    supabase.from('categories').select('*').order('sort_order',{ascending:true}),
++  ]);
++  if(ss.error) throw ss.error; if(cats.error) throw cats.error;
++  return {
++    categories:(cats.data||[]).map(dbCategoryToUi),
++    shops:(ss.data||[]).map((x:any)=>({id:x.id,name:x.name,ownerId:x.owner_id,status:x.status,logo:x.logo_url,description:x.description})),
++  };
++};
++
++// [SCALE] Query phân trang THẬT ở database — không tải hàng nghìn sản phẩm về máy
++// rồi mới slice. Filter/search/sort đều chạy ở Supabase trước khi trả dữ liệu.
++const loadStorefrontPage = async ({offset=0, categoryId='all', search='', sortBy='popular'}: any = {}) => {
++  let q:any = supabase
++    .from('products')
++    .select('*', { count: 'exact' })
++    .neq('status','deleted');
++  if(categoryId && categoryId !== 'all') q = q.eq('category_id', categoryId);
++  const term = String(search||'').trim();
++  if(term) q = q.ilike('name', `%${term.replace(/[%_]/g, '')}%`);
++  if(sortBy==='priceAsc') q=q.order('price',{ascending:true}).order('created_at',{ascending:false});
++  else if(sortBy==='priceDesc') q=q.order('price',{ascending:false}).order('created_at',{ascending:false});
++  else if(sortBy==='rating') q=q.order('rating',{ascending:false}).order('created_at',{ascending:false});
++  else if(sortBy==='newest') q=q.order('created_at',{ascending:false});
++  else q=q.order('sold',{ascending:false}).order('created_at',{ascending:false});
++  const {data,error,count}=await q.range(offset, offset + STOREFRONT_PAGE_SIZE - 1);
++  if(error) throw error;
++  return { rawProducts:(data||[]) as any[], total:Number(count||0) };
++};
++
++// Bước 1 (full catalog): chỉ dùng cho Seller/Admin và các thao tác quản trị cần
++// toàn bộ sản phẩm. Storefront KHÔNG gọi hàm này khi khởi động nữa.
+ const loadCatalogCore = async () => {
+   const [ps, ss, cats] = await Promise.all([
+     supabase.from('products').select('*').neq('status','deleted').order('created_at',{ascending:false}),
+@@ -841,6 +883,13 @@
+   // Dữ liệu lõi
+   const [products, setProducts] = useState<any[]>([]);
+   const [orders, setOrders] = useState<any[]>([]);
++  const [storefrontTotal, setStorefrontTotal] = useState(0);
++  const [storefrontLoading, setStorefrontLoading] = useState(false);
++  const [storefrontHasMore, setStorefrontHasMore] = useState(true);
++  const storefrontMetaRef = useRef<{shops:any[];categories:any[]}|null>(null);
++  const storefrontQueryGenRef = useRef(0);
++  const storefrontReadyRef = useRef(false);
++  const loadMoreSentinelRef = useRef<HTMLDivElement|null>(null);
+   // Khởi tạo từ localStorage cho KHÁCH (chưa đăng nhập) để F5 không mất giỏ
+   // hàng/yêu thích/đã xem. Nếu có phiên đăng nhập, loadUserSession() sẽ nạp
+   // đè lại từ Supabase ngay sau khi mount (xem useEffect bên dưới).
+@@ -1153,37 +1202,35 @@
+ 
+   useEffect(() => {
+     let cancelled=false;
+-    // [PERF] Khởi động: chỉ chờ products/shops/categories (đủ để vẽ Trang chủ
+-    // + danh sách sản phẩm với ảnh đại diện có sẵn) rồi setProducts NGAY.
+-    // Ảnh phụ/biến thể/đánh giá (loadProductRelations) và dữ liệu quản trị
+-    // orders/seller_applications/vouchers (loadAdminData, chỉ Admin/Seller
+-    // cần) được bắn song song ngay sau đó nhưng KHÔNG chặn lần vẽ đầu tiên —
+-    // gắn đè vào state khi từng phần nạp xong.
++    // [SCALE] Khởi động storefront: metadata + đúng 24 sản phẩm đầu. Không kéo
++    // toàn bộ catalog và không chờ dữ liệu seller/admin.
+     (async()=>{
+-      const myGen = ++catalogGenRef.current;
+-      const myAdminGen = ++adminGenRef.current;
++      const myGen = ++storefrontQueryGenRef.current;
+       try {
+-        const { rawProducts, shops, categories } = await loadCatalogCore();
+-        if (cancelled || catalogGenRef.current !== myGen) return;
+-        setProducts(buildProducts(rawProducts, shops, categories));
+-        setShops(shops);
+-        setCategories(categories);
+-        dataReadyRef.current = true;
+-        loadProductRelations(rawProducts)
+-          .then(({ imgs, vars, reviews }) => {
+-            if (cancelled || catalogGenRef.current !== myGen) return;
+-            setProducts(buildProducts(rawProducts, shops, categories, imgs, vars, reviews));
+-          })
+-          .catch((e) => console.error('Không tải được ảnh/biến thể/đánh giá sản phẩm', e));
+-        loadAdminData(shops)
+-          .then(({ orders, sellerApplications, vouchers }) => {
+-            if (cancelled || adminGenRef.current !== myAdminGen) return;
+-            setOrders(orders);
+-            setSellerApplications(sellerApplications);
+-            setVouchers(vouchers);
+-          })
+-          .catch((e) => console.error('Không tải được đơn hàng/hồ sơ đăng ký bán/voucher', e));
+-      } catch (e) { console.error(e); }
++        setStorefrontLoading(true);
++        const [{shops,categories}, page] = await Promise.all([loadCatalogMeta(), loadStorefrontPage({offset:0,categoryId:'all',search:'',sortBy:'popular'})]);
++        if(cancelled || storefrontQueryGenRef.current!==myGen) return;
++        storefrontMetaRef.current={shops,categories};
++        setShops(shops); setCategories(categories); setStorefrontTotal(page.total);
++        setStorefrontHasMore(page.rawProducts.length < page.total);
++        setProducts(buildProducts(page.rawProducts,shops,categories));
++        dataReadyRef.current=true; storefrontReadyRef.current=true;
++        loadProductRelations(page.rawProducts).then(({imgs,vars,reviews})=>{
++          if(cancelled || storefrontQueryGenRef.current!==myGen) return;
++          setProducts(buildProducts(page.rawProducts,shops,categories,imgs,vars,reviews));
++        }).catch((e)=>console.error('Không tải được quan hệ sản phẩm',e));
++        // Đơn mua/voucher vẫn cần cho buyer, nhưng tải SAU lần vẽ đầu để không
++        // tranh băng thông với catalog + ảnh trên 4G/Zalo WebView.
++        window.setTimeout(()=>{
++          if(cancelled) return;
++          const myAdminGen=++adminGenRef.current;
++          loadAdminData(shops).then(({orders,sellerApplications,vouchers})=>{
++            if(cancelled || adminGenRef.current!==myAdminGen) return;
++            setOrders(orders); setSellerApplications(sellerApplications); setVouchers(vouchers);
++          }).catch(e=>console.error('Không tải được dữ liệu tài khoản/đơn hàng nền',e));
++        },700);
++      } catch(e){ console.error('Không tải được storefront',e); }
++      finally { if(!cancelled) setStorefrontLoading(false); }
+     })();
+     // Banner trang chủ: đọc trực tiếp từ Supabase ngay khi app khởi động,
+     // kể cả khách chưa đăng nhập (RLS tự lọc is_active=true, xem migration
+@@ -1200,13 +1247,17 @@
+     });
+ 
+     const refreshCatalog=()=>{
+-      const myGen = ++catalogGenRef.current;
+-      const myAdminGen = ++adminGenRef.current;
+-      return loadRemoteData().then(d=>{
+-        if(cancelled) return;
+-        if(catalogGenRef.current===myGen){setProducts(d.products);setShops(d.shops);setCategories(d.categories);}
+-        if(adminGenRef.current===myAdminGen){setOrders(d.orders);setSellerApplications(d.sellerApplications);setVouchers(d.vouchers);}
+-      });
++      const myGen=++storefrontQueryGenRef.current;
++      const meta=storefrontMetaRef.current;
++      if(!meta) return Promise.resolve();
++      return loadStorefrontPage({offset:0,categoryId:'all',search:'',sortBy:'popular'}).then(async page=>{
++        if(cancelled || storefrontQueryGenRef.current!==myGen) return;
++        setStorefrontTotal(page.total); setStorefrontHasMore(page.rawProducts.length<page.total);
++        setProducts(buildProducts(page.rawProducts,meta.shops,meta.categories));
++        const rel=await loadProductRelations(page.rawProducts);
++        if(cancelled || storefrontQueryGenRef.current!==myGen) return;
++        setProducts(buildProducts(page.rawProducts,meta.shops,meta.categories,rel.imgs,rel.vars,rel.reviews));
++      }).catch(e=>console.error('Realtime storefront refresh failed',e));
+     };
+     // Banner trang chủ đổi (do admin lưu, kể cả từ tab/máy khác) -> mọi
+     // storefront đang mở tự cập nhật, không cần F5.
