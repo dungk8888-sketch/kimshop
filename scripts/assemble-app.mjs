@@ -26,6 +26,10 @@ function applyEncodedPatch(files, tempPath) {
   execFileSync('git', ['apply', '-p0', '--whitespace=nowarn', '--recount', tempPath], { stdio: 'inherit' });
 }
 
+function applyPlainPatch(path) {
+  execFileSync('git', ['apply', '-p0', '--whitespace=nowarn', '--recount', path], { stdio: 'inherit' });
+}
+
 applyEncodedPatch([
   'patches/variant-ux.part00.b64',
   'patches/variant-ux.part01.b64',
@@ -40,4 +44,9 @@ applyEncodedPatch([
   'patches/checkout-complete.b64',
 ], '/tmp/checkout-complete.diff');
 
-console.log(`Assembled src/App.tsx and applied variant UX, compact quantity, and checkout Task 1-3B patches.`);
+applyPlainPatch('patches/task4-category-variant.diff');
+applyPlainPatch('patches/scale-storefront-1.diff');
+applyPlainPatch('patches/scale-storefront-2.diff');
+applyPlainPatch('patches/scale-storefront-3.diff');
+
+console.log(`Assembled src/App.tsx and applied variant UX, compact quantity, checkout Task 1-3B, Task 4 category/variant fixes, and scalable storefront patches.`);
