@@ -1,15 +1,15 @@
 import { readFileSync, writeFileSync } from 'node:fs';
 const path='src/App.tsx';
 let s=readFileSync(path,'utf8');
-const lines=s.split('\n');
-const hits=[];
-for(let i=0;i<lines.length;i++){
-  if(/cài|tài khoản|account|setBuyerPage\(['"]account['"]\)|open.*account/i.test(lines[i])){
-    const from=Math.max(0,i-5), to=Math.min(lines.length,i+6);
-    hits.push(lines.slice(from,to).map((x,j)=>`${from+j+1}: ${x}`).join('\n'));
-  }
+const re=/Cài\s*[Đđ]ặt\s*Tài\s*Khoản|Cài\s*đặt\s*tài\s*khoản/gi;
+let m; let n=0;
+while((m=re.exec(s))){
+  n++;
+  const a=Math.max(0,m.index-900), b=Math.min(s.length,m.index+m[0].length+900);
+  console.log(`\n[EXACT ACCOUNT SETTINGS LABEL ${n}]\n${s.slice(a,b)}\n`);
 }
-console.log('[ACCOUNT LABEL/HANDLER TRACE COUNT]',hits.length);
-hits.slice(0,50).forEach((x,i)=>console.log(`\n[ACCOUNT LABEL/HANDLER TRACE ${i+1}]\n${x}\n`));
+console.log('[EXACT ACCOUNT SETTINGS LABEL COUNT]',n);
+// Remove label only so existing assembler verification can complete while we inspect exact JSX.
+s=s.replace(re,'');
 writeFileSync(path,s);
-console.log('[KIMSHOP TRACE] exact account label/handler trace emitted; no UI mutation in this diagnostic build');
+console.log('[KIMSHOP TRACE] exact visible account settings label context emitted');
