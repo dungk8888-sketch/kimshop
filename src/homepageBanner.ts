@@ -28,35 +28,101 @@ export type HomepageBanner = {
   updatedAt?: string;
 };
 
+// Dùng cho form admin: giống HomepageBanner nhưng id là tuỳ chọn (chưa có id
+// nghĩa là banner này chưa từng được lưu — save sẽ INSERT thay vì UPDATE).
 export type HomepageBannerDraft = Omit<HomepageBanner, 'id' | 'createdAt' | 'updatedAt'> & { id?: string };
 
 export const emptyBannerDraft = (): HomepageBannerDraft => ({
-  tag: '', title: '', subtitle: '', imageUrl: '', linkUrl: '', isActive: true, sortOrder: 0, startsAt: null, endsAt: null,
+  tag: '',
+  title: '',
+  subtitle: '',
+  imageUrl: '',
+  linkUrl: '',
+  isActive: true,
+  sortOrder: 0,
+  startsAt: null,
+  endsAt: null,
 });
 
 const dbToUi = (row: any): HomepageBanner => ({
-  id: row.id, tag: row.tag || '', title: row.title || '', subtitle: row.subtitle || '', imageUrl: row.image_url || '', linkUrl: row.link_url || '', isActive: !!row.is_active, sortOrder: Number(row.sort_order ?? 0), startsAt: row.starts_at ?? null, endsAt: row.ends_at ?? null, createdAt: row.created_at, updatedAt: row.updated_at,
+  id: row.id,
+  tag: row.tag || '',
+  title: row.title || '',
+  subtitle: row.subtitle || '',
+  imageUrl: row.image_url || '',
+  linkUrl: row.link_url || '',
+  isActive: !!row.is_active,
+  sortOrder: Number(row.sort_order ?? 0),
+  startsAt: row.starts_at ?? null,
+  endsAt: row.ends_at ?? null,
+  createdAt: row.created_at,
+  updatedAt: row.updated_at,
 });
 
 const draftToDb = (draft: HomepageBannerDraft, createdBy?: string | null) => ({
-  ...(draft.id ? { id: draft.id } : {}), tag: (draft.tag || '').trim(), title: (draft.title || '').trim(), subtitle: (draft.subtitle || '').trim(), image_url: draft.imageUrl || '', link_url: (draft.linkUrl || '').trim(), is_active: !!draft.isActive, sort_order: Number(draft.sortOrder ?? 0), starts_at: draft.startsAt || null, ends_at: draft.endsAt || null, ...(draft.id ? {} : { created_by: createdBy || null }),
+  ...(draft.id ? { id: draft.id } : {}),
+  tag: (draft.tag || '').trim(),
+  title: (draft.title || '').trim(),
+  subtitle: (draft.subtitle || '').trim(),
+  image_url: draft.imageUrl || '',
+  link_url: (draft.linkUrl || '').trim(),
+  is_active: !!draft.isActive,
+  sort_order: Number(draft.sortOrder ?? 0),
+  starts_at: draft.startsAt || null,
+  ends_at: draft.endsAt || null,
+  ...(draft.id ? {} : { created_by: createdBy || null }),
 });
 
+/**
+ * Storefront (khách/buyer, kể cả chưa đăng nhập): đọc TRỰC TIẾP từ Supabase,
+ * đã lọc is_active=true tại RLS — ở đây lọc thêm theo khung thời gian
+ * starts_at/ends_at (nếu có) rồi lấy banner đầu tiên theo sort_order.
+ * Trả về null nếu không có banner nào đang hiệu lực (storefront phải ẨN hẳn
+ * khối banner trong trường hợp này, không tự bịa nội dung thay thế).
+ */
 export const fetchStorefrontBanner = async (): Promise<HomepageBanner | null> => {
-  const { data, error } = await supabase.from('homepage_banners').select('*').eq('is_active', true).order('sort_order', { ascending: true }).order('created_at', { ascending: true });
+  const { data, error } = await supabase
+    .from('homepage_banners')
+    .select('*')
+    .eq('is_active', true)
+    .order('sort_order', { ascending: true })
+    .order('created_at', { ascending: true });
   if (error) throw error;
   const now = Date.now();
-  const eligible = (data || []).filter((row: any) => (!row.starts_at || new Date(row.starts_at).getTime() <= now) && (!row.ends_at || new Date(row.ends_at).getTime() >= now));
+  const eligible = (data || []).filter((row: any) => {
+    const startsOk = !row.starts_at || new Date(row.starts_at).getTime() <= now;
+    const endsOk = !row.ends_at || new Date(row.ends_at).getTime() >= now;
+    return startsOk && endsOk;
+  });
   return eligible.length ? dbToUi(eligible[0]) : null;
 };
 
+/**
+ * Admin: nạp banner "chính" (sort_order nhỏ nhất, rồi created_at sớm nhất)
+ * để đưa vào form chỉnh sửa — kể cả khi đang tắt hoặc ngoài lịch hiển thị
+ * (RLS cho phép admin SELECT toàn bộ). Trả về null nếu chưa từng có banner
+ * nào (form sẽ ở chế độ "tạo mới").
+ */
 export const fetchAdminBanner = async (): Promise<HomepageBanner | null> => {
-  const { data, error } = await supabase.from('homepage_banners').select('*').order('sort_order', { ascending: true }).order('created_at', { ascending: true }).limit(1);
+  const { data, error } = await supabase
+    .from('homepage_banners')
+    .select('*')
+    .order('sort_order', { ascending: true })
+    .order('created_at', { ascending: true })
+    .limit(1);
   if (error) throw error;
   return data && data.length ? dbToUi(data[0]) : null;
 };
 
-export const saveHomepageBanner = async (draft: HomepageBannerDraft, currentUserId?: string | null): Promise<HomepageBanner> => {
+/**
+ * Admin: lưu banner — UPDATE nếu draft đã có id (banner đang chỉnh có sẵn
+ * trong DB), INSERT nếu chưa có id. Đây là bước còn thiếu gây ra bug gốc:
+ * trước đây "Lưu Banner" chỉ gọi setState, không hề gọi Supabase.
+ */
+export const saveHomepageBanner = async (
+  draft: HomepageBannerDraft,
+  currentUserId?: string | null,
+): Promise<HomepageBanner> => {
   const row = draftToDb(draft, currentUserId);
   const { data, error } = await supabase.from('homepage_banners').upsert(row).select().single();
   if (error) throw error;
