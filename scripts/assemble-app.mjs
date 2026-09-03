@@ -51,6 +51,7 @@ applyPlainPatch('patches/scale-storefront-3.diff');
 execFileSync('node', ['scripts/apply-voucher-auth-fix.mjs'], { stdio: 'inherit' });
 execFileSync('node', ['scripts/apply-review-buyer-name-fix.mjs'], { stdio: 'inherit' });
 execFileSync('node', ['scripts/apply-product-detail-hydration-fix.mjs'], { stdio: 'inherit' });
+execFileSync('node', ['scripts/apply-product-detail-cache.mjs'], { stdio: 'inherit' });
 
 const assembled = readFileSync('src/App.tsx', 'utf8');
 const checks = {
@@ -69,7 +70,8 @@ const checks = {
   detailRetry: assembled.includes('loadProductDetailRelations'),
   detailLoading: assembled.includes('productDetailLoading'),
   detailHydration: assembled.includes("supabase.from('products').select('*').eq('id', product.id).single()"),
+  detailCache: assembled.includes('productDetailCacheRef.current.get(product.id)') && assembled.includes('productDetailCacheRef.current.set(product.id'),
 };
 if (Object.values(checks).some((v) => !v)) throw new Error(`KIMSHOP verify failed: ${JSON.stringify(checks)}`);
 console.log('[KIMSHOP VERIFY]', JSON.stringify(checks));
-console.log(`Assembled src/App.tsx and applied performance, variant, checkout, voucher, username-auth, review, and product-detail hydration fixes.`);
+console.log(`Assembled src/App.tsx and applied performance, variant, checkout, voucher, username-auth, review, product-detail hydration, and detail cache fixes.`);
