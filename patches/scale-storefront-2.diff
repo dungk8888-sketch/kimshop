@@ -1,0 +1,72 @@
+--- src/App.tsx
++++ src/App.tsx
+@@ -1227,6 +1278,48 @@
+     return ()=>{cancelled=true; supabase.removeChannel(ch); authListener.subscription.unsubscribe();};
+   },[]);
+ 
++  // [SCALE] Khi người mua đổi danh mục/từ khoá/sắp xếp, query lại từ server
++  // thay vì filter trên một mảng hàng nghìn sản phẩm trong RAM.
++  useEffect(()=>{
++    if(!storefrontReadyRef.current || view!=='buyer' || buyerPage!=='home') return;
++    const meta=storefrontMetaRef.current; if(!meta) return;
++    const gen=++storefrontQueryGenRef.current; let dead=false;
++    setStorefrontLoading(true);
++    loadStorefrontPage({offset:0,categoryId:selectedCategory,search:searchQuery,sortBy}).then(async page=>{
++      if(dead || storefrontQueryGenRef.current!==gen) return;
++      setStorefrontTotal(page.total); setStorefrontHasMore(page.rawProducts.length<page.total);
++      setProducts(buildProducts(page.rawProducts,meta.shops,meta.categories));
++      const rel=await loadProductRelations(page.rawProducts);
++      if(dead || storefrontQueryGenRef.current!==gen) return;
++      setProducts(buildProducts(page.rawProducts,meta.shops,meta.categories,rel.imgs,rel.vars,rel.reviews));
++    }).catch(e=>console.error('Storefront query failed',e)).finally(()=>{if(!dead && storefrontQueryGenRef.current===gen)setStorefrontLoading(false)});
++    return()=>{dead=true};
++  },[selectedCategory,searchQuery,sortBy,view,buyerPage]);
++
++  const loadMoreStorefront = async()=>{
++    if(storefrontLoading || !storefrontHasMore || view!=='buyer' || buyerPage!=='home') return;
++    const meta=storefrontMetaRef.current; if(!meta) return;
++    const gen=storefrontQueryGenRef.current; const offset=products.length;
++    setStorefrontLoading(true);
++    try {
++      const page=await loadStorefrontPage({offset,categoryId:selectedCategory,search:searchQuery,sortBy});
++      if(storefrontQueryGenRef.current!==gen) return;
++      const base=buildProducts(page.rawProducts,meta.shops,meta.categories);
++      setProducts(prev=>[...prev,...base.filter(x=>!prev.some(p=>p.id===x.id))]);
++      setStorefrontTotal(page.total); setStorefrontHasMore(offset+page.rawProducts.length<page.total);
++      const rel=await loadProductRelations(page.rawProducts);
++      if(storefrontQueryGenRef.current!==gen) return;
++      const rich=buildProducts(page.rawProducts,meta.shops,meta.categories,rel.imgs,rel.vars,rel.reviews);
++      setProducts(prev=>prev.map(p=>rich.find(r=>r.id===p.id)||p));
++    } catch(e){console.error('Load more storefront failed',e)} finally {setStorefrontLoading(false)}
++  };
++
++  useEffect(()=>{
++    const el=loadMoreSentinelRef.current; if(!el || typeof IntersectionObserver==='undefined') return;
++    const io=new IntersectionObserver(entries=>{if(entries.some(e=>e.isIntersecting)) loadMoreStorefront();},{rootMargin:'500px 0px'});
++    io.observe(el); return()=>io.disconnect();
++  },[products.length,storefrontHasMore,storefrontLoading,selectedCategory,searchQuery,sortBy,view,buyerPage]);
++
+   // Địa chỉ người dùng được lưu trực tiếp trong profiles.addresses (jsonb).
+   // Không còn dùng app_state cho dữ liệu tài khoản bền vững.
+ 
+@@ -1335,9 +1428,18 @@
+     showToast('Đã áp dụng địa chỉ cho đơn hàng');
+   };
+ 
+-  const handleSellerChannelClick = () => {
++  const handleSellerChannelClick = async () => {
+     if (!currentUser) { openAuthModal('login'); return; }
+-    if (myUser.role === 'admin' || myUser.role === 'seller') { setView('seller'); return; }
++    if (myUser.role === 'admin' || myUser.role === 'seller') {
++      // [SCALE] Chỉ lúc vào Seller/Admin mới nạp full catalog + orders. Người mua
++      // bình thường không bao giờ phải tải hàng nghìn sản phẩm.
++      setView('seller');
++      try {
++        const d=await loadRemoteData();
++        setProducts(d.products); setShops(d.shops); setOrders(d.orders); setSellerApplications(d.sellerApplications); setCategories(d.categories); setVouchers(d.vouchers);
++      } catch(e){ console.error('Không tải được dữ liệu Kênh Người Bán',e); showToast('Một số dữ liệu quản trị chưa tải được, vui lòng thử lại'); }
++      return;
++    }
+     if (myPendingApplication) { showToast('Yêu cầu đăng ký shop của bạn đang chờ Admin duyệt'); return; }
+     setApplyForm({ shopName: '', phone: myUser.phone || '', address: '', category: CATEGORIES[1] });
+     setAuthModal('apply');
