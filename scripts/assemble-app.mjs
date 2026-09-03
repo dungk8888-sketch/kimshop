@@ -1,5 +1,6 @@
 import { readFileSync, writeFileSync } from 'node:fs';
 import { gunzipSync } from 'node:zlib';
+import { execFileSync } from 'node:child_process';
 
 const partFiles = [
   'source_parts/App.gz.b64.part01.txt',
@@ -21,4 +22,10 @@ const encoded = partFiles
 const source = gunzipSync(Buffer.from(encoded, 'base64')).toString('utf8');
 writeFileSync('src/App.tsx', source);
 
-console.log(`Assembled exact final src/App.tsx (${source.length} chars) from ${partFiles.length} source chunks.`);
+const patchEncoded = readFileSync('patches/variant-ux.diff.gz.b64', 'utf8').trim();
+const patch = gunzipSync(Buffer.from(patchEncoded, 'base64'));
+const patchPath = '/tmp/variant-ux.diff';
+writeFileSync(patchPath, patch);
+execFileSync('git', ['apply', '--whitespace=nowarn', '--recount', patchPath], { stdio: 'inherit' });
+
+console.log(`Assembled exact final src/App.tsx (${source.length} chars) and applied simplified variant UX patch.`);
