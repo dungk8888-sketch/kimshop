@@ -52,6 +52,7 @@ execFileSync('node', ['scripts/apply-voucher-auth-fix.mjs'], { stdio: 'inherit' 
 execFileSync('node', ['scripts/apply-review-buyer-name-fix.mjs'], { stdio: 'inherit' });
 execFileSync('node', ['scripts/apply-product-detail-hydration-fix.mjs'], { stdio: 'inherit' });
 execFileSync('node', ['scripts/apply-product-detail-cache.mjs'], { stdio: 'inherit' });
+execFileSync('node', ['scripts/apply-default-variant-form-cleanup.mjs'], { stdio: 'inherit' });
 
 const assembled = readFileSync('src/App.tsx', 'utf8');
 const checks = {
@@ -71,7 +72,10 @@ const checks = {
   detailLoading: assembled.includes('productDetailLoading'),
   detailHydration: assembled.includes("supabase.from('products').select('*').eq('id', product.id).single()"),
   detailCache: assembled.includes('productDetailCacheRef.current.get(product.id)') && assembled.includes('productDetailCacheRef.current.set(product.id'),
+  defaultInStockVariant: assembled.includes('defaultVariantAttrsForProduct') && assembled.includes('setSelectedAttrs(defaultVariantAttrsForProduct(rich))'),
+  variantPriceStockSingleSource: assembled.includes('effectiveProductPrice') && assembled.includes('effectiveProductStock'),
+  hideDuplicateVariantPriceStock: assembled.includes("(editingProduct.variantGroups || []).filter((g:any) => g.name?.trim()"),
 };
 if (Object.values(checks).some((v) => !v)) throw new Error(`KIMSHOP verify failed: ${JSON.stringify(checks)}`);
 console.log('[KIMSHOP VERIFY]', JSON.stringify(checks));
-console.log(`Assembled src/App.tsx and applied performance, variant, checkout, voucher, username-auth, review, product-detail hydration, and detail cache fixes.`);
+console.log(`Assembled src/App.tsx and applied performance, variant, checkout, voucher, auth, review, detail cache, default variant, and seller form cleanup fixes.`);
