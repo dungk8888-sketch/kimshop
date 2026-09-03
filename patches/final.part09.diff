@@ -1,0 +1,32 @@
+--- src/App.tsx
++++ src/App.tsx
+@@
+   const chooseVariantAttr = (groupName, value) => {
+     const next = { ...selectedAttrs, [groupName]: value };
+     const match = (selectedProduct?.variants || []).find((v) => selectedVariantGroupNames.every((g) => v.attributes[g] === next[g]));
+     setSelectedAttrs(next);
+     setSelectedVariant(match ? match.name : '');
+     setSelectedQty(1);
+     setGalleryIndex(0);
+   };
++
++  // Rebind lựa chọn mặc định khi variants được nạp nền sau catalog core.
++  // Không fetch thêm và không ghi đè lựa chọn hợp lệ mà người dùng đã chọn.
++  useEffect(() => {
++    if (!selectedProduct) return;
++    if (selectedVariantInfo.isGrouped) {
++      if (matchedVariantCombo) return;
++      const defaultAttrs: Record<string, string> = {};
++      selectedVariantInfo.groups.forEach((g) => { defaultAttrs[g.name] = g.values[0]; });
++      const match = (selectedProduct.variants || []).find((v) => selectedVariantGroupNames.every((g) => v.attributes[g] === defaultAttrs[g]));
++      setSelectedAttrs(defaultAttrs);
++      setSelectedVariant(match ? match.name : '');
++    } else if ((selectedProduct.variants || []).length > 0) {
++      const stillValid = selectedProduct.variants.some((v) => v.name === selectedVariant);
++      if (stillValid) return;
++      setSelectedVariant(selectedProduct.variants[0].name);
++    }
++    // eslint-disable-next-line react-hooks/exhaustive-deps
++  }, [selectedProduct?.id, selectedProduct?.variants]);
+ 
+   /* ---------- Giỏ hàng ---------- */
