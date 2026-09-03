@@ -1,14 +1,16 @@
 import React, { useEffect, useState } from 'react';
-import { Sparkles, X, ImagePlus, Loader2, Check, Wand2, Trash2, Tag } from 'lucide-react';
+import { Sparkles, X, ImagePlus, Loader2, Wand2, RotateCcw } from 'lucide-react';
 import { supabase } from './supabaseClient';
 
 /*
  * ============================================================================
  * AI PRODUCT ASSISTANT — UI (TASK 1) + BACKEND THẬT (TASK 2)
  * ============================================================================
- * Panel "✨ Thêm sản phẩm bằng AI": người bán tải 1-9 ảnh + gõ mô tả nhanh,
- * bấm "Tạo bằng AI" để xem preview, rồi tự bấm "Áp dụng vào form" nếu muốn
- * dùng — KHÔNG tự động điền, KHÔNG tự động đăng sản phẩm.
+ * Panel "✨ Thêm sản phẩm bằng AI": người bán tải 1-9 ảnh (mô tả nhanh là TUỲ
+ * CHỌN — chỉ ảnh cũng đủ), bấm "Tạo bằng AI" — thành công là TỰ ĐỘNG điền
+ * thẳng vào form Thêm/Sửa sản phẩm rồi đóng panel (không cần bấm thêm nút
+ * "Áp dụng vào form" nào nữa). KHÔNG tự động đăng sản phẩm — người bán vẫn
+ * phải tự bấm "Lưu & Hiển Thị".
  *
  * generateAIProductDraft() bên dưới GỌI BACKEND THẬT qua Supabase Edge
  * Function `ai-product-assistant` (xem supabase/functions/ai-product-assistant
@@ -40,6 +42,11 @@ export interface AIProductDraft {
   skuSuggestion: string;
   coverImageIndex: number;
   note: string;
+  // [BUGFIX] Ảnh đã tải lên TRONG panel AI (bao gồm cả ảnh có sẵn từ form +
+  // ảnh mới thêm khi đang thao tác với AI) — gộp kèm draft để nơi áp dụng
+  // (App.tsx > applyAIDraft) có thể gộp vào gallery của form, không làm mất
+  // ảnh mới chỉ vì panel đã đóng lại. coverImageIndex tham chiếu vào mảng này.
+  images: string[];
 }
 
 export interface AIProductAssistantInput {
@@ -81,19 +88,40 @@ async function generateAIProductDraft(input: AIProductAssistantInput): Promise<A
   });
 
   if (error) {
-    // supabase-js gói lỗi HTTP (4xx/5xx) vào error.message chung chung; cố
-    // lấy thông điệp tiếng Việt cụ thể mà Edge Function trả về nếu có.
-    const contextBody = (error as any)?.context?.body;
+    // [BUGFIX] supabase-js gói lỗi HTTP non-2xx thành FunctionsHttpError với
+    // error.context LÀ MỘT Response object thật (không phải object JSON đã
+    // parse sẵn) — trước đây code đọc `error.context.body`, nhưng
+    // Response.body là một ReadableStream, không phải chuỗi/JSON, nên
+    // `parsed?.error` luôn undefined và luôn rơi về `error.message` mặc định
+    // của supabase-js ("Hàm Edge trả về mã trạng thái không phải 2xx") — làm
+    // mất hoàn toàn thông điệp lỗi tiếng Việt cụ thể mà Edge Function ĐÃ trả
+    // về (kể cả khi Edge Function trả JSON lỗi rất rõ ràng như "AI đang quá
+    // tải..."). Đọc đúng cách: Response phải được `.json()`/`.text()`.
     let detail = '';
-    if (contextBody) {
-      try {
-        const parsed = typeof contextBody === 'string' ? JSON.parse(contextBody) : contextBody;
+    let statusCategory = '';
+    const context = (error as any)?.context;
+    try {
+      if (context && typeof context.json === 'function') {
+        const parsed = await context.clone().json();
         detail = parsed?.error || '';
-      } catch {
-        /* ignore */
+        statusCategory = parsed?.statusCategory || '';
+      } else if (context && typeof context.text === 'function') {
+        const text = await context.clone().text();
+        const parsed = text ? JSON.parse(text) : null;
+        detail = parsed?.error || '';
+        statusCategory = parsed?.statusCategory || '';
+      } else if (typeof context?.body === 'string') {
+        const parsed = JSON.parse(context.body);
+        detail = parsed?.error || '';
+        statusCategory = parsed?.statusCategory || '';
       }
+    } catch {
+      /* Không parse được body lỗi (vd. mạng lỗi/không phải JSON) — dùng thông điệp mặc định bên dưới. */
     }
-    throw new Error(detail || error.message || 'Tạo bằng AI thất bại, vui lòng thử lại');
+    const fallback = statusCategory === 'rate_limited'
+      ? 'AI đang quá tải (giới hạn tốc độ), vui lòng thử lại sau ít phút.'
+      : 'Tạo bằng AI thất bại, vui lòng thử lại';
+    throw new Error(detail || error.message || fallback);
   }
 
   if (!data || typeof data !== 'object') {
@@ -112,6 +140,9 @@ async function generateAIProductDraft(input: AIProductAssistantInput): Promise<A
     skuSuggestion: draft.skuSuggestion || '',
     coverImageIndex: typeof draft.coverImageIndex === 'number' ? draft.coverImageIndex : 0,
     note: draft.note || 'Bản nháp do AI tạo — vui lòng kiểm tra kỹ trước khi áp dụng vào form.',
+    // Ảnh THẬT sự đã gửi cho AI phân tích (đã tải lên trong panel) — gộp vào
+    // draft để nơi gọi (App.tsx) không làm mất ảnh mới khi đóng panel.
+    images: input.images,
   };
 }
 
@@ -141,16 +172,14 @@ export function AIProductAssistantPanel({
   const [images, setImages] = useState<string[]>([]);
   const [quickNote, setQuickNote] = useState('');
   const [loading, setLoading] = useState(false);
-  const [draft, setDraft] = useState<AIProductDraft | null>(null);
   const [errorMsg, setErrorMsg] = useState('');
 
   // Mỗi lần mở panel, nạp lại ảnh sẵn có từ form chính (nếu có) làm điểm bắt
-  // đầu, và xoá preview cũ — không tự động chạy AI, người bán phải bấm nút.
+  // đầu — không tự động chạy AI, người bán phải tự bấm "Tạo bằng AI".
   useEffect(() => {
     if (open) {
       setImages((initialImages || []).slice(0, MAX_AI_IMAGES));
       setQuickNote('');
-      setDraft(null);
       setErrorMsg('');
       setLoading(false);
     }
@@ -189,7 +218,6 @@ export function AIProductAssistantPanel({
       return;
     }
     setLoading(true);
-    setDraft(null);
     try {
       const result = await generateAIProductDraft({
         images,
@@ -200,8 +228,18 @@ export function AIProductAssistantPanel({
         currentCategoryId,
         categories,
       });
-      setDraft(result);
+      // [BUGFIX — UX yêu cầu quá nhiều thao tác thủ công] Trước đây phải xem
+      // preview rồi tự bấm thêm nút "Áp dụng vào form" mới điền được form.
+      // Giờ tạo thành công là tự động điền vào form Thêm/Sửa sản phẩm ngay
+      // (onApply, được App.tsx truyền vào, tự đóng panel + hiện toast) —
+      // người bán chỉ cần: tải ảnh -> bấm "Tạo bằng AI" -> xong, không cần
+      // bấm thêm lần 2. Không tự đăng sản phẩm — người bán vẫn phải tự bấm
+      // "Lưu & Hiển Thị" như cũ.
+      onApply(result);
     } catch (err) {
+      // Giữ nguyên ảnh + mô tả nhanh đã nhập trong panel (không xoá state
+      // images/quickNote ở đây) để người bán có thể bấm lại (Retry) ngay mà
+      // không phải tải ảnh lại từ đầu.
       setErrorMsg(err instanceof Error && err.message ? err.message : 'Tạo bằng AI thất bại, vui lòng thử lại');
     } finally {
       setLoading(false);
@@ -226,8 +264,9 @@ export function AIProductAssistantPanel({
 
         <div className="p-5 space-y-4">
           <p className="text-gray-500 text-[11px]">
-            Tải ảnh sản phẩm và gõ vài dòng mô tả nhanh — AI sẽ gợi ý tên, mô tả, danh mục, phân loại và SKU. Bạn
-            luôn xem trước và tự quyết định có áp dụng vào form hay không; hệ thống không tự đăng sản phẩm.
+            Tải ảnh sản phẩm (mô tả nhanh không bắt buộc) — AI sẽ tự điền tên, mô tả, danh mục, phân loại và SKU
+            thẳng vào form Thêm/Sửa sản phẩm. Bạn luôn kiểm tra/chỉnh lại trước khi tự bấm "Lưu & Hiển Thị"; hệ
+            thống không tự đăng sản phẩm.
           </p>
 
           <div>
@@ -273,7 +312,12 @@ export function AIProductAssistantPanel({
             </p>
           </div>
 
-          {errorMsg && <p className="text-red-500 text-[11px]">{errorMsg}</p>}
+          {errorMsg && (
+            <div className="space-y-1">
+              <p className="text-red-500 text-[11px]">{errorMsg}</p>
+              <p className="text-gray-400 text-[10px]">Ảnh và mô tả bạn đã nhập vẫn còn nguyên — bấm nút bên dưới để thử lại.</p>
+            </div>
+          )}
 
           <button
             type="button"
@@ -281,86 +325,12 @@ export function AIProductAssistantPanel({
             disabled={loading}
             className="w-full bg-[#EE4D2D] text-white py-2.5 rounded-sm font-bold text-xs flex items-center justify-center gap-2 disabled:opacity-60"
           >
-            {loading ? <Loader2 size={15} className="animate-spin" /> : <Wand2 size={15} />}
-            {loading ? 'Đang tạo bằng AI...' : 'Tạo bằng AI'}
+            {loading ? <Loader2 size={15} className="animate-spin" /> : errorMsg ? <RotateCcw size={15} /> : <Wand2 size={15} />}
+            {loading ? 'Đang tạo bằng AI...' : errorMsg ? 'Thử lại bằng AI' : 'Tạo bằng AI'}
           </button>
-
-          {draft && (
-            <div className="border border-gray-200 rounded-sm p-4 space-y-3 bg-[#FAFAFA]">
-              <div className="flex items-center gap-1.5 text-gray-700 font-bold text-[11px]">
-                <Sparkles size={13} className="text-[#EE4D2D]" /> Xem trước nội dung AI gợi ý
-              </div>
-              <p className="text-gray-500 text-[10px] -mt-2">{draft.note}</p>
-
-              <div>
-                <div className="text-gray-500 text-[10px] mb-0.5">Tên sản phẩm</div>
-                <div className="text-gray-800 text-[12px] font-medium">{draft.name || <span className="text-gray-400 italic">Chưa có gợi ý — nhập thêm mô tả nhanh</span>}</div>
-              </div>
-
-              <div>
-                <div className="text-gray-500 text-[10px] mb-0.5">Mô tả</div>
-                <div className="text-gray-700 text-[11px] whitespace-pre-wrap">{draft.description || <span className="text-gray-400 italic">Chưa có gợi ý</span>}</div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <div className="text-gray-500 text-[10px] mb-0.5">Danh mục</div>
-                  <div className="text-gray-700 text-[11px]">{draft.categoryName || <span className="text-gray-400 italic">Chưa chọn</span>}</div>
-                </div>
-                <div>
-                  <div className="text-gray-500 text-[10px] mb-0.5">Giá / Giá gốc</div>
-                  <div className="text-gray-700 text-[11px]">
-                    {draft.price ? `${Number(draft.price).toLocaleString('vi-VN')}đ` : <span className="text-gray-400 italic">Chưa nhập</span>}
-                    {draft.originalPrice ? ` / ${Number(draft.originalPrice).toLocaleString('vi-VN')}đ` : ''}
-                  </div>
-                </div>
-              </div>
-
-              <div>
-                <div className="text-gray-500 text-[10px] mb-1">Nhóm phân loại / màu / loại hàng gợi ý</div>
-                {draft.variantGroups.length ? (
-                  <div className="space-y-1.5">
-                    {draft.variantGroups.map((g) => (
-                      <div key={g.name} className="flex flex-wrap items-center gap-1.5">
-                        <span className="text-gray-600 text-[10px] font-medium">{g.name}:</span>
-                        {g.values.map((v) => (
-                          <span key={v} className="bg-gray-100 rounded-sm px-1.5 py-0.5 text-[10px] text-gray-700">{v}</span>
-                        ))}
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <span className="text-gray-400 italic text-[11px]">Không phát hiện biến thể — có thể thêm thủ công sau khi áp dụng</span>
-                )}
-              </div>
-
-              <div className="flex items-center gap-1.5">
-                <Tag size={12} className="text-gray-400" />
-                <span className="text-gray-500 text-[10px]">SKU gợi ý:</span>
-                <span className="text-gray-700 text-[11px] font-mono">{draft.skuSuggestion}</span>
-              </div>
-
-              <div className="flex gap-2 pt-1">
-                <button
-                  type="button"
-                  onClick={() => setDraft(null)}
-                  className="flex-1 border border-gray-200 rounded-sm py-2 text-[11px] text-gray-600 hover:border-gray-400 flex items-center justify-center gap-1"
-                >
-                  <Trash2 size={12} /> Bỏ bản nháp
-                </button>
-                <button
-                  type="button"
-                  onClick={() => onApply(draft)}
-                  className="flex-1 bg-[#EE4D2D] text-white rounded-sm py-2 text-[11px] font-bold flex items-center justify-center gap-1"
-                >
-                  <Check size={13} /> Áp dụng vào form
-                </button>
-              </div>
-              <p className="text-gray-400 text-[10px]">
-                Áp dụng chỉ điền vào form Thêm/Sửa sản phẩm để bạn xem lại và chỉnh sửa — sản phẩm chưa được đăng.
-              </p>
-            </div>
-          )}
+          <p className="text-gray-400 text-[10px] -mt-1">
+            Tạo thành công sẽ tự điền vào form Thêm/Sửa sản phẩm — bạn kiểm tra lại rồi tự bấm "Lưu & Hiển Thị", AI không tự đăng sản phẩm.
+          </p>
         </div>
       </div>
     </div>
