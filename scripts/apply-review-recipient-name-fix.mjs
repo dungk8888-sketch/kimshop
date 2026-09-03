@@ -31,8 +31,8 @@ const orderBlock = `  const reviewOrderIds = Array.from(new Set(rawReviews.map((
   }
   const namedReviews = rawReviews.map((r:any)=>{
     const order = reviewOrderById[r.order_id] || {};
-    const recipientName = order.customer_name || order.recipient_name;
-    return { ...r, reviewer_name: recipientName || 'Khách hàng KimShop' };
+    const recipientName = r.reviewer_name || order.customer_name || order.recipient_name || 'Khách hàng KimShop';
+    return { ...r, reviewer_name: recipientName, user: recipientName };
   });`;
 
 if (s.includes(profileBlock)) s = s.replace(profileBlock, orderBlock);
@@ -64,7 +64,8 @@ const hydrationOrderBlock = `  const reviewOrderIds = Array.from(new Set(rawRevi
     vars: (vars?.data || []) as any[],
     reviews: rawReviews.map((r:any)=>{
       const order = orderById[r.order_id] || {};
-      return { ...r, reviewer_name: order.customer_name || order.recipient_name || 'Khách hàng KimShop' };
+      const recipientName = r.reviewer_name || order.customer_name || order.recipient_name || 'Khách hàng KimShop';
+      return { ...r, reviewer_name: recipientName, user: recipientName };
     }),
   };`;
 
@@ -77,4 +78,4 @@ const localReplacement = "user: order.customerName || 'Khách hàng KimShop'";
 if (s.includes(localMarker)) s = s.replace(localMarker, localReplacement);
 
 writeFileSync(path, s);
-console.log('[KIMSHOP FIX] review recipient/order name applied to catalog + hydrated detail');
+console.log('[KIMSHOP FIX] review recipient/order name applied to reviewer_name + legacy user');
