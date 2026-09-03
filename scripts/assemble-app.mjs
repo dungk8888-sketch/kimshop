@@ -48,7 +48,7 @@ applyPlainPatch('patches/task4-category-variant.diff');
 applyPlainPatch('patches/scale-storefront-1.diff');
 applyPlainPatch('patches/scale-storefront-2.diff');
 applyPlainPatch('patches/scale-storefront-3.diff');
-applyPlainPatch('patches/voucher-auth-fix.diff');
+execFileSync('node', ['scripts/apply-voucher-auth-fix.mjs'], { stdio: 'inherit' });
 
 const assembled = readFileSync('src/App.tsx', 'utf8');
 const checks = {
