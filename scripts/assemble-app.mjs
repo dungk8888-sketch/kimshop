@@ -50,8 +50,8 @@ applyPlainPatch('patches/scale-storefront-2.diff');
 applyPlainPatch('patches/scale-storefront-3.diff');
 execFileSync('node', ['scripts/apply-voucher-auth-fix.mjs'], { stdio: 'inherit' });
 execFileSync('node', ['scripts/apply-review-buyer-name-fix.mjs'], { stdio: 'inherit' });
-execFileSync('node', ['scripts/apply-review-recipient-name-fix.mjs'], { stdio: 'inherit' });
 execFileSync('node', ['scripts/apply-product-detail-hydration-fix.mjs'], { stdio: 'inherit' });
+execFileSync('node', ['scripts/apply-review-recipient-name-fix.mjs'], { stdio: 'inherit' });
 execFileSync('node', ['scripts/apply-product-detail-cache.mjs'], { stdio: 'inherit' });
 execFileSync('node', ['scripts/apply-default-variant-form-cleanup.mjs'], { stdio: 'inherit' });
 
@@ -67,7 +67,8 @@ const checks = {
   thumbnailCdn: assembled.includes('productThumb(p.image, 480)'),
   voucherShipping: assembled.includes('<option value="shipping">Miễn phí vận chuyển</option>'),
   usernameRegisterFunction: assembled.includes("functions.invoke('register-username'"),
-  reviewRecipientName: assembled.includes("recipientName = order.customer_name") && assembled.includes("user: order.customerName"),
+  reviewRecipientName: assembled.includes("recipientName = order.customer_name") && assembled.includes("order.customer_name || order.recipient_name || 'Khách hàng KimShop'") && assembled.includes("user: order.customerName || 'Khách hàng KimShop'"),
+  noHydratedProfileReviewName: !assembled.includes("profile?.full_name || profile?.username || r.reviewer_name"),
   detailRetry: assembled.includes('loadProductDetailRelations'),
   detailLoading: assembled.includes('productDetailLoading'),
   detailHydration: assembled.includes("supabase.from('products').select('*').eq('id', product.id).single()"),
