@@ -40,17 +40,29 @@ applyEncodedPatch([
   'patches/checkout-complete.b64',
 ], '/tmp/checkout-complete.diff');
 
-const assembled = readFileSync('src/App.tsx', 'utf8');
-for (const needle of ['src={p.image', 'src={product.image', 'src={selectedProduct.image', 'object-cover']) {
-  let from = 0;
-  let count = 0;
-  while (count < 10) {
-    const idx = assembled.indexOf(needle, from);
-    if (idx < 0) break;
-    console.log(`\n[IMAGE-DIAG ${needle} #${count + 1}]\n${assembled.slice(Math.max(0, idx - 650), idx + 950)}\n[/IMAGE-DIAG]\n`);
-    from = idx + needle.length;
-    count++;
-  }
+// Product list/card thumbnails are rendered at ~180px wide on mobile, but the
+// original Supabase JPEGs are often 0.5-0.9MB each. Route card images through
+// Vercel Image Optimization while keeping original URLs for galleries/details.
+let appSource = readFileSync('src/App.tsx', 'utf8');
+const appMarker = 'export default function App() {';
+if (!appSource.includes(appMarker)) {
+  throw new Error('Thumbnail patch failed: App marker not found');
 }
+const thumbnailHelper = `const cardImageUrl = (src: string, width = 480) => {
+  if (!src) return src;
+  if (!src.includes('ygqqtudavuugrvpkhvdp.supabase.co/storage/v1/object/public/product-images/')) return src;
+  return '/_vercel/image?url=' + encodeURIComponent(src) + '&w=' + width + '&q=65';
+};
 
-console.log(`Assembled src/App.tsx and applied variant UX, compact quantity, and checkout Task 1-3B patches.`);
+`;
+appSource = appSource.replace(appMarker, thumbnailHelper + appMarker);
+
+const originalCardImageToken = 'src={p.image}';
+const cardImageCount = appSource.split(originalCardImageToken).length - 1;
+if (cardImageCount < 2) {
+  throw new Error(`Thumbnail patch failed: expected product-card images, found ${cardImageCount}`);
+}
+appSource = appSource.split(originalCardImageToken).join('src={cardImageUrl(p.image)}');
+writeFileSync('src/App.tsx', appSource);
+
+console.log(`Assembled src/App.tsx and applied variant UX, compact quantity, checkout Task 1-3B, and optimized card thumbnails (${cardImageCount} image bindings).`);
