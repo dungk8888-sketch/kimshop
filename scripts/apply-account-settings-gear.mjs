@@ -1,13 +1,15 @@
 import { readFileSync, writeFileSync } from 'node:fs';
 const path='src/App.tsx';
 let s=readFileSync(path,'utf8');
-const needles=['Cài đặt tài khoản','Cài Đặt Tài Khoản','Cài đặt tài khoản'];
-let found='';
-for(const n of needles) if(s.includes(n)){found=n;break;}
-if(!found) throw new Error('account settings label not found');
-// Remove only the visible label; keep its existing click handler and Settings gear icon.
-s=s.replace(found,'');
-// Compact common fixed bottom-right settings button classes without touching behavior.
-s=s.replace(/(fixed[^"'`]*bottom-[^"'`]*right-[^"'`]*)(px-\d+[^"'`]*)/g,(m,a)=>a+'w-11 h-11 p-0 flex items-center justify-center rounded-full ');
+let changed=0;
+// The account-settings floating control can contain the label in nested JSX, so remove every visible occurrence.
+s=s.replace(/Cài\s*[Đđ]ặt\s*Tài\s*Khoản|Cài\s*đặt\s*tài\s*khoản/gi,()=>{changed++;return '';});
+// Compact the button that opens the settings screen/modal. Match around Settings icon rather than relying on the label.
+s=s.replace(/className="([^"]*(?:fixed|absolute)[^"]*(?:bottom-[^\s"]+)[^"]*(?:right-[^\s"]+)[^"]*)"([^>]*onClick=\{[^}]*\}[^>]*)>([\s\S]{0,500}?<Settings[^>]*>[\s\S]{0,500}?)<\/button>/g,(m,cls,attrs,body)=>{
+  changed++;
+  const cleaned=cls.replace(/\b(?:px|py|p|gap|rounded)-(?:\[[^\]]+\]|\d+(?:\.5)?|full)\b/g,'').replace(/\s+/g,' ').trim();
+  return `<button className="${cleaned} w-11 h-11 p-0 rounded-full flex items-center justify-center" ${attrs} aria-label="Cài đặt tài khoản" title="Cài đặt tài khoản">${body.replace(/>([^<>]*Cài[^<>]*tài[^<>]*khoản[^<>]*)</gi,'><')}</button>`;
+});
+if(!changed) throw new Error('account settings control not found');
 writeFileSync(path,s);
-console.log('[KIMSHOP FIX] account settings compact gear-only button applied');
+console.log('[KIMSHOP FIX] force gear-only account settings control changes:',changed);
