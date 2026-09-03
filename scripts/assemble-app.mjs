@@ -48,6 +48,7 @@ applyPlainPatch('patches/task4-category-variant.diff');
 applyPlainPatch('patches/scale-storefront-1.diff');
 applyPlainPatch('patches/scale-storefront-2.diff');
 applyPlainPatch('patches/scale-storefront-3.diff');
+applyPlainPatch('patches/voucher-auth-fix.diff');
 
 const assembled = readFileSync('src/App.tsx', 'utf8');
 const checks = {
@@ -59,6 +60,9 @@ const checks = {
   checkout: assembled.includes('checkout_place_order') || assembled.includes('placeOrder'),
   pageSize24: assembled.includes('STOREFRONT_PAGE_SIZE = 24'),
   thumbnailCdn: assembled.includes('productThumb(p.image, 480)'),
+  voucherShipping: assembled.includes('<option value="shipping">Miễn phí vận chuyển</option>'),
+  usernameRegisterFunction: assembled.includes("functions.invoke('register-username'"),
 };
+if (Object.values(checks).some((v) => !v)) throw new Error(`KIMSHOP verify failed: ${JSON.stringify(checks)}`);
 console.log('[KIMSHOP VERIFY]', JSON.stringify(checks));
-console.log(`Assembled src/App.tsx and applied variant UX, compact quantity, checkout Task 1-3B, Task 4 variant fix, and scalable storefront patches.`);
+console.log(`Assembled src/App.tsx and applied performance, variant, checkout, voucher, and username-auth fixes.`);
