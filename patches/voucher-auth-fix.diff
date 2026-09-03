@@ -1,0 +1,94 @@
+--- src/App.tsx	2026-09-03 05:16:33.000000000 +0000
++++ src/App.tsx	2026-09-03 08:35:53.195981198 +0000
+@@ -1,5 +1,5 @@
+ import React, { useState, useRef, useEffect, lazy, Suspense } from 'react';
+-import { supabase, usernameToEmail, isValidUsername } from './supabaseClient';
++import { supabase, usernameToEmail, usernameToLegacyEmail, isValidUsername } from './supabaseClient';
+ import {
+   ShoppingCart, Search, Heart, Star, Bell, HelpCircle, MessageCircle, Store,
+   Plus, Minus, Trash2, Pencil, Package, BarChart3, LayoutDashboard, ListOrdered,
+@@ -1263,7 +1263,12 @@
+   const doLogin = async () => {
+     const uname=authForm.username.trim().toLowerCase();
+     if(!uname||!authForm.password){showToast('Vui lòng nhập tên đăng nhập và mật khẩu');return;}
+-    const {data,error}=await supabase.auth.signInWithPassword({email:usernameToEmail(uname),password:authForm.password});
++    let {data,error}=await supabase.auth.signInWithPassword({email:usernameToEmail(uname),password:authForm.password});
++    // Tương thích tài khoản username cũ từng dùng @kimshop.local.
++    if ((error || !data.user) && uname !== 'admin') {
++      const legacy = await supabase.auth.signInWithPassword({email:usernameToLegacyEmail(uname),password:authForm.password});
++      data = legacy.data; error = legacy.error;
++    }
+     if(error||!data.user){showToast('Sai tên đăng nhập hoặc mật khẩu');return;}
+     // Không tự set state ở đây: onAuthStateChange('SIGNED_IN') sẽ tự động
+     // nạp hồ sơ + giỏ hàng/yêu thích thật từ Supabase (tránh 2 nơi set state
+@@ -1276,22 +1281,19 @@
+     if(!uname||!authForm.password){showToast('Vui lòng nhập đầy đủ tên đăng nhập và mật khẩu');return;}
+     if(!isValidUsername(uname)){showToast('Tên đăng nhập phải từ 3–32 ký tự, chỉ gồm chữ thường, số, dấu chấm, gạch dưới hoặc gạch ngang.');return;}
+     if(authForm.password.length<8){showToast('Mật khẩu phải có ít nhất 8 ký tự.');return;}
+-    const {data,error}=await supabase.auth.signUp({
+-      email:usernameToEmail(uname),
+-      password:authForm.password,
+-      options:{data:{username:uname,full_name:authForm.name.trim()||uname,phone:authForm.phone.trim()}},
++
++    // Đăng ký username qua Edge Function dùng Admin API, email kỹ thuật được
++    // xác nhận sẵn nên KHÔNG gửi confirmation email và không dính email quota.
++    const { data: registerData, error: registerError } = await supabase.functions.invoke('register-username', {
++      body: { username: uname, password: authForm.password, full_name: authForm.name.trim()||uname, phone: authForm.phone.trim() },
+     });
+-    if(error){showToast(error.message.includes('already')?'Tên đăng nhập đã tồn tại':error.message);return;}
+-    if(!data.user){showToast('Đăng ký thất bại');return;}
+-    if(!data.session){
+-      // Dự án bật "Confirm email" — không dùng được với email nội bộ *.kimshop.local.
+-      showToast('Đăng ký thành công nhưng cần xác nhận email. Vui lòng tắt "Confirm email" trong Supabase Auth settings (xem CHANGELOG-AUTH.md).');
+-      setAuthModal(null);
++    if(registerError || !registerData?.ok){
++      showToast(registerData?.error || 'Không thể tạo tài khoản, vui lòng thử lại');
+       return;
+     }
+-    // Hồ sơ (profiles) được tạo tự động bởi trigger handle_new_user() trong DB
+-    // ngay khi auth.users có bản ghi mới; onAuthStateChange('SIGNED_IN') sẽ
+-    // tự nạp hồ sơ đó vào state, không cần dựng thủ công ở đây nữa.
++
++    const {data,error}=await supabase.auth.signInWithPassword({email:usernameToEmail(uname),password:authForm.password});
++    if(error||!data.user){showToast('Tạo tài khoản thành công, vui lòng đăng nhập');setAuthModal('login');return;}
+     setAuthModal(null); showToast('Đăng ký tài khoản thành công!');
+   };
+ 
+@@ -5938,10 +5940,10 @@
+                             <select value={voucherDraft.discountType} onChange={(e) => setVoucherDraft({ ...voucherDraft, discountType: e.target.value })} className="w-full border border-gray-200 rounded-sm px-3 py-2 outline-none focus:border-[#EE4D2D]">
+                               <option value="percent">Giảm theo %</option>
+                               <option value="fixed">Giảm số tiền cố định</option>
+-                              <option value="freeship">Miễn phí vận chuyển</option>
++                              <option value="shipping">Miễn phí vận chuyển</option>
+                             </select>
+                           </div>
+-                          {voucherDraft.discountType !== 'freeship' && (
++                          {voucherDraft.discountType !== 'shipping' && (
+                             <div>
+                               <label className="block text-gray-600 text-[11px] mb-1.5">{voucherDraft.discountType === 'percent' ? 'Giá trị (%)' : 'Số tiền giảm (đ)'}</label>
+                               <input type="number" min={0} max={voucherDraft.discountType === 'percent' ? 100 : undefined} value={voucherDraft.discountValue} onChange={(e) => setVoucherDraft({ ...voucherDraft, discountValue: e.target.value })} className="w-full border border-gray-200 rounded-sm px-3 py-2 outline-none focus:border-[#EE4D2D]" />
+--- src/supabaseClient.ts	2026-09-03 03:47:34.000000000 +0000
++++ src/supabaseClient.ts	2026-09-03 08:35:53.193506088 +0000
+@@ -31,13 +31,20 @@
+  * - Tắt "Confirm email" trong Auth settings, vì các địa chỉ *.kimshop.local
+  *   không phải email thật và không thể nhận thư xác nhận.
+  */
+-export const LOCAL_EMAIL_DOMAIN = 'kimshop.local';
++export const LOCAL_EMAIL_DOMAIN = 'users.kimshop.app';
++export const LEGACY_LOCAL_EMAIL_DOMAIN = 'kimshop.local';
+ 
+ export const usernameToEmail = (usernameOrEmail: string) => {
+   const v = (usernameOrEmail || '').trim().toLowerCase();
+-  // Production admin Auth account uses admin.auth@kimshop.local.
++  // Production admin Auth account cũ vẫn giữ nguyên để không làm mất quyền admin.
+   if (v === 'admin') return 'admin.auth@kimshop.local';
+   return v.includes('@') ? v : `${v}@${LOCAL_EMAIL_DOMAIN}`;
+ };
+ 
++export const usernameToLegacyEmail = (username: string) => {
++  const v = (username || '').trim().toLowerCase();
++  if (v === 'admin') return 'admin.auth@kimshop.local';
++  return `${v}@${LEGACY_LOCAL_EMAIL_DOMAIN}`;
++};
++
+ export const isValidUsername = (username: string) => /^[a-z0-9._-]{3,32}$/.test(username);
