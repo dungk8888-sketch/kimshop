@@ -40,16 +40,14 @@ applyEncodedPatch([
   'patches/checkout-complete.b64',
 ], '/tmp/checkout-complete.diff');
 
-// Temporary build diagnostics: print only small source windows around current
-// performance markers so we can inspect the exact assembled startup path.
 const assembled = readFileSync('src/App.tsx', 'utf8');
-for (const needle of ['catalogGenRef', 'loadCatalog', 'loadRemoteData()']) {
+for (const needle of ['src={p.image', 'src={product.image', 'src={selectedProduct.image', 'object-cover']) {
   let from = 0;
   let count = 0;
-  while (count < 6) {
+  while (count < 10) {
     const idx = assembled.indexOf(needle, from);
     if (idx < 0) break;
-    console.log(`\n[STARTUP-DIAG ${needle} #${count + 1}]\n${assembled.slice(Math.max(0, idx - 550), idx + 1250)}\n[/STARTUP-DIAG]\n`);
+    console.log(`\n[IMAGE-DIAG ${needle} #${count + 1}]\n${assembled.slice(Math.max(0, idx - 650), idx + 950)}\n[/IMAGE-DIAG]\n`);
     from = idx + needle.length;
     count++;
   }
