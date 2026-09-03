@@ -1,0 +1,160 @@
+--- src/App.tsx
++++ src/App.tsx
+@@ -194,8 +194,18 @@
+     // đó vỡ ngay khi mở với bất kỳ sản phẩm thật nào (xem 0008_reviews_marketing.sql).
+     supabase.from('product_reviews').select('*').in('product_id',ids).order('created_at',{ascending:false}),
+   ]);
+-  if(imgs.error) throw imgs.error; if(vars.error) throw vars.error; if(reviews.error) throw reviews.error;
+-  return { imgs: (imgs.data||[]) as any[], vars: (vars.data||[]) as any[], reviews: (reviews.data||[]) as any[] };
++  // Mỗi quan hệ là dữ liệu độc lập. Nếu một endpoint bị timeout (thực tế
++  // product_images từng trả 500), vẫn phải giữ ảnh/biến thể/đánh giá đã tải
++  // thành công; trước đây throw ở đây làm mất luôn toàn bộ biến thể dù query
++  // product_variants đã trả 200.
++  if (imgs.error) console.error('Không tải được ảnh phụ sản phẩm', imgs.error);
++  if (vars.error) console.error('Không tải được biến thể sản phẩm', vars.error);
++  if (reviews.error) console.error('Không tải được đánh giá sản phẩm', reviews.error);
++  return {
++    imgs: (imgs.error ? [] : (imgs.data || [])) as any[],
++    vars: (vars.error ? [] : (vars.data || [])) as any[],
++    reviews: (reviews.error ? [] : (reviews.data || [])) as any[],
++  };
+ };
+ 
+ // Ghép rawProducts (từ bước 1) + imgs/vars/reviews (từ bước 2, mặc định rỗng
+@@ -2616,8 +2626,8 @@
+   // Chọn nhiều file cùng lúc (input multiple): đọc từng file thành data URL
+   // rồi nối vào cuối gallery hiện có, giới hạn tổng tối đa MAX_PRODUCT_IMAGES.
+   // Ảnh đầu tiên trong mảng luôn là ảnh đại diện (dùng cho products.image_url).
+-  const handleImageFiles = (e) => {
+-    const files = Array.from(e.target.files || []);
++  const handleImageFiles = (e: React.ChangeEvent<HTMLInputElement>) => {
++    const files = Array.from(e.target.files ?? []) as File[];
+     e.target.value = ''; // cho phép chọn lại cùng file lần sau
+     if (!files.length) return;
+     const remaining = MAX_PRODUCT_IMAGES - (editingProduct?.images?.length || 0);
+@@ -2628,12 +2638,12 @@
+     const valid = toRead.filter((f) => f.size <= 2 * 1024 * 1024);
+     if (oversized.length) showToast(`${oversized.length} ảnh vượt quá dung lượng tối đa 2MB đã bị bỏ qua`);
+     if (!valid.length) return;
+-    Promise.all(valid.map((file) => new Promise((resolve, reject) => {
++    Promise.all(valid.map((file) => new Promise<string>((resolve, reject) => {
+       const reader = new FileReader();
+-      reader.onload = () => resolve(reader.result);
++      reader.onload = () => resolve(String(reader.result));
+       reader.onerror = reject;
+       reader.readAsDataURL(file);
+-    }))).then((dataUrls: any[]) => {
++    }))).then((dataUrls) => {
+       setEditingProduct((prev) => {
+         if (!prev) return prev;
+         const nextImages = [...(prev.images || []), ...dataUrls].slice(0, MAX_PRODUCT_IMAGES);
+@@ -3300,29 +3310,6 @@
+             </div>
+           </div>
+ 
+-          {/* DANH MỤC MUA SẮM — luôn giữ khi đang ở Trang chủ / Chi tiết sản phẩm */}
+-          {(buyerPage === 'home' || buyerPage === 'product') && (
+-            <div className="bg-white border-b border-gray-100">
+-              <div className="max-w-6xl mx-auto px-4 py-2.5 flex gap-2 overflow-x-auto scrollbar-hide whitespace-nowrap">
+-                <button
+-                  onClick={() => { setSelectedCategory('all'); setBuyerPage('home'); }}
+-                  className={`px-3.5 py-1.5 rounded-full text-[11px] font-medium border transition-all flex-shrink-0 ${selectedCategory === 'all' && buyerPage === 'home' ? 'bg-[#EE4D2D] text-white border-[#EE4D2D] shadow-sm shadow-orange-200' : 'bg-white text-gray-600 border-gray-200 hover:border-[#EE4D2D] hover:text-[#EE4D2D]'}`}
+-                >
+-                  Tất cả
+-                </button>
+-                {categories.filter((c) => c.isActive).sort((a, b) => a.sortOrder - b.sortOrder).map((c) => (
+-                  <button
+-                    key={c.id}
+-                    onClick={() => { setSelectedCategory(c.id); setBuyerPage('home'); }}
+-                    className={`px-3.5 py-1.5 rounded-full text-[11px] font-medium border transition-all flex-shrink-0 ${selectedCategory === c.id && buyerPage === 'home' ? 'bg-[#EE4D2D] text-white border-[#EE4D2D] shadow-sm shadow-orange-200' : 'bg-white text-gray-600 border-gray-200 hover:border-[#EE4D2D] hover:text-[#EE4D2D]'}`}
+-                  >
+-                    {c.name}
+-                  </button>
+-                ))}
+-              </div>
+-            </div>
+-          )}
+-
+           {/* TRANG CHỦ */}
+           {buyerPage === 'home' && (
+             <main className="max-w-6xl mx-auto px-4 py-6 flex-1 space-y-4 w-full">
+@@ -3357,6 +3344,24 @@
+                 </div>
+               )}
+ 
++              <div className="bg-white p-3.5 rounded-xl border border-gray-100 shadow-sm flex flex-wrap gap-2">
++                <button
++                  onClick={() => setSelectedCategory('all')}
++                  className={`px-3.5 py-1.5 rounded-full text-[11px] font-medium border transition-all ${selectedCategory === 'all' ? 'bg-[#EE4D2D] text-white border-[#EE4D2D] shadow-sm shadow-orange-200' : 'bg-white text-gray-600 border-gray-200 hover:border-[#EE4D2D] hover:text-[#EE4D2D]'}`}
++                >
++                  Tất cả
++                </button>
++                {categories.filter((c) => c.isActive).sort((a, b) => a.sortOrder - b.sortOrder).map((c) => (
++                  <button
++                    key={c.id}
++                    onClick={() => setSelectedCategory(c.id)}
++                    className={`px-3.5 py-1.5 rounded-full text-[11px] font-medium border transition-all ${selectedCategory === c.id ? 'bg-[#EE4D2D] text-white border-[#EE4D2D] shadow-sm shadow-orange-200' : 'bg-white text-gray-600 border-gray-200 hover:border-[#EE4D2D] hover:text-[#EE4D2D]'}`}
++                  >
++                    {c.name}
++                  </button>
++                ))}
++              </div>
++
+               <div className="bg-white p-3.5 rounded-xl border border-gray-100 shadow-sm flex items-center justify-between">
+                 <h3 className="font-bold text-sm text-gray-800 tracking-wide">
+                   {searchQuery ? `Kết quả cho "${searchQuery}"` : 'GỢI Ý HÔM NAY'} <span className="text-gray-400 font-normal">({filteredProducts.length})</span>
+@@ -3422,9 +3427,23 @@
+ 
+           {buyerPage === 'product' && selectedProduct && isShopActive(selectedProduct.shopId) && (
+             <main className="max-w-6xl mx-auto px-4 py-5 flex-1 w-full space-y-4">
+-              <button onClick={() => setBuyerPage('home')} className="flex items-center gap-1 text-gray-500 hover:text-[#EE4D2D] transition-colors text-[11px] font-medium">
+-                <ChevronLeft size={14} /> Quay lại
+-              </button>
++              <div className="flex flex-wrap items-center gap-2 text-[11px] font-medium">
++                <button onClick={() => setBuyerPage('home')} className="flex items-center gap-1 text-gray-500 hover:text-[#EE4D2D] transition-colors">
++                  <ChevronLeft size={14} /> Quay lại
++                </button>
++                <span className="text-gray-300">/</span>
++                <button
++                  type="button"
++                  onClick={() => {
++                    setSelectedCategory(selectedProduct.categoryId || 'all');
++                    setBuyerPage('home');
++                    window.scrollTo?.({ top: 0 });
++                  }}
++                  className="text-[#EE4D2D] hover:underline"
++                >
++                  Danh mục: {selectedProduct.categoryName || selectedProduct.category || 'Tất cả'}
++                </button>
++              </div>
+ 
+               <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 flex flex-col md:flex-row gap-7">
+                 <div className="w-full md:w-72 flex-shrink-0">
+@@ -6002,4 +6021,4 @@
+       )}
+     </div>
+   );
+-}
+\ No newline at end of file
++}
+--- src/AIProductAssistant.tsx
++++ src/AIProductAssistant.tsx
+@@ -188,7 +188,7 @@
+   if (!open) return null;
+ 
+   const handleFiles = (e: React.ChangeEvent<HTMLInputElement>) => {
+-    const files = Array.from(e.target.files || []);
++    const files = Array.from(e.target.files ?? []) as File[];
+     e.target.value = '';
+     if (!files.length) return;
+     const remaining = MAX_AI_IMAGES - images.length;
+--- tsconfig.json
++++ tsconfig.json
+@@ -12,6 +12,7 @@
+     "isolatedModules": true,
+     "noEmit": true,
+     "jsx": "react-jsx",
++    "types": ["vite/client"],
+ 
+     "strict": false,
+     "noUnusedLocals": false,
