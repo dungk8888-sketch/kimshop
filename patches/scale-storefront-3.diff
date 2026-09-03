@@ -1,0 +1,79 @@
+--- src/App.tsx
++++ src/App.tsx
+@@ -3032,18 +3134,9 @@
+     return !s || s.status !== 'suspended';
+   };
+   const visibleProducts = products.filter((p) => isShopActive(p.shopId));
+-  const flashSaleProducts = visibleProducts.filter((p) => p.flashSale && p.flashPrice);
+-  const filteredProducts = visibleProducts
+-    .filter((p) => selectedCategory === 'all' || p.categoryId === selectedCategory)
+-    .filter((p) => !searchQuery.trim() || p.name.toLowerCase().includes(searchQuery.toLowerCase()))
+-    .sort((a, b) => {
+-      if (sortBy === 'popular') return b.sold - a.sold;
+-      if (sortBy === 'newest') return b.id - a.id;
+-      if (sortBy === 'priceAsc') return a.price - b.price;
+-      if (sortBy === 'priceDesc') return b.price - a.price;
+-      if (sortBy === 'rating') return b.rating - a.rating;
+-      return 0;
+-    });
++  const flashSaleProducts = visibleProducts.filter((p) => p.flashSale && p.flashPrice).slice(0,10);
++  // [SCALE] products ở storefront đã được filter/sort ở Supabase.
++  const filteredProducts = visibleProducts;
+ 
+   const runSearch = () => { setSearchQuery(searchDraft); setSelectedCategory('all'); setBuyerPage('home'); };
+ 
+@@ -3327,7 +3420,7 @@
+                       return (
+                         <div key={p.id} onClick={() => openProduct(p)} className="cursor-pointer border border-rose-100 rounded-lg overflow-hidden hover:shadow-md transition-shadow">
+                           <div className="relative">
+-                            <img src={p.image} loading="lazy" decoding="async" className="w-full h-24 object-cover" />
++                            <img src={productThumb(p.image, 400)} loading="lazy" decoding="async" className="w-full h-24 object-cover" />
+                             {fDiscount > 0 && <span className="absolute top-1 left-1 bg-[#EE4D2D] text-white text-[9px] font-bold px-1.5 py-0.5 rounded">-{fDiscount}%</span>}
+                           </div>
+                           <div className="p-2 space-y-0.5">
+@@ -3364,7 +3457,7 @@
+ 
+               <div className="bg-white p-3.5 rounded-xl border border-gray-100 shadow-sm flex items-center justify-between">
+                 <h3 className="font-bold text-sm text-gray-800 tracking-wide">
+-                  {searchQuery ? `Kết quả cho "${searchQuery}"` : 'GỢI Ý HÔM NAY'} <span className="text-gray-400 font-normal">({filteredProducts.length})</span>
++                  {searchQuery ? `Kết quả cho "${searchQuery}"` : 'GỢI Ý HÔM NAY'} <span className="text-gray-400 font-normal">({storefrontTotal})</span>
+                 </h3>
+                 <select value={sortBy} onChange={(e) => setSortBy(e.target.value)} className="border border-gray-200 rounded-lg text-[11px] px-2.5 py-1.5 outline-none focus:border-[#EE4D2D] bg-white text-gray-600">
+                   <option value="popular">Phổ biến</option>
+@@ -3385,7 +3478,7 @@
+                     return (
+                       <div key={p.id} className="bg-white rounded-xl border border-gray-100 overflow-hidden shadow-sm hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 group">
+                         <div className="relative cursor-pointer overflow-hidden" onClick={() => openProduct(p)}>
+-                          <img src={p.image} alt={p.name} loading="lazy" decoding="async" className="w-full h-36 object-cover group-hover:scale-105 transition-transform duration-300" />
++                          <img src={productThumb(p.image, 480)} alt={p.name} loading="lazy" decoding="async" className="w-full h-36 object-cover group-hover:scale-105 transition-transform duration-300" />
+                           {discount > 0 && (
+                             <span className="absolute top-2 left-2 bg-[#EE4D2D] text-white text-[9px] font-bold px-1.5 py-0.5 rounded-md shadow-sm">-{discount}%</span>
+                           )}
+@@ -3412,6 +3505,9 @@
+                   })}
+                 </div>
+               )}
++              <div ref={loadMoreSentinelRef} className="h-2" aria-hidden="true" />
++              {storefrontLoading && <div className="text-center py-4 text-gray-400 text-[11px]">Đang tải thêm sản phẩm...</div>}
++              {!storefrontHasMore && filteredProducts.length>0 && <div className="text-center py-3 text-gray-300 text-[10px]">Đã hiển thị toàn bộ sản phẩm phù hợp</div>}
+             </main>
+           )}
+ 
+@@ -3692,7 +3788,7 @@
+                   {products.filter((p) => wishlist.includes(p.id) && isShopActive(p.shopId)).map((p) => (
+                     <div key={p.id} className="bg-white rounded-xl border border-gray-100 overflow-hidden shadow-sm hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 group">
+                       <div className="relative cursor-pointer overflow-hidden" onClick={() => openProduct(p)}>
+-                        <img src={p.image} alt={p.name} loading="lazy" decoding="async" className="w-full h-36 object-cover group-hover:scale-105 transition-transform duration-300" />
++                        <img src={productThumb(p.image, 480)} alt={p.name} loading="lazy" decoding="async" className="w-full h-36 object-cover group-hover:scale-105 transition-transform duration-300" />
+                         <button onClick={() => toggleWishlist(p.id)} className="absolute top-2 right-2 bg-white/95 backdrop-blur-sm rounded-full p-1.5 shadow-sm hover:scale-110 transition-transform">
+                           <Heart size={13} className="fill-[#EE4D2D] text-[#EE4D2D]" />
+                         </button>
+@@ -3763,7 +3859,7 @@
+                       if (!p) return null;
+                       return (
+                         <div key={pid} onClick={() => openProduct(p)} className="cursor-pointer border border-gray-100 rounded-lg overflow-hidden hover:shadow-md transition-shadow">
+-                          <img src={p.image} loading="lazy" decoding="async" className="w-full h-20 object-cover" />
++                          <img src={productThumb(p.image, 320)} loading="lazy" decoding="async" className="w-full h-20 object-cover" />
+                           <div className="p-1.5 space-y-0.5">
+                             <div className="text-[10px] line-clamp-1 text-gray-700">{p.name}</div>
+                             <div className="text-[#EE4D2D] font-bold text-[11px]">{formatVND(p.price)}</div>
