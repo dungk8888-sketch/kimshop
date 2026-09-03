@@ -49,6 +49,7 @@ applyPlainPatch('patches/scale-storefront-1.diff');
 applyPlainPatch('patches/scale-storefront-2.diff');
 applyPlainPatch('patches/scale-storefront-3.diff');
 execFileSync('node', ['scripts/apply-voucher-auth-fix.mjs'], { stdio: 'inherit' });
+execFileSync('node', ['scripts/apply-review-buyer-name-fix.mjs'], { stdio: 'inherit' });
 
 const assembled = readFileSync('src/App.tsx', 'utf8');
 const checks = {
@@ -62,7 +63,9 @@ const checks = {
   thumbnailCdn: assembled.includes('productThumb(p.image, 480)'),
   voucherShipping: assembled.includes('<option value="shipping">Miễn phí vận chuyển</option>'),
   usernameRegisterFunction: assembled.includes("functions.invoke('register-username'"),
+  reviewBuyerProfile: assembled.includes("reviewer_name: profile?.full_name || profile?.username"),
+  localReviewBuyerName: assembled.includes("user: myUser?.name || currentUser.username || 'Khách hàng KimShop'"),
 };
 if (Object.values(checks).some((v) => !v)) throw new Error(`KIMSHOP verify failed: ${JSON.stringify(checks)}`);
 console.log('[KIMSHOP VERIFY]', JSON.stringify(checks));
-console.log(`Assembled src/App.tsx and applied performance, variant, checkout, voucher, and username-auth fixes.`);
+console.log(`Assembled src/App.tsx and applied performance, variant, checkout, voucher, username-auth, and review buyer-name fixes.`);
