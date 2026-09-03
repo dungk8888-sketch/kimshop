@@ -22,7 +22,11 @@ const encoded = partFiles
 const source = gunzipSync(Buffer.from(encoded, 'base64')).toString('utf8');
 writeFileSync('src/App.tsx', source);
 
-const patchEncoded = readFileSync('patches/variant-ux.diff.gz.b64', 'utf8').trim();
+const patchEncoded = [
+  'patches/variant-ux.part00.b64',
+  'patches/variant-ux.part01.b64',
+  'patches/variant-ux.part02.b64',
+].map((name) => readFileSync(name, 'utf8').trim()).join('');
 const patch = gunzipSync(Buffer.from(patchEncoded, 'base64'));
 const patchPath = '/tmp/variant-ux.diff';
 writeFileSync(patchPath, patch);
