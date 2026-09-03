@@ -22,9 +22,16 @@ const patchParts = readdirSync('patches')
   .sort();
 
 if (patchParts.length) {
-  const patchFile = '/tmp/kimshop-final.patch';
-  writeFileSync(patchFile, patchParts.map((name) => readFileSync(`patches/${name}`, 'utf8')).join(''));
-  execFileSync('git', ['apply', '-p0', '--whitespace=nowarn', '--recount', patchFile], { stdio: 'inherit' });
+  const legacyParts = patchParts.filter((name) => name !== 'final.part09.diff');
+  if (legacyParts.length) {
+    const legacyPatch = '/tmp/kimshop-final-legacy.patch';
+    writeFileSync(legacyPatch, legacyParts.map((name) => readFileSync(`patches/${name}`, 'utf8')).join(''));
+    execFileSync('git', ['apply', '-p0', '--whitespace=nowarn', '--recount', legacyPatch], { stdio: 'inherit' });
+  }
+
+  if (patchParts.includes('final.part09.diff')) {
+    execFileSync('git', ['apply', '-p0', '--whitespace=nowarn', '--recount', 'patches/final.part09.diff'], { stdio: 'inherit' });
+  }
 }
 
 console.log(`Assembled src/App.tsx from ${files.length} compressed source parts and applied ${patchParts.length} final patch parts.`);
