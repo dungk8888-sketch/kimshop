@@ -75,11 +75,19 @@ async function generateAIProductDraft(input: AIProductAssistantInput): Promise<A
   if (!data || typeof data !== 'object') throw new Error('AI backend trả về dữ liệu không hợp lệ.');
   const draft = data as AIProductDraft;
   let variantGroups: AIVariantGroupDraft[] = Array.isArray(draft.variantGroups) ? draft.variantGroups : [];
-  let variantDetails: AIVariantDetailDraft[] = Array.isArray(draft.variantDetails) ? draft.variantDetails : [];
+  // Backend cũ trả giá theo tên variantPrices, frontend mới dùng variantDetails.
+  // Chuẩn hoá cả hai để không làm rơi giá khi AI đã đọc được.
+  const legacyVariantPrices = Array.isArray((draft as any).variantPrices) ? (draft as any).variantPrices : [];
+  let variantDetails: AIVariantDetailDraft[] = Array.isArray(draft.variantDetails) && draft.variantDetails.length
+    ? draft.variantDetails
+    : legacyVariantPrices.map((x:any) => ({
+        attributes: x?.attributes && typeof x.attributes === 'object' ? x.attributes : {},
+        price: x?.price != null ? String(x.price) : '',
+        originalPrice: x?.originalPrice != null ? String(x.originalPrice) : '',
+        stock: x?.stock != null ? String(x.stock) : '',
+        sku: x?.sku != null ? String(x.sku) : '',
+      }));
 
-  // AI chính đôi khi viết tên/mô tả đúng nhưng bỏ hẳn màu hoặc loại. Khi đó gọi
-  // detector chuyên dụng chỉ để rà biến thể từ toàn bộ ảnh + tên/mô tả, rồi GỘP
-  // vào kết quả chính thay vì thay thế dữ liệu đang có.
   const textKey = norm(`${input.currentName} ${input.quickNote} ${draft.name || ''} ${draft.description || ''}`);
   const hasColorGroup = variantGroups.some(g => /mau|color/.test(norm(g.name)));
   const hasVoXuongGroup = variantGroups.some(g => g.values?.some(v => ['vo','xuong'].includes(norm(v))));
@@ -96,7 +104,6 @@ async function generateAIProductDraft(input: AIProductAssistantInput): Promise<A
         for (const dg of detectedGroups) {
           const key = norm(dg.name);
           let target = merged.find(g => norm(g.name) === key);
-          // Cho phép ghép tên gần nghĩa như "Màu" và "Màu sắc".
           if (!target && /mau|color/.test(key)) target = merged.find(g => /mau|color/.test(norm(g.name)));
           if (!target && /loai|phan loai|type/.test(key)) target = merged.find(g => /loai|phan loai|type/.test(norm(g.name)));
           if (!target) { target = { name: dg.name || 'Phân loại', values: [] }; merged.push(target); }
@@ -106,12 +113,9 @@ async function generateAIProductDraft(input: AIProductAssistantInput): Promise<A
         const dd = Array.isArray((detected as any).variantDetails) ? (detected as any).variantDetails : [];
         if (dd.length) variantDetails = [...variantDetails, ...dd];
       }
-    } catch {
-      // Detector phụ lỗi thì vẫn dùng kết quả AI chính, không làm hỏng toàn bộ thao tác.
-    }
+    } catch {}
   }
 
-  // Bảo hiểm cuối: tên/mô tả có đủ "Vỏ" + "Xương" thì nhất định phải có nhóm Loại.
   const afterKey = norm(`${input.currentName} ${input.quickNote} ${draft.name || ''} ${draft.description || ''}`);
   if (afterKey.includes('vo') && afterKey.includes('xuong')) {
     let typeGroup = variantGroups.find(g => /loai|phan loai|type/.test(norm(g.name)) || g.values.some(v => ['vo','xuong'].includes(norm(v))));
