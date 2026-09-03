@@ -1,22 +1,43 @@
 import { readFileSync, writeFileSync } from 'node:fs';
 const path='src/App.tsx';
 let s=readFileSync(path,'utf8');
+let changes=0;
 
-const oldProps=`                          currentCategoryId={editingProduct.categoryId || ''}\n                          onApply={applyAIDraft}`;
-const newProps=`                          currentCategoryId={editingProduct.categoryId || ''}\n                          currentVariantGroups={editingProduct.variantGroups || []}\n                          currentVariantCombos={editingProduct.variantCombos || []}\n                          onApply={applyAIDraft}`;
-if(!s.includes(oldProps)) throw new Error('AI panel props marker not found');
-s=s.replace(oldProps,newProps);
+s=s.replace(/(currentCategoryId=\{editingProduct\.categoryId \|\| ''\}\s*\n)(\s*)onApply=\{applyAIDraft\}/,(_m,a,indent)=>{changes++;return `${a}${indent}currentVariantGroups={editingProduct.variantGroups || []}\n${indent}currentVariantCombos={editingProduct.variantCombos || []}\n${indent}onApply={applyAIDraft}`;});
 
-const oldGroups=`        const newGroups = draft.variantGroups.length\n          ? draft.variantGroups.map((g, i) => ({ id: \`ai_g${'${i}'}_${'${g.name}'}\`, name: g.name, values: g.values }))\n          : prev.variantGroups || [];`;
-const newGroups=`        const existingGroups = Array.isArray(prev.variantGroups) ? prev.variantGroups : [];\n        const aiGroups = Array.isArray(draft.variantGroups) ? draft.variantGroups : [];\n        // Khi AI chỉ nhận ra một phần (VD chỉ Màu sắc), KHÔNG được xoá nhóm cũ như Vỏ/Xương.\n        // Gộp theo tên nhóm; nhóm trùng tên thì hợp nhất giá trị, nhóm cũ AI bỏ sót vẫn được giữ.\n        const mergedGroupMap = new Map<string, any>();\n        existingGroups.forEach((g:any, i:number) => {\n          const key=String(g.name||'').trim().toLowerCase();\n          if(key) mergedGroupMap.set(key,{ ...g, values:Array.from(new Set((g.values||[]).filter(Boolean))) });\n        });\n        aiGroups.forEach((g:any, i:number) => {\n          const name=String(g.name||'').trim(); const key=name.toLowerCase(); if(!key) return;\n          const old=mergedGroupMap.get(key);\n          mergedGroupMap.set(key,{ id:old?.id || \`ai_g${'${i}'}_${'${name}'}\`, name:old?.name || name, values:Array.from(new Set([...(old?.values||[]),...(g.values||[])].filter(Boolean))) });\n        });\n        const newGroups = Array.from(mergedGroupMap.values());`;
-if(!s.includes(oldGroups)) throw new Error('AI group replacement block not found');
-s=s.replace(oldGroups,newGroups);
+s=s.replace(/const newGroups = draft\.variantGroups\.length[\s\S]*?: prev\.variantGroups \|\| \[\];/,()=>{changes++;return `const existingGroups = Array.isArray(prev.variantGroups) ? prev.variantGroups : [];
+        const aiGroups = Array.isArray(draft.variantGroups) ? draft.variantGroups : [];
+        const mergedGroupMap = new Map<string, any>();
+        existingGroups.forEach((g:any) => {
+          const key=String(g.name||'').trim().toLowerCase();
+          if(key) mergedGroupMap.set(key,{ ...g, values:Array.from(new Set((g.values||[]).filter(Boolean))) });
+        });
+        aiGroups.forEach((g:any, i:number) => {
+          const name=String(g.name||'').trim(); const key=name.toLowerCase(); if(!key) return;
+          const old=mergedGroupMap.get(key);
+          mergedGroupMap.set(key,{ id:old?.id || \`ai_g\${i}_\${name}\`, name:old?.name || name, values:Array.from(new Set([...(old?.values||[]),...(g.values||[])].filter(Boolean))) });
+        });
+        const newGroups = Array.from(mergedGroupMap.values());`;});
 
-const oldBlock=`        const regenCombos = regenerateVariantCombos(newGroups, prev.variantCombos || []);\n        const variantCombos = draft.skuSuggestion\n          ? regenCombos.map((c, i) => (c.sku ? c : { ...c, sku: regenCombos.length > 1 ? \`${'${draft.skuSuggestion}-${i + 1}'}\` : draft.skuSuggestion }))\n          : regenCombos;`;
-const newBlock=`        const regenCombos = regenerateVariantCombos(newGroups, prev.variantCombos || []);\n        const normalizeAttr = (x:any) => String(x ?? '').trim().toLowerCase();\n        const aiDetails = Array.isArray((draft as any).variantDetails) ? (draft as any).variantDetails : [];\n        const detailFor = (combo:any) => aiDetails.find((d:any) => {\n          const attrs = d?.attributes && typeof d.attributes === 'object' ? d.attributes : {};\n          const comboAttrs = combo?.attributes && typeof combo.attributes === 'object' ? combo.attributes : {};\n          const names = newGroups.map((g:any) => g.name);\n          return names.every((name:any) => normalizeAttr(attrs[name]) === normalizeAttr(comboAttrs[name]));\n        });\n        let variantCombos = regenCombos.map((c:any, i:number) => {\n          const d:any = detailFor(c);\n          const next:any = { ...c };\n          if (d?.price !== '' && d?.price != null && Number(d.price) >= 0) next.price = String(d.price);\n          if (d?.originalPrice !== '' && d?.originalPrice != null && Number(d.originalPrice) >= 0) next.originalPrice = String(d.originalPrice);\n          if (d?.stock !== '' && d?.stock != null && Number(d.stock) >= 0) next.stock = String(Math.floor(Number(d.stock)));\n          if (d?.sku) next.sku = String(d.sku);\n          if (!next.sku && draft.skuSuggestion) next.sku = regenCombos.length > 1 ? \`${'${draft.skuSuggestion}-${i + 1}'}\` : draft.skuSuggestion;\n          return next;\n        });`;
-if(!s.includes(oldBlock)) throw new Error('AI variant combo block not found');
-s=s.replace(oldBlock,newBlock);
+s=s.replace(/const regenCombos = regenerateVariantCombos\(newGroups, prev\.variantCombos \|\| \[\]\);\s*const variantCombos = draft\.skuSuggestion[\s\S]*?: regenCombos;/,()=>{changes++;return `const regenCombos = regenerateVariantCombos(newGroups, prev.variantCombos || []);
+        const normalizeAttr = (x:any) => String(x ?? '').trim().toLowerCase();
+        const aiDetails = Array.isArray((draft as any).variantDetails) ? (draft as any).variantDetails : [];
+        const detailFor = (combo:any) => aiDetails.find((d:any) => {
+          const attrs = d?.attributes && typeof d.attributes === 'object' ? d.attributes : {};
+          const comboAttrs = combo?.attributes && typeof combo.attributes === 'object' ? combo.attributes : {};
+          return newGroups.every((g:any) => normalizeAttr(attrs[g.name]) === normalizeAttr(comboAttrs[g.name]));
+        });
+        let variantCombos = regenCombos.map((c:any, i:number) => {
+          const d:any = detailFor(c); const next:any = { ...c };
+          if (d?.price !== '' && d?.price != null && Number(d.price) >= 0) next.price = String(d.price);
+          if (d?.originalPrice !== '' && d?.originalPrice != null && Number(d.originalPrice) >= 0) next.originalPrice = String(d.originalPrice);
+          if (d?.stock !== '' && d?.stock != null && Number(d.stock) >= 0) next.stock = String(Math.floor(Number(d.stock)));
+          if (d?.sku) next.sku = String(d.sku);
+          if (!next.sku && draft.skuSuggestion) next.sku = regenCombos.length > 1 ? \`\${draft.skuSuggestion}-\${i + 1}\` : draft.skuSuggestion;
+          return next;
+        });`;});
 
 s=s.replace("showToast('AI đã điền thông tin sản phẩm — kiểm tra giá/kho rồi lưu');","showToast('AI đã giữ đủ phân loại, giá và kho hiện có — kiểm tra rồi lưu');");
+if(changes<3) throw new Error(`AI full variant patch incomplete: ${changes}/3`);
 writeFileSync(path,s);
-console.log('[KIMSHOP FIX] AI merges groups and preserves variant price/stock');
+console.log('[KIMSHOP FIX] AI merges groups and preserves variant price/stock:',changes);
