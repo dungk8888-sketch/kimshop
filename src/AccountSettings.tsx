@@ -60,8 +60,13 @@ export default function AccountSettings() {
 
   return (
     <>
-      <button onClick={() => setOpen(true)} className="fixed bottom-5 right-5 z-[80] bg-gray-900 text-white px-4 py-2.5 rounded-full shadow-xl text-xs font-bold flex items-center gap-2 hover:bg-black">
-        <Settings size={15} /> Cài đặt tài khoản
+      <button
+        onClick={() => setOpen(true)}
+        aria-label="Cài đặt tài khoản"
+        title="Cài đặt tài khoản"
+        className="fixed bottom-5 right-5 z-[80] w-11 h-11 p-0 bg-gray-900 text-white rounded-full shadow-xl flex items-center justify-center hover:bg-black transition-colors"
+      >
+        <Settings size={20} />
       </button>
       {open && (
         <div className="fixed inset-0 z-[90] bg-black/50 flex items-center justify-center p-4">
