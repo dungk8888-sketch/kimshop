@@ -15,21 +15,25 @@ const partFiles = [
   'source_parts/final8b.txt',
 ];
 
-const encoded = partFiles
-  .map((name) => readFileSync(name, 'utf8').trim())
-  .join('');
-
+const encoded = partFiles.map((name) => readFileSync(name, 'utf8').trim()).join('');
 const source = gunzipSync(Buffer.from(encoded, 'base64')).toString('utf8');
 writeFileSync('src/App.tsx', source);
 
-const patchEncoded = [
+function applyEncodedPatch(files, tempPath) {
+  const encodedPatch = files.map((name) => readFileSync(name, 'utf8').trim()).join('');
+  const patch = gunzipSync(Buffer.from(encodedPatch, 'base64'));
+  writeFileSync(tempPath, patch);
+  execFileSync('git', ['apply', '-p0', '--whitespace=nowarn', '--recount', tempPath], { stdio: 'inherit' });
+}
+
+applyEncodedPatch([
   'patches/variant-ux.part00.b64',
   'patches/variant-ux.part01.b64',
   'patches/variant-ux.part02.b64',
-].map((name) => readFileSync(name, 'utf8').trim()).join('');
-const patch = gunzipSync(Buffer.from(patchEncoded, 'base64'));
-const patchPath = '/tmp/variant-ux.diff';
-writeFileSync(patchPath, patch);
-execFileSync('git', ['apply', '-p0', '--whitespace=nowarn', '--recount', patchPath], { stdio: 'inherit' });
+], '/tmp/variant-ux.diff');
 
-console.log(`Assembled exact final src/App.tsx (${source.length} chars) and applied simplified variant UX patch.`);
+applyEncodedPatch([
+  'patches/variant-qty-compact.b64',
+], '/tmp/variant-qty-compact.diff');
+
+console.log(`Assembled exact final src/App.tsx (${source.length} chars), applied simplified variant UX and compact per-variant quantity patches.`);
