@@ -1,15 +1,21 @@
 import { readFileSync, writeFileSync } from 'node:fs';
 const path='src/App.tsx';
 let s=readFileSync(path,'utf8');
-let changed=0;
-// The account-settings floating control can contain the label in nested JSX, so remove every visible occurrence.
-s=s.replace(/Cài\s*[Đđ]ặt\s*Tài\s*Khoản|Cài\s*đặt\s*tài\s*khoản/gi,()=>{changed++;return '';});
-// Compact the button that opens the settings screen/modal. Match around Settings icon rather than relying on the label.
-s=s.replace(/className="([^"]*(?:fixed|absolute)[^"]*(?:bottom-[^\s"]+)[^"]*(?:right-[^\s"]+)[^"]*)"([^>]*onClick=\{[^}]*\}[^>]*)>([\s\S]{0,500}?<Settings[^>]*>[\s\S]{0,500}?)<\/button>/g,(m,cls,attrs,body)=>{
-  changed++;
-  const cleaned=cls.replace(/\b(?:px|py|p|gap|rounded)-(?:\[[^\]]+\]|\d+(?:\.5)?|full)\b/g,'').replace(/\s+/g,' ').trim();
-  return `<button className="${cleaned} w-11 h-11 p-0 rounded-full flex items-center justify-center" ${attrs} aria-label="Cài đặt tài khoản" title="Cài đặt tài khoản">${body.replace(/>([^<>]*Cài[^<>]*tài[^<>]*khoản[^<>]*)</gi,'><')}</button>`;
-});
-if(!changed) throw new Error('account settings control not found');
+
+const lines=s.split('\n');
+const hits=[];
+for(let i=0;i<lines.length;i++){
+  const line=lines[i];
+  if(/<Settings\b|settings|cài đặt|tai khoan|tài khoản|bottom-|right-/i.test(line)){
+    const from=Math.max(0,i-3), to=Math.min(lines.length,i+4);
+    const ctx=lines.slice(from,to).map((x,j)=>`${from+j+1}: ${x}`).join('\n');
+    if(/<Settings\b|bottom-|right-/i.test(ctx)) hits.push(ctx);
+  }
+}
+console.log('[ACCOUNT SETTINGS TRACE COUNT]',hits.length);
+hits.slice(0,30).forEach((x,i)=>console.log(`\n[ACCOUNT SETTINGS TRACE ${i+1}]\n${x}\n`));
+
+// Keep the previous harmless visible-label cleanup while tracing exact control.
+s=s.replace(/Cài\s*[Đđ]ặt\s*Tài\s*Khoản|Cài\s*đặt\s*tài\s*khoản/gi,'');
 writeFileSync(path,s);
-console.log('[KIMSHOP FIX] force gear-only account settings control changes:',changed);
+console.log('[KIMSHOP TRACE] account settings exact control trace emitted');
