@@ -104,3 +104,4 @@ s = mustReplace(s,
 
 writeFileSync(path, s);
 console.log(`[KIMSHOP FIX] multi-variant total price + qty +/- applied — ${patched} anchors patched`);
+await import('./apply-mobile-search-submit.mjs');
