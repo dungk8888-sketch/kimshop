@@ -5,6 +5,20 @@ function mustReplace(source, from, to, label) {
   return source.replace(from, to);
 }
 
+// src/App.tsx is regenerated from source_parts on every run (always starts
+// from the pristine, unpatched text), so mustReplace() above is correct for it.
+// src/supabaseClient.ts, however, is a normal committed source file that is
+// edited in place and persists across runs. Once this fix has been applied to
+// it, the "from" anchor is gone for good and re-running the pipeline against
+// an already-migrated checkout must not fail. applyIdempotent() treats that
+// case as a no-op instead of throwing, while still failing loudly if neither
+// the pre- nor post-migration text is present (a real drift, not idempotency).
+function applyIdempotent(source, from, to, label) {
+  if (source.includes(to)) return source;
+  if (!source.includes(from)) throw new Error(`Missing anchor: ${label}`);
+  return source.replace(from, to);
+}
+
 let app = readFileSync('src/App.tsx', 'utf8');
 app = mustReplace(app,
   "import { supabase, usernameToEmail, isValidUsername } from './supabaseClient';",
@@ -51,11 +65,11 @@ app = mustReplace(app, "voucherDraft.discountType !== 'freeship'", "voucherDraft
 writeFileSync('src/App.tsx', app);
 
 let client = readFileSync('src/supabaseClient.ts', 'utf8');
-client = mustReplace(client,
+client = applyIdempotent(client,
   "export const LOCAL_EMAIL_DOMAIN = 'kimshop.local';",
   "export const LOCAL_EMAIL_DOMAIN = 'users.kimshop.app';\nexport const LEGACY_LOCAL_EMAIL_DOMAIN = 'kimshop.local';",
   'internal email domain');
-client = mustReplace(client,
+client = applyIdempotent(client,
 `export const usernameToEmail = (usernameOrEmail: string) => {
   const v = (usernameOrEmail || '').trim().toLowerCase();
   // Production admin Auth account uses admin.auth@kimshop.local.
