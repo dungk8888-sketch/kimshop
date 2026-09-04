@@ -13,3 +13,4 @@ jobs:
           name: kimshop-full-source
           path: .
           retention-days: 1
+# export trigger: latest KimShop snapshot
