@@ -31,13 +31,20 @@ export const supabase = createClient(supabaseUrl, supabaseKey, {
  * - Tắt "Confirm email" trong Auth settings, vì các địa chỉ *.kimshop.local
  *   không phải email thật và không thể nhận thư xác nhận.
  */
-export const LOCAL_EMAIL_DOMAIN = 'kimshop.local';
+export const LOCAL_EMAIL_DOMAIN = 'users.kimshop.app';
+export const LEGACY_LOCAL_EMAIL_DOMAIN = 'kimshop.local';
 
 export const usernameToEmail = (usernameOrEmail: string) => {
   const v = (usernameOrEmail || '').trim().toLowerCase();
-  // Production admin Auth account uses admin.auth@kimshop.local.
+  // Production admin Auth account cũ vẫn giữ nguyên để không làm mất quyền admin.
   if (v === 'admin') return 'admin.auth@kimshop.local';
   return v.includes('@') ? v : `${v}@${LOCAL_EMAIL_DOMAIN}`;
+};
+
+export const usernameToLegacyEmail = (username: string) => {
+  const v = (username || '').trim().toLowerCase();
+  if (v === 'admin') return 'admin.auth@kimshop.local';
+  return `${v}@${LEGACY_LOCAL_EMAIL_DOMAIN}`;
 };
 
 export const isValidUsername = (username: string) => /^[a-z0-9._-]{3,32}$/.test(username);
