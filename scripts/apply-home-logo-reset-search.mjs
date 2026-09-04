@@ -1,14 +1,14 @@
-import { readFileSync } from 'node:fs';
+import { readFileSync, writeFileSync } from 'node:fs';
 
-const s = readFileSync('src/App.tsx', 'utf8');
-const label = 'Shopee Mini';
-let at = -1;
-let i = 0;
-while ((at = s.indexOf(label, at + 1)) !== -1) {
-  i++;
-  const start = Math.max(0, at - 650);
-  const end = Math.min(s.length, at + 220);
-  const snippet = s.slice(start, end).replace(/\s+/g, ' ');
-  console.log(`\n[KIMSHOP LOGO CANDIDATE ${i}] ${snippet}\n`);
-}
-throw new Error(`KIMSHOP logo debug complete: found ${i} Shopee Mini occurrences`);
+const path = 'src/App.tsx';
+let s = readFileSync(path, 'utf8');
+
+const from = `onClick={() => { setBuyerPage('home'); setSelectedCategory('all'); }}`;
+const to = `onClick={() => { setSearchQuery(''); setSearchDraft(''); setBuyerPage('home'); setSelectedCategory('all'); window.scrollTo?.({ top: 0 }); }}`;
+
+const count = s.split(from).length - 1;
+if (count !== 1) throw new Error(`KIMSHOP home-logo reset anchor found ${count} time(s), expected 1`);
+
+s = s.replace(from, to);
+writeFileSync(path, s);
+console.log('[KIMSHOP FIX] Shopee Mini logo clears search and returns to home');
