@@ -9,13 +9,12 @@ const productNavMatches=s.match(productNavRe)||[];
 if(productNavMatches.length<1) throw new Error(`[home scroll] product navigation found ${productNavMatches.length} time(s)`);
 s=s.replace(productNavRe, `sessionStorage.setItem('kimshop_home_scroll_y', String(window.scrollY)); setBuyerPage('product')`);
 
-// Restore only when navigating back to home. Two RAFs let the storefront grid mount
-// before restoring, avoiding the browser clamping the scroll position too early.
-const effectAnchor=/\n\s*useEffect\(\(\)=>\{\s*if\(buyerPage!==['"]home['"]\)/;
-const firstHomeEffect=s.match(effectAnchor);
-if(!firstHomeEffect || firstHomeEffect.index==null) throw new Error('[home scroll] buyerPage home effect anchor missing');
-const restoreEffect=`\n  useEffect(()=>{\n    if(buyerPage!=='home') return;\n    const raw=sessionStorage.getItem('kimshop_home_scroll_y');\n    if(raw===null) return;\n    const y=Number(raw);\n    if(!Number.isFinite(y)) { sessionStorage.removeItem('kimshop_home_scroll_y'); return; }\n    requestAnimationFrame(()=>requestAnimationFrame(()=>{\n      window.scrollTo({top:y,left:0,behavior:'auto'});\n      sessionStorage.removeItem('kimshop_home_scroll_y');\n    }));\n  },[buyerPage]);\n`;
-s=s.slice(0,firstHomeEffect.index)+restoreEffect+s.slice(firstHomeEffect.index);
+// Restore directly on any navigation back to home, but only when a saved product-origin
+// scroll position exists. Two RAFs let the home grid mount before applying scrollY.
+const homeNavRe=/setBuyerPage\('home'\)/g;
+const homeNavMatches=s.match(homeNavRe)||[];
+if(homeNavMatches.length<1) throw new Error(`[home scroll] home navigation found ${homeNavMatches.length} time(s)`);
+s=s.replace(homeNavRe, `setBuyerPage('home'); { const __raw=sessionStorage.getItem('kimshop_home_scroll_y'); if(__raw!==null){ const __y=Number(__raw); requestAnimationFrame(()=>requestAnimationFrame(()=>{ if(Number.isFinite(__y)) window.scrollTo({top:__y,left:0,behavior:'auto'}); sessionStorage.removeItem('kimshop_home_scroll_y'); })); } }`);
 
 writeFileSync(path,s);
-console.log('[KIMSHOP UX] home scroll position restore applied; product nav anchors:',productNavMatches.length);
+console.log('[KIMSHOP UX] home scroll restore applied; product/home nav anchors:',productNavMatches.length,homeNavMatches.length);
