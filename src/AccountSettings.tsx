@@ -20,7 +20,10 @@ export default function AccountSettings() {
   };
 
   useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => loadProfile(data.user));
+    // getSession() đọc session local, không gọi Auth server như getUser().
+    // AccountSettings không cần xác minh token ngay lúc app vừa mở; các thao tác
+    // nhạy cảm bên dưới vẫn đi qua Supabase Auth và được server xác thực khi lưu.
+    supabase.auth.getSession().then(({ data }) => loadProfile(data.session?.user || null));
     const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => loadProfile(session?.user || null));
     return () => sub.subscription.unsubscribe();
   }, []);
