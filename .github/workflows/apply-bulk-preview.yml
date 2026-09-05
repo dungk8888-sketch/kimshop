@@ -1,0 +1,24 @@
+name: Apply bulk preview payload
+on:
+  push:
+    paths:
+      - '.github/workflows/apply-bulk-preview.yml'
+permissions:
+  contents: write
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: preview/bulk-import-drive-20260905
+      - name: Apply payload
+        shell: bash
+        run: |
+          base64 -d .github/bulk-preview-payload.b64 > /tmp/payload.tar.xz
+          tar -xJf /tmp/payload.tar.xz -C .
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add src/BulkProductImport.tsx src/bulkImportParser.ts src/imagePipeline.ts scripts/apply-bulk-import-feature.mjs scripts/assemble-app.mjs supabase/functions/fetch-remote-image/index.ts
+          git commit -m 'Add bulk import with Drive image pipeline' || exit 0
+          git push origin HEAD:preview/bulk-import-drive-20260905
