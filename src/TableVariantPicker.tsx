@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Minus, Plus, Search } from 'lucide-react';
 
 interface Props {
@@ -19,6 +19,7 @@ function labelOf(v:any) {
 }
 
 export function TableVariantPicker({ variants = [], qtyMap = {}, onQtyChange }: Props) {
+  const rootRef = useRef<HTMLDivElement | null>(null);
   const tableVariants = useMemo(() => variants.filter((v:any) => {
     const attrs = v?.attributes && typeof v.attributes === 'object' ? v.attributes : {};
     return Object.keys(attrs).some(k => /bảng mã|bang ma|mã hàng|ma hang/i.test(k)) || /^Bảng mã\s*:|^Mã hàng\s*:/i.test(String(v?.name || ''));
@@ -29,10 +30,38 @@ export function TableVariantPicker({ variants = [], qtyMap = {}, onQtyChange }: 
     if (!key) return tableVariants;
     return tableVariants.filter((v:any) => norm(`${labelOf(v)} ${v?.sku || ''}`).includes(key));
   }, [tableVariants, q]);
-  if (!tableVariants.length) return null;
   const picked = tableVariants.reduce((s:any, v:any) => s + Math.max(0, Number(qtyMap[v.id] || 0)), 0);
   const total = tableVariants.reduce((s:any, v:any) => s + Math.max(0, Number(qtyMap[v.id] || 0)) * Number(v.price || 0), 0);
-  return <div className="rounded-xl border border-gray-200 bg-white p-3 space-y-3 order-3 md:order-none">
+
+  // Chỉ với sản phẩm bảng mã: ẩn UI biến thể/số lượng chung phía trên.
+  // Sản phẩm thường không render component này nên hoàn toàn không bị tác động.
+  useEffect(() => {
+    if (!tableVariants.length || !rootRef.current) return;
+    const info = rootRef.current.parentElement;
+    if (!info) return;
+    const hidden: HTMLElement[] = [];
+    Array.from(info.children).forEach((node:any) => {
+      if (!(node instanceof HTMLElement) || node === rootRef.current) return;
+      const text = String(node.innerText || '').replace(/\s+/g,' ').trim();
+      const isOldVariant = /^Bảng mã\b/i.test(text) && !/Chọn mã hàng/i.test(text);
+      const isOldWarning = /Vui lòng chọn đủ phân loại/i.test(text);
+      const isOldQty = /^Số lượng\b/i.test(text) && /sản phẩm có sẵn/i.test(text);
+      if (isOldVariant || isOldWarning || isOldQty) {
+        node.dataset.kimshopTableHidden = '1';
+        node.style.display = 'none';
+        hidden.push(node);
+      }
+    });
+    return () => hidden.forEach((node) => {
+      if (node.dataset.kimshopTableHidden === '1') {
+        node.style.display = '';
+        delete node.dataset.kimshopTableHidden;
+      }
+    });
+  }, [tableVariants.length]);
+
+  if (!tableVariants.length) return null;
+  return <div ref={rootRef} data-kimshop-table-picker="1" className="rounded-xl border border-gray-200 bg-white p-3 space-y-3 order-3 md:order-none">
     <div className="flex items-center justify-between gap-2"><div><div className="font-bold text-sm text-gray-800">Chọn mã hàng</div><div className="text-[10px] text-gray-500">Tìm mã / đời máy rồi chọn số lượng từng dòng.</div></div>{picked > 0 && <div className="text-right"><div className="text-[10px] text-gray-500">Đã chọn {picked}</div><div className="font-bold text-[#EE4D2D] text-sm">{fmt(total)}</div></div>}</div>
     <div className="relative"><Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"/><input value={q} onChange={e=>setQ(e.target.value)} placeholder="Nhập mã, ví dụ 11PRO / A54 / 805..." className="w-full border border-gray-200 rounded-lg pl-8 pr-3 py-2.5 text-xs outline-none focus:border-[#EE4D2D]"/></div>
     <div className="max-h-[420px] overflow-y-auto border border-gray-100 rounded-lg divide-y divide-gray-100">
