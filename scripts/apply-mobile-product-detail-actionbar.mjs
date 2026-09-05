@@ -42,8 +42,8 @@ function mustReplace(source, from, to, label) {
 /* ---------- F) Container: chuyển sang flex-col + gap (thay space-y) để dùng được CSS order ---------- */
 
 s = mustReplace(s,
-  '<div className="flex-1 space-y-4 px-3.5 pt-4 pb-1 md:px-0 md:pt-0 md:pb-0">',
-  '<div className="flex-1 flex flex-col gap-4 px-3.5 pt-4 pb-1 md:px-0 md:pt-0 md:pb-0">',
+  '<div className="kimshop-detail-reveal flex-1 space-y-4 px-3.5 pt-4 pb-1 md:px-0 md:pt-0 md:pb-0" style={{ animationDelay: \'180ms\' }}>',
+  '<div className="kimshop-detail-reveal flex-1 flex flex-col gap-4 px-3.5 pt-4 pb-1 md:px-0 md:pt-0 md:pb-0" style={{ animationDelay: \'180ms\' }}>',
   'product info column: flex-col + gap for mobile reorder');
 
 s = mustReplace(s,
