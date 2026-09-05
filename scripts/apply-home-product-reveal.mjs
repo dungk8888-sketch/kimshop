@@ -3,6 +3,12 @@ import { readFileSync, writeFileSync } from 'node:fs';
 const path = 'src/App.tsx';
 let s = readFileSync(path, 'utf8');
 
+// Remember cards already revealed for the lifetime of this app page. Product detail
+// temporarily unmounts the home grid; returning home must not replay the animation.
+const pageSizeMarker = 'const STOREFRONT_PAGE_SIZE = 24;';
+if (!s.includes(pageSizeMarker)) throw new Error('[home reveal] storefront page-size marker missing');
+s = s.replace(pageSizeMarker, `${pageSizeMarker}\nconst kimshopHomeRevealedProductIds = new Set<string>();`);
+
 // First paint: fetch only the first four product rows. The existing load-more
 // observer then requests the next normal batch from offset=4.
 const rangeRe = /const \{data,error,count\}=await q\.range\(offset,\s*offset \+ STOREFRONT_PAGE_SIZE - 1\);/;
@@ -22,8 +28,8 @@ s = s.slice(0, mapIndex) + '{filteredProducts.map((p, productIndex) => {' + s.sl
 const cardMarker = '<div key={p.id} className="bg-white rounded-xl border border-gray-100 overflow-hidden shadow-sm hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 group">';
 const cardIndex = s.indexOf(cardMarker, mapIndex);
 if (cardIndex < 0 || cardIndex - mapIndex > 900) throw new Error('[home reveal] home product card marker missing near product map');
-const cardReplacement = `<div\n                          key={p.id}\n                          data-reveal-verify="Math.min(productIndex, 10) * 48"\n                          className="kimshop-product-reveal bg-white rounded-xl border border-gray-100 overflow-hidden shadow-sm hover:shadow-lg hover:-translate-y-0.5 transition-shadow duration-200 group"\n                          style={{ animationDelay: \`${'${(Math.min(productIndex, 10) + 1) * 110}ms'}\` }}\n                        >`;
+const cardReplacement = `<div\n                          key={p.id}\n                          ref={(el) => { if (el) kimshopHomeRevealedProductIds.add(p.id); }}\n                          data-reveal-verify="Math.min(productIndex, 10) * 48"\n                          className={\`${'${kimshopHomeRevealedProductIds.has(p.id) ? "" : "kimshop-product-reveal"}'} bg-white rounded-xl border border-gray-100 overflow-hidden shadow-sm hover:shadow-lg hover:-translate-y-0.5 transition-shadow duration-200 group\`}\n                          style={kimshopHomeRevealedProductIds.has(p.id) ? undefined : { animationDelay: \`${'${(Math.min(productIndex, 10) + 1) * 110}ms'}\` }}\n                        >`;
 s = s.slice(0, cardIndex) + cardReplacement + s.slice(cardIndex + cardMarker.length);
 
 writeFileSync(path, s);
-console.log('[KIMSHOP UX] first 4 products prioritized + 110ms sequential home reveal applied');
+console.log('[KIMSHOP UX] first 4 prioritized + 110ms reveal only once per product id');
