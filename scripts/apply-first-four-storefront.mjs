@@ -1,0 +1,10 @@
+import { readFileSync, writeFileSync } from 'node:fs';
+const path='src/App.tsx';
+let s=readFileSync(path,'utf8');
+const from=`    const {data,error,count}=await q.range(offset, offset + STOREFRONT_PAGE_SIZE - 1);`;
+const to=`    const storefrontBatchSize = offset === 0 ? 4 : STOREFRONT_PAGE_SIZE;\n    const {data,error,count}=await q.range(offset, offset + storefrontBatchSize - 1);`;
+const count=s.split(from).length-1;
+if(count!==1) throw new Error(`[first four] storefront range found ${count} time(s), expected 1`);
+s=s.replace(from,to);
+writeFileSync(path,s);
+console.log('[KIMSHOP PERF] first 4 storefront products prioritized before remaining batch');
