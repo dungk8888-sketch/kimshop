@@ -8,15 +8,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          cache: npm
-      - run: npm ci
-      - run: npm run prebuild
+      - name: Assemble App
+        run: node scripts/assemble-app.mjs
+      - name: Show Flash Sale context
+        run: |
+          grep -n -B 12 -A 28 "FLASH SALE" src/App.tsx || true
+          grep -n -B 12 -A 28 "flashSale" src/App.tsx || true
       - uses: actions/upload-artifact@v4
         with:
           name: kimshop-assembled-source
           path: src/App.tsx
           retention-days: 1
-# export trigger: assembled preview source 20260905
+# export trigger: flash-sale-image-debug 20260905
