@@ -89,10 +89,13 @@ replaceOnce('className={isTableCodeProduct ? "hidden" : "md:hidden fixed bottom-
 // Returning from product detail to home should reuse the already-loaded storefront.
 // buyerPage is intentionally not a dependency: category/search/sort/view changes still query,
 // but product -> home navigation does not throw away and reload the current cards.
-replaceOnce(
-`    },[selectedCategory,searchQuery,sortBy,view,buyerPage]);`,
-`    },[selectedCategory,searchQuery,sortBy,view]);`,
-'avoid storefront requery on product-to-home navigation');
+const homeDepsRe = /\},\s*\[\s*selectedCategory\s*,\s*searchQuery\s*,\s*sortBy\s*,\s*view\s*,\s*buyerPage\s*\]\s*\);/;
+if (homeDepsRe.test(s)) {
+  s = s.replace(homeDepsRe, '},[selectedCategory,searchQuery,sortBy,view]);');
+  changes++;
+} else if (!/\},\s*\[\s*selectedCategory\s*,\s*searchQuery\s*,\s*sortBy\s*,\s*view\s*\]\s*\);/.test(s)) {
+  throw new Error('[storefront light] could not find storefront query dependency list');
+}
 
 writeFileSync(path, s);
 console.log('[KIMSHOP PERF] storefront light + progressive product detail applied:', changes);
