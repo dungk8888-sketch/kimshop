@@ -60,13 +60,11 @@ if(!s.includes('<TableVariantPicker')) {
   s=s.replace(desktopButtons,picker+desktopButtons);
   changes++;
 } else {
-  // Nâng cấp props nếu picker đã được chèn bởi build trước.
   const oldPicker=`                    <TableVariantPicker\n                      variants={selectedProduct.variants || []}\n                      qtyMap={variantQtyMap}\n                      onQtyChange={(variantId, qty, max) => commitVariantQty(variantId, qty, max)}\n                    />`;
   const newPicker=`                    <TableVariantPicker\n                      variants={selectedProduct.variants || []}\n                      qtyMap={variantQtyMap}\n                      onQtyChange={(variantId, qty, max) => commitVariantQty(variantId, qty, max)}\n                      onAddSelected={(rows:any[]) => {\n                        rows.forEach(({ variant, qty }:any) => addToCart(selectedProduct, variant.name, qty));\n                        showToast('Đã thêm các mã đã chọn vào giỏ hàng!');\n                        flyToCart(productImgRef.current);\n                      }}\n                      onBuySelected={(rows:any[]) => {\n                        setBuyNowItems(rows.map(({ variant, qty }:any) => ({ productId: selectedProduct.id, variant: variant.name, qty })));\n                        setBuyNowItem(null);\n                        setBuyerPage('checkout');\n                        window.scrollTo?.({ top: 0 });\n                      }}\n                    />`;
   if(s.includes(oldPicker)){ s=s.replace(oldPicker,newPicker); changes++; }
 }
 
-// Bảng mã có nút mua riêng ngay dưới bảng; giấu nút cũ để không còn "Hết hàng" sai.
 replaceOnce(
   '<div className="hidden md:flex gap-3 pt-2">',
   '<div className={isTableCodeProduct ? "hidden" : "hidden md:flex gap-3 pt-2"}>',
@@ -80,3 +78,4 @@ replaceOnce(
 
 writeFileSync(path,s);
 console.log('[KIMSHOP FIX] table-code product exclusive picker/actions wired:',changes);
+await import('./apply-variant-qty-voucher.mjs');
