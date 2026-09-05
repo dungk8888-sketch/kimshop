@@ -24,14 +24,14 @@ const orderBlock = `  const reviewOrderIds = Array.from(new Set(rawReviews.map((
   if (reviewOrderIds.length) {
     const { data: reviewOrders, error: reviewOrdersError } = await supabase
       .from('orders')
-      .select('id,customer_name,recipient_name')
+      .select('id,recipient_name')
       .in('id', reviewOrderIds);
     if (reviewOrdersError) console.error('Không tải được tên người nhận đơn đánh giá', reviewOrdersError);
     reviewOrderById = Object.fromEntries((reviewOrders || []).map((o:any)=>[o.id,o]));
   }
   const namedReviews = rawReviews.map((r:any)=>{
     const order = reviewOrderById[r.order_id] || {};
-    const recipientName = r.reviewer_name || order.customer_name || order.recipient_name || 'Khách hàng KimShop';
+    const recipientName = r.reviewer_name || order.recipient_name || 'Khách hàng KimShop';
     return { ...r, reviewer_name: recipientName, user: recipientName };
   });`;
 
@@ -56,7 +56,7 @@ const hydrationProfileBlock = `  const buyerIds = Array.from(new Set(rawReviews.
 const hydrationOrderBlock = `  const reviewOrderIds = Array.from(new Set(rawReviews.map((r:any)=>r.order_id).filter(Boolean)));
   let orderById: Record<string, any> = {};
   if (reviewOrderIds.length) {
-    const o = await detailQueryRetry(() => supabase.from('orders').select('id,customer_name,recipient_name').in('id', reviewOrderIds), 'tên người nhận đơn đánh giá', 2);
+    const o = await detailQueryRetry(() => supabase.from('orders').select('id,recipient_name').in('id', reviewOrderIds), 'tên người nhận đơn đánh giá', 2);
     if (!o?.error) orderById = Object.fromEntries((o.data || []).map((x:any)=>[x.id,x]));
   }
   return {
@@ -64,7 +64,7 @@ const hydrationOrderBlock = `  const reviewOrderIds = Array.from(new Set(rawRevi
     vars: (vars?.data || []) as any[],
     reviews: rawReviews.map((r:any)=>{
       const order = orderById[r.order_id] || {};
-      const recipientName = r.reviewer_name || order.customer_name || order.recipient_name || 'Khách hàng KimShop';
+      const recipientName = r.reviewer_name || order.recipient_name || 'Khách hàng KimShop';
       return { ...r, reviewer_name: recipientName, user: recipientName };
     }),
   };`;
@@ -72,10 +72,10 @@ const hydrationOrderBlock = `  const reviewOrderIds = Array.from(new Set(rawRevi
 if (!s.includes(hydrationProfileBlock)) throw new Error('hydrated review profile block not found');
 s = s.replace(hydrationProfileBlock, hydrationOrderBlock);
 
-// Just-submitted review: use the recipient already mapped from orders.customer_name/recipient_name.
+// Just-submitted review: use the recipient already mapped in the local order model.
 const localMarker = "user: myUser?.name || currentUser.username || 'Khách hàng KimShop'";
 const localReplacement = "user: order.customerName || 'Khách hàng KimShop'";
 if (s.includes(localMarker)) s = s.replace(localMarker, localReplacement);
 
 writeFileSync(path, s);
-console.log('[KIMSHOP FIX] review recipient/order name applied to reviewer_name + legacy user');
+console.log('[KIMSHOP FIX] review recipient/order name applied without nonexistent customer_name column');
