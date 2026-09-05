@@ -33,6 +33,18 @@ html,body{overflow-x:hidden}
   opacity:0;
   animation:kimshop-product-reveal 620ms cubic-bezier(.22,1,.36,1) both;
 }
+
+/* Product detail: image first, then product info. Variant/stock still hydrate
+   in the background and become interactive only after authoritative data arrives. */
+@keyframes kimshop-detail-reveal{
+  0%{opacity:0;transform:translate3d(0,10px,0)}
+  100%{opacity:1;transform:translate3d(0,0,0)}
+}
+.kimshop-detail-reveal{
+  opacity:0;
+  animation:kimshop-detail-reveal 560ms cubic-bezier(.22,1,.36,1) both;
+}
+
 @media (prefers-reduced-motion:reduce){
-  .kimshop-product-reveal{opacity:1;transform:none;animation:none}
+  .kimshop-product-reveal,.kimshop-detail-reveal{opacity:1;transform:none;animation:none}
 }
