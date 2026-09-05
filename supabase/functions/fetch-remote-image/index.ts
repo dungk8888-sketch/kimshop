@@ -1,7 +1,21 @@
 // ---------------------------------------------------------------------------
 // Edge Function: fetch-remote-image
 // ---------------------------------------------------------------------------
-const MAX_BYTES = 15 * 1024 * 1024;
+// Mục đích DUY NHẤT: tải hộ 1 ảnh ở phía SERVER (không bị giới hạn CORS của
+// trình duyệt) rồi trả bytes thô về cho client, để client tự upload lên
+// Supabase Storage bằng Anon Key (giống mọi upload ảnh khác trong app).
+//
+// KHÔNG dùng Service Role Key ở đây — hàm này không đụng tới Storage/DB gì
+// cả, chỉ đóng vai trò "proxy tải hộ". Vì vậy an toàn khi deploy với cấu
+// hình mặc định (verify_jwt có thể bật hoặc tắt tuỳ policy dự án; nếu bật,
+// client phải gửi kèm apikey/Authorization = Anon Key như trong
+// imagePipeline.ts đã làm).
+//
+// Deploy: supabase functions deploy fetch-remote-image
+// Không cần set thêm secret nào.
+// ---------------------------------------------------------------------------
+
+const MAX_BYTES = 15 * 1024 * 1024; // 15MB, khớp MAX_IMAGE_BYTES ở client
 const FETCH_TIMEOUT_MS = 15000;
 
 const CORS_HEADERS = {
@@ -13,13 +27,15 @@ const CORS_HEADERS = {
 function jsonError(message: string, status = 400): Response {
   return new Response(JSON.stringify({ error: message }), {
     status,
-    headers: { ...CORS_HEADERS, 'Content-Type': 'application/json', 'Cache-Control': 'no-store' },
+    headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' },
   });
 }
 
+/** Chặn cơ bản việc dùng hàm này để dò quét mạng nội bộ (SSRF). */
 function isPrivateOrLocalHost(hostname: string): boolean {
   const h = hostname.toLowerCase();
   if (h === 'localhost' || h.endsWith('.local')) return true;
+  // IPv4 private / loopback / link-local ranges.
   const m = h.match(/^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/);
   if (m) {
     const [a, b] = [parseInt(m[1], 10), parseInt(m[2], 10)];
@@ -28,7 +44,8 @@ function isPrivateOrLocalHost(hostname: string): boolean {
     if (a === 172 && b >= 16 && b <= 31) return true;
     if (a === 192 && b === 168) return true;
   }
-  return h === '::1';
+  if (h === '::1') return true;
+  return false;
 }
 
 async function fetchWithTimeout(url: string, ms: number): Promise<Response> {
@@ -39,8 +56,8 @@ async function fetchWithTimeout(url: string, ms: number): Promise<Response> {
       signal: controller.signal,
       redirect: 'follow',
       headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/151 Safari/537.36',
-        'Accept-Language': 'vi,en-US;q=0.9,en;q=0.8',
+        // Một số CDN/host chặn request không có User-Agent giống trình duyệt.
+        'User-Agent': 'Mozilla/5.0 (compatible; KimshopImageFetcher/1.0)',
       },
     });
   } finally {
@@ -48,6 +65,12 @@ async function fetchWithTimeout(url: string, ms: number): Promise<Response> {
   }
 }
 
+/**
+ * Google Drive: nếu file lớn hoặc chưa chia sẻ đúng cách, endpoint
+ * `uc?export=download` trả về TRANG HTML xác nhận thay vì bytes ảnh. Khi đó
+ * thử lại bằng endpoint `thumbnail` (thường vượt qua được trang xác nhận
+ * cho các file ảnh public, đổi lại ảnh có thể bị resize theo phía Google).
+ */
 function driveThumbnailFallbackUrl(originalUrl: string): string | null {
   try {
     const u = new URL(originalUrl);
@@ -59,112 +82,19 @@ function driveThumbnailFallbackUrl(originalUrl: string): string | null {
   }
 }
 
-function extractDriveFolderId(rawUrl: string): string | null {
-  try {
-    const u = new URL(rawUrl);
-    const host = u.hostname.replace(/^www\./, '');
-    if (host !== 'drive.google.com' && host !== 'docs.google.com') return null;
-    const m = u.pathname.match(/\/folders\/([a-zA-Z0-9_-]+)/);
-    return m?.[1] || u.searchParams.get('id');
-  } catch {
-    return null;
-  }
-}
-
-function extractCandidateIds(html: string, folderId: string): string[] {
-  const candidates: string[] = [];
-  const seen = new Set<string>();
-  const add = (id?: string | null) => {
-    if (!id || id === folderId || seen.has(id)) return;
-    if (!/^[a-zA-Z0-9_-]{20,120}$/.test(id)) return;
-    seen.add(id);
-    candidates.push(id);
-  };
-  const regexes = [
-    /\/file\/d\/([a-zA-Z0-9_-]{20,120})/g,
-    /thumbnail\?id=([a-zA-Z0-9_-]{20,120})/g,
-    /[?&]id=([a-zA-Z0-9_-]{20,120})/g,
-    /\[\"([a-zA-Z0-9_-]{20,120})\",\"[^\"]+\",\"image\//g,
-    /\"([a-zA-Z0-9_-]{20,120})\"[^\n]{0,250}?\"image\//g,
-  ];
-  for (const re of regexes) {
-    let m: RegExpExecArray | null;
-    while ((m = re.exec(html)) && candidates.length < 200) add(m[1]);
-  }
-  return candidates;
-}
-
-async function collectFolderCandidateIds(folderId: string): Promise<string[]> {
-  const pageUrls = [
-    `https://drive.google.com/embeddedfolderview?id=${encodeURIComponent(folderId)}#grid`,
-    `https://drive.google.com/drive/folders/${encodeURIComponent(folderId)}?usp=sharing`,
-  ];
-  const all: string[] = [];
-  const seen = new Set<string>();
-  for (const pageUrl of pageUrls) {
-    try {
-      const page = await fetchWithTimeout(pageUrl, FETCH_TIMEOUT_MS);
-      if (!page.ok) continue;
-      const html = await page.text();
-      for (const id of extractCandidateIds(html, folderId)) {
-        if (!seen.has(id)) {
-          seen.add(id);
-          all.push(id);
-        }
-      }
-      if (all.length >= 30) break;
-    } catch {}
-  }
-  return all;
-}
-
-async function isPublicImageId(id: string): Promise<boolean> {
-  const urls = [
-    `https://drive.google.com/thumbnail?id=${encodeURIComponent(id)}&sz=w2000`,
-    `https://lh3.googleusercontent.com/d/${encodeURIComponent(id)}=w2000`,
-  ];
-  for (const url of urls) {
-    try {
-      const r = await fetchWithTimeout(url, 10000);
-      const ct = (r.headers.get('content-type') || '').toLowerCase();
-      if (r.ok && ct.startsWith('image/')) return true;
-    } catch {}
-  }
-  return false;
-}
-
-async function listPublicDriveFolderImages(folderUrl: string): Promise<string[]> {
-  const folderId = extractDriveFolderId(folderUrl);
-  if (!folderId) throw new Error('Link không phải thư mục Google Drive hợp lệ.');
-
-  const candidates = await collectFolderCandidateIds(folderId);
-  if (!candidates.length) {
-    throw new Error('Không đọc được danh sách file trong thư mục public. Hãy kiểm tra quyền “Bất kỳ ai có liên kết đều có thể xem”.');
-  }
-
-  const imageIds: string[] = [];
-  for (let i = 0; i < candidates.length && imageIds.length < 50; i += 6) {
-    const batch = candidates.slice(i, i + 6);
-    const checked = await Promise.all(batch.map(async (id) => (await isPublicImageId(id)) ? id : null));
-    for (const id of checked) if (id) imageIds.push(id);
-  }
-
-  if (!imageIds.length) {
-    throw new Error('Đã thấy file trong thư mục nhưng không đọc được ảnh public. Hãy đặt quyền chia sẻ của thư mục là “Bất kỳ ai có liên kết đều có thể xem”.');
-  }
-
-  return imageIds.map((id) => `https://drive.google.com/thumbnail?id=${encodeURIComponent(id)}&sz=w2000`);
-}
-
 Deno.serve(async (req: Request) => {
-  if (req.method === 'OPTIONS') return new Response('ok', { headers: CORS_HEADERS });
-  if (req.method !== 'POST') return jsonError('Chỉ hỗ trợ POST.', 405);
+  if (req.method === 'OPTIONS') {
+    return new Response('ok', { headers: CORS_HEADERS });
+  }
+  if (req.method !== 'POST') {
+    return jsonError('Chỉ hỗ trợ POST.', 405);
+  }
 
-  let body: { url?: string; mode?: string };
+  let body: { url?: string };
   try {
     body = await req.json();
   } catch {
-    return jsonError('Body phải là JSON hợp lệ.');
+    return jsonError('Body phải là JSON hợp lệ, vd { "url": "..." }.');
   }
 
   const targetUrl = (body?.url || '').trim();
@@ -176,19 +106,11 @@ Deno.serve(async (req: Request) => {
   } catch {
     return jsonError('URL không hợp lệ.');
   }
-  if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') return jsonError('Chỉ hỗ trợ URL http/https.');
-  if (isPrivateOrLocalHost(parsed.hostname)) return jsonError('Không được phép tải từ địa chỉ mạng nội bộ.');
-
-  if (body?.mode === 'list-folder') {
-    try {
-      const urls = await listPublicDriveFolderImages(targetUrl);
-      return new Response(JSON.stringify({ urls, count: urls.length }), {
-        status: 200,
-        headers: { ...CORS_HEADERS, 'Content-Type': 'application/json', 'Cache-Control': 'no-store' },
-      });
-    } catch (err) {
-      return jsonError(`Không đọc được thư mục Drive: ${(err as Error).message}`, 422);
-    }
+  if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
+    return jsonError('Chỉ hỗ trợ URL http/https.');
+  }
+  if (isPrivateOrLocalHost(parsed.hostname)) {
+    return jsonError('Không được phép tải từ địa chỉ mạng nội bộ.');
   }
 
   let res: Response;
@@ -199,6 +121,8 @@ Deno.serve(async (req: Request) => {
   }
 
   let contentType = res.headers.get('content-type') || '';
+
+  // Trường hợp Drive trả trang xác nhận HTML thay vì ảnh -> thử fallback.
   if (res.ok && contentType.toLowerCase().includes('text/html')) {
     const fallback = driveThumbnailFallbackUrl(targetUrl);
     if (fallback) {
@@ -211,16 +135,37 @@ Deno.serve(async (req: Request) => {
     }
   }
 
-  if (!res.ok) return jsonError(`Nguồn ảnh trả lỗi HTTP ${res.status}.`, 502);
+  if (!res.ok) {
+    return jsonError(`Nguồn ảnh trả lỗi HTTP ${res.status}.`, 502);
+  }
+
   const contentLength = res.headers.get('content-length');
-  if (contentLength && Number(contentLength) > MAX_BYTES) return jsonError(`Ảnh vượt quá giới hạn ${MAX_BYTES / 1024 / 1024}MB.`, 413);
+  if (contentLength && Number(contentLength) > MAX_BYTES) {
+    return jsonError(`Ảnh vượt quá giới hạn ${MAX_BYTES / 1024 / 1024}MB.`, 413);
+  }
+
   const buf = await res.arrayBuffer();
-  if (buf.byteLength > MAX_BYTES) return jsonError(`Ảnh vượt quá giới hạn ${MAX_BYTES / 1024 / 1024}MB.`, 413);
-  if (buf.byteLength === 0) return jsonError('Ảnh tải về rỗng.', 502);
-  if (!contentType.toLowerCase().startsWith('image/')) return jsonError(`Nội dung không phải ảnh (content-type: ${contentType || 'không rõ'}).`, 415);
+  if (buf.byteLength > MAX_BYTES) {
+    return jsonError(`Ảnh vượt quá giới hạn ${MAX_BYTES / 1024 / 1024}MB.`, 413);
+  }
+  if (buf.byteLength === 0) {
+    return jsonError('Ảnh tải về rỗng.', 502);
+  }
+
+  if (!contentType.toLowerCase().startsWith('image/')) {
+    return jsonError(
+      `Nội dung không phải ảnh (content-type: ${contentType || 'không rõ'}). Kiểm tra lại link đã public/chia sẻ đúng cách chưa.`,
+      415,
+    );
+  }
 
   return new Response(buf, {
     status: 200,
-    headers: { ...CORS_HEADERS, 'Content-Type': contentType, 'Content-Length': String(buf.byteLength), 'Cache-Control': 'no-store' },
+    headers: {
+      ...CORS_HEADERS,
+      'Content-Type': contentType,
+      'Content-Length': String(buf.byteLength),
+      'Cache-Control': 'no-store',
+    },
   });
 });
