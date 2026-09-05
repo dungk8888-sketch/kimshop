@@ -86,5 +86,13 @@ replaceOnce('variants={selectedProduct.variants || []}', 'variants={productDetai
 replaceOnce('className={isTableCodeProduct ? "hidden" : "hidden md:flex gap-3 pt-2"}', 'className={isTableCodeProduct || productDetailLoading ? "hidden" : "hidden md:flex gap-3 pt-2"}', 'desktop action readiness');
 replaceOnce('className={isTableCodeProduct ? "hidden" : "md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-gray-200 shadow-[0_-2px_10px_rgba(0,0,0,0.08)] flex items-stretch gap-2 px-3 py-2"}', 'className={isTableCodeProduct || productDetailLoading ? "hidden" : "md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-gray-200 shadow-[0_-2px_10px_rgba(0,0,0,0.08)] flex items-stretch gap-2 px-3 py-2"}', 'mobile action readiness');
 
+// Returning from product detail to home should reuse the already-loaded storefront.
+// buyerPage is intentionally not a dependency: category/search/sort/view changes still query,
+// but product -> home navigation does not throw away and reload the current cards.
+replaceOnce(
+`    },[selectedCategory,searchQuery,sortBy,view,buyerPage]);`,
+`    },[selectedCategory,searchQuery,sortBy,view]);`,
+'avoid storefront requery on product-to-home navigation');
+
 writeFileSync(path, s);
 console.log('[KIMSHOP PERF] storefront light + progressive product detail applied:', changes);
