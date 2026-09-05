@@ -26,7 +26,22 @@ const cap = (s: string) => s ? s.charAt(0).toUpperCase() + s.slice(1) : s;
 
 function groupOption(label: string): { group: string; option: string } {
   const t = cleanLabel(label);
-  if (/^c\d+$/i.test(t)) return { group: 'Phân loại', option: t };
+
+  // Các mã cùng tiền tố + số phải nằm CHUNG một nhóm.
+  // VD: "cb1 ngang dọc 100c", "cb2 ...", "cb3 mic ..."
+  // => nhóm "Cb", các lựa chọn lần lượt "1 ...", "2 ...", "3 ...".
+  // Riêng c1/c2/c3 vẫn dùng nhóm chung "Phân loại" như trước.
+  const numbered = t.match(/^([a-zA-ZÀ-ỹ]+)(\d+)(?:\s+(.*))?$/u);
+  if (numbered) {
+    const prefix = numbered[1];
+    const number = numbered[2];
+    const rest = cleanLabel(numbered[3] || '');
+    if (prefix.toLowerCase() === 'c') {
+      return { group: 'Phân loại', option: rest ? `${prefix}${number} ${rest}` : `${prefix}${number}` };
+    }
+    return { group: cap(prefix), option: rest ? `${number} ${rest}` : number };
+  }
+
   const parts = t.split(/\s+/).filter(Boolean);
   if (parts.length >= 2) return { group: cap(parts[0]), option: parts.slice(1).join(' ') };
   return { group: cap(t), option: cap(t) };
