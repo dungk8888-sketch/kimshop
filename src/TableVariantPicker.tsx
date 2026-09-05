@@ -39,13 +39,18 @@ export function TableVariantPicker({ productId, variants = [], qtyMap = {}, onQt
   const tableVariants = useMemo(() => variants.filter(isTableVariant), [variants]);
   const [q, setQ] = useState('');
   const [promos,setPromos]=useState<QtyPromo[]>([]);
+  const [touchedIds,setTouchedIds]=useState<Record<string,boolean>>({});
 
   useEffect(() => {
+    // A table-code product must always open with 0 selected codes. The parent
+    // may still auto-initialize its generic variant quantity to 1, so the
+    // picker ignores parent quantities until the buyer explicitly touches a row.
+    setTouchedIds({});
     tableVariants.forEach((v:any) => {
       if (Number(qtyMap[v.id] || 0) !== 0) onQtyChange(v.id, 0, Math.max(0, Number(v.stock || 0)));
     });
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [tableVariants]);
+  }, [productId, tableVariants]);
 
   useEffect(()=>{
     let alive=true;
@@ -87,7 +92,13 @@ export function TableVariantPicker({ productId, variants = [], qtyMap = {}, onQt
   }, [tableVariants, q]);
   if (!tableVariants.length) return null;
 
-  const selectedRows: PickedRow[] = tableVariants.map((variant:any) => ({ variant, qty: Math.max(0, Number(qtyMap[variant.id] || 0)) })).filter((x:any) => x.qty > 0);
+  const effectiveQty=(variantId:string)=>touchedIds[variantId] ? Math.max(0, Number(qtyMap[variantId] || 0)) : 0;
+  const changeQty=(variantId:string,qty:number,max:number)=>{
+    setTouchedIds(prev=>prev[variantId]?prev:{...prev,[variantId]:true});
+    onQtyChange(variantId,qty,max);
+  };
+
+  const selectedRows: PickedRow[] = tableVariants.map((variant:any) => ({ variant, qty: effectiveQty(variant.id) })).filter((x:any) => x.qty > 0);
   const picked = selectedRows.reduce((s:number, x:PickedRow) => s + x.qty, 0);
   const totals=selectedRows.reduce((a:any,x:PickedRow)=>{
     const base=Math.max(0,Number(x.variant.price||0));
@@ -107,13 +118,13 @@ export function TableVariantPicker({ productId, variants = [], qtyMap = {}, onQt
     <div className="max-h-[420px] max-w-full min-w-0 overflow-y-auto overflow-x-hidden touch-pan-y overscroll-contain border border-gray-100 rounded-lg divide-y divide-gray-100">
       {rows.map((v:any) => {
         const label=labelOf(v); const parts=label.split('|').map((x:string)=>x.trim()); const code=parts[0] || label; const desc=parts.slice(1).join(' | ');
-        const max=Math.max(0, Number(v.stock || 0)); const qty=Math.max(0, Number(qtyMap[v.id] || 0));
+        const max=Math.max(0, Number(v.stock || 0)); const qty=effectiveQty(v.id);
         const base=Math.max(0,Number(v.price||0)); const tier=bestTier(qty); const unit=variantQtyUnitPrice(String(productId||''),qty,base,promos); const upcoming=nextTier(qty);
         return <div key={v.id} className="grid min-w-0 grid-cols-[48px_minmax(0,1fr)_72px] sm:grid-cols-[minmax(70px,0.7fr)_minmax(110px,1.5fr)_92px_118px] items-center gap-x-1.5 gap-y-1.5 sm:gap-2 px-1.5 sm:px-2.5 py-2 text-[10px] sm:text-[11px]">
           <div className="min-w-0 font-bold text-gray-800 break-words leading-tight">{code}</div>
           <div className="min-w-0 text-gray-600 break-words leading-tight">{desc || v.sku || ''}{tier?<div className="text-[9px] text-green-600 mt-0.5 leading-tight">Đủ {Math.max(1,Number(tier.promo.min_variant_qty||1))} cái · giảm {fmt(tier.reduce)}/cái</div>:upcoming?<div className="text-[9px] text-orange-500 mt-0.5 leading-tight">Mua đủ {upcoming.min} cái: còn {fmt(Math.max(0,base-upcoming.reduce))}/cái</div>:null}</div>
           <div className="min-w-0 text-right leading-tight">{tier?<><div className="text-[9px] text-gray-400 line-through">{fmt(base)}</div><div className="font-bold text-[#EE4D2D] whitespace-nowrap">{fmt(unit)}</div></>:<div className="font-semibold text-[#EE4D2D] whitespace-nowrap">{fmt(base)}</div>}</div>
-          <div className="col-span-3 sm:col-span-1 justify-self-end flex w-[88px] sm:w-auto items-center justify-end border border-gray-200 rounded-md overflow-hidden bg-white"><button type="button" disabled={qty<=0} onClick={()=>onQtyChange(v.id,Math.max(0,qty-1),max)} className="w-7 sm:w-8 h-8 flex items-center justify-center disabled:opacity-30"><Minus size={12}/></button><input value={qty} onChange={e=>onQtyChange(v.id,Math.min(max,Math.max(0,Number(e.target.value||0))),max)} inputMode="numeric" className="w-8 sm:w-10 h-8 text-center border-x border-gray-200 outline-none text-[11px]"/><button type="button" disabled={qty>=max} onClick={()=>onQtyChange(v.id,Math.min(max,qty+1),max)} className="w-7 sm:w-8 h-8 flex items-center justify-center text-[#EE4D2D] disabled:opacity-30"><Plus size={12}/></button></div>
+          <div className="col-span-3 sm:col-span-1 justify-self-end flex w-[88px] sm:w-auto items-center justify-end border border-gray-200 rounded-md overflow-hidden bg-white"><button type="button" disabled={qty<=0} onClick={()=>changeQty(v.id,Math.max(0,qty-1),max)} className="w-7 sm:w-8 h-8 flex items-center justify-center disabled:opacity-30"><Minus size={12}/></button><input value={qty} onChange={e=>changeQty(v.id,Math.min(max,Math.max(0,Number(e.target.value||0))),max)} inputMode="numeric" className="w-8 sm:w-10 h-8 text-center border-x border-gray-200 outline-none text-[11px]"/><button type="button" disabled={qty>=max} onClick={()=>changeQty(v.id,Math.min(max,qty+1),max)} className="w-7 sm:w-8 h-8 flex items-center justify-center text-[#EE4D2D] disabled:opacity-30"><Plus size={12}/></button></div>
         </div>;
       })}
       {!rows.length && <div className="p-5 text-center text-xs text-gray-400">Không tìm thấy mã phù hợp.</div>}
