@@ -22,8 +22,8 @@ s = s.slice(0, mapIndex) + '{filteredProducts.map((p, productIndex) => {' + s.sl
 const cardMarker = '<div key={p.id} className="bg-white rounded-xl border border-gray-100 overflow-hidden shadow-sm hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 group">';
 const cardIndex = s.indexOf(cardMarker, mapIndex);
 if (cardIndex < 0 || cardIndex - mapIndex > 900) throw new Error('[home reveal] home product card marker missing near product map');
-const cardReplacement = `<div\n                          key={p.id}\n                          data-reveal-verify="Math.min(productIndex, 10) * 48"\n                          className="kimshop-product-reveal bg-white rounded-xl border border-gray-100 overflow-hidden shadow-sm hover:shadow-lg hover:-translate-y-0.5 transition-shadow duration-200 group"\n                          style={{ animationDelay: \`${'${(Math.min(productIndex, 10) + 1) * 75}ms'}\` }}\n                        >`;
+const cardReplacement = `<div\n                          key={p.id}\n                          data-reveal-verify="Math.min(productIndex, 10) * 48"\n                          className="kimshop-product-reveal bg-white rounded-xl border border-gray-100 overflow-hidden shadow-sm hover:shadow-lg hover:-translate-y-0.5 transition-shadow duration-200 group"\n                          style={{ animationDelay: \`${'${(Math.min(productIndex, 10) + 1) * 90}ms'}\` }}\n                        >`;
 s = s.slice(0, cardIndex) + cardReplacement + s.slice(cardIndex + cardMarker.length);
 
 writeFileSync(path, s);
-console.log('[KIMSHOP UX] first 4 products prioritized + slower fully sequential smooth home reveal applied');
+console.log('[KIMSHOP UX] first 4 products prioritized + slower sequential smooth home reveal applied');
