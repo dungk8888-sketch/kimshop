@@ -14,7 +14,7 @@ if(!s.includes("const VariantQtyVoucherPanel = lazy(")){
 
 once(
 `      { key: 'bulkImport', label: 'Thêm Hàng Loạt', icon: Package },\n      { key: 'placeholder', label: 'Sản phẩm tiêu chuẩn', icon: Package },`,
-`      { key: 'bulkImport', label: 'Thêm Hàng Loạt', icon: Package },\n      { key: 'variantQtyVouchers', label: 'Mua Nhiều Giảm Giá', icon: Percent },\n      { key: 'placeholder', label: 'Sản phẩm tiêu chuẩn', icon: Package },`,
+`      { key: 'bulkImport', label: 'Thêm Hàng Loạt', icon: Package },\n      { key: 'variantQtyVouchers', label: 'Mua Nhiều Giảm Giá', icon: Package },\n      { key: 'placeholder', label: 'Sản phẩm tiêu chuẩn', icon: Package },`,
 'menu item');
 
 once(
