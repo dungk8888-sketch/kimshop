@@ -47,5 +47,23 @@ replaceOnce(
       setStorefrontTotal(page.total); setStorefrontHasMore(offset+page.rawProducts.length<page.total);`,
 'load more relation preload');
 
+// Storefront cards do not need the full product row. Product detail hydrates the full row only after opening it.
+replaceOnce(
+`  let q:any = supabase
+    .from('products')
+    .select('*', { count: 'exact' })
+    .neq('status','deleted');`,
+`  let q:any = supabase
+    .from('products')
+    .select('id,shop_id,seller_id,name,category,category_id,price,original_price,stock,sold,rating,image_url,flash_sale,flash_price,status,created_at', { count: 'exact' })
+    .neq('status','deleted');`,
+'light storefront product columns');
+
+// Vercel image optimizer only accepts configured widths. 280 is not configured; 320 is.
+replaceOnce(
+`<img src={productThumb(p.image, 280)} loading="lazy" decoding="async" className="w-full h-24 object-cover" />`,
+`<img src={productThumb(p.image, 320)} loading="lazy" decoding="async" className="w-full h-24 object-cover" />`,
+'flash sale thumbnail width');
+
 writeFileSync(path, s);
-console.log('[KIMSHOP PERF] storefront relation preloads removed; detail page remains lazy:', changes);
+console.log('[KIMSHOP PERF] storefront relation preloads removed + light rows + valid flash thumbnail:', changes);
