@@ -4,10 +4,9 @@ const path = 'src/App.tsx';
 let s = readFileSync(path, 'utf8');
 
 // 1) Khách mở sản phẩm: tự chọn tổ hợp đầu tiên đang bật + còn hàng.
-// Riêng sản phẩm dạng bảng mã KHÔNG tự chọn mã nào để tránh khách đặt nhầm.
 const openMarker = "  const openProduct = async (product) => {";
 if (!s.includes(openMarker)) throw new Error('async openProduct marker not found');
-const helper = `  const defaultVariantAttrsForProduct = (p: any): Record<string, string[]> => {\n    const variants = (p?.variants || []) as any[];\n    const isTableCodeProduct = variants.some((v:any) => {\n      const attrs = v?.attributes && typeof v.attributes === 'object' ? v.attributes : {};\n      return Object.keys(attrs).some((k:string) => /bảng mã|bang ma|mã hàng|ma hang/i.test(k))\n        || /^Bảng mã\\s*:|^Mã hàng\\s*:/i.test(String(v?.name || ''));\n    });\n    if (isTableCodeProduct) return {};\n    const first = variants.find((v:any) => v && v.isActive !== false && Number(v.stock || 0) > 0)\n      || variants.find((v:any) => v && v.isActive !== false)\n      || variants[0];\n    if (!first) return {};\n    const info = deriveVariantGroups(variants);\n    if (!info.isGrouped) return first.name ? { [VARIANT_FLAT_GROUP]: [first.name] } : {};\n    const attrs: Record<string, string[]> = {};\n    for (const g of info.groups) {\n      const value = first.attributes?.[g.name];\n      if (value != null && value !== '') attrs[g.name] = [String(value)];\n    }\n    return attrs;\n  };\n\n`;
+const helper = `  const defaultVariantAttrsForProduct = (p: any): Record<string, string[]> => {\n    const variants = (p?.variants || []) as any[];\n    const first = variants.find((v:any) => v && v.isActive !== false && Number(v.stock || 0) > 0)\n      || variants.find((v:any) => v && v.isActive !== false)\n      || variants[0];\n    if (!first) return {};\n    const info = deriveVariantGroups(variants);\n    if (!info.isGrouped) return first.name ? { [VARIANT_FLAT_GROUP]: [first.name] } : {};\n    const attrs: Record<string, string[]> = {};\n    for (const g of info.groups) {\n      const value = first.attributes?.[g.name];\n      if (value != null && value !== '') attrs[g.name] = [String(value)];\n    }\n    return attrs;\n  };\n\n`;
 s = s.replace(openMarker, helper + openMarker);
 
 const openStart = s.indexOf(openMarker);
