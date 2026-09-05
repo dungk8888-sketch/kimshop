@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Minus, Plus, Search, ShoppingCart } from 'lucide-react';
 import { supabase } from './supabaseClient';
+import { variantQtyUnitPrice } from './bulkPricing';
 
 interface PickedRow { variant: any; qty: number }
 interface Props {
@@ -91,7 +92,7 @@ export function TableVariantPicker({ productId, variants = [], qtyMap = {}, onQt
   const totals=selectedRows.reduce((a:any,x:PickedRow)=>{
     const base=Math.max(0,Number(x.variant.price||0));
     const tier=bestTier(x.qty);
-    const unit=Math.max(0,base-Number(tier?.reduce||0));
+    const unit=variantQtyUnitPrice(String(productId||''),x.qty,base,promos);
     a.base+=base*x.qty; a.final+=unit*x.qty; a.saved+=(base-unit)*x.qty;
     return a;
   },{base:0,final:0,saved:0});
@@ -107,7 +108,7 @@ export function TableVariantPicker({ productId, variants = [], qtyMap = {}, onQt
       {rows.map((v:any) => {
         const label=labelOf(v); const parts=label.split('|').map((x:string)=>x.trim()); const code=parts[0] || label; const desc=parts.slice(1).join(' | ');
         const max=Math.max(0, Number(v.stock || 0)); const qty=Math.max(0, Number(qtyMap[v.id] || 0));
-        const base=Math.max(0,Number(v.price||0)); const tier=bestTier(qty); const unit=Math.max(0,base-Number(tier?.reduce||0)); const upcoming=nextTier(qty);
+        const base=Math.max(0,Number(v.price||0)); const tier=bestTier(qty); const unit=variantQtyUnitPrice(String(productId||''),qty,base,promos); const upcoming=nextTier(qty);
         return <div key={v.id} className="grid grid-cols-[minmax(70px,0.7fr)_minmax(110px,1.5fr)_92px_118px] items-center gap-2 px-2.5 py-2 text-[11px]">
           <div className="font-bold text-gray-800 break-words">{code}</div>
           <div className="text-gray-600 break-words">{desc || v.sku || ''}{tier?<div className="text-[9px] text-green-600 mt-0.5">Đủ {Math.max(1,Number(tier.promo.min_variant_qty||1))} cái · giảm {fmt(tier.reduce)}/cái</div>:upcoming?<div className="text-[9px] text-orange-500 mt-0.5">Mua đủ {upcoming.min} cái: còn {fmt(Math.max(0,base-upcoming.reduce))}/cái</div>:null}</div>
