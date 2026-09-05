@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Minus, Plus, Search, ShoppingCart } from 'lucide-react';
 
 interface PickedRow { variant: any; qty: number }
@@ -29,6 +29,18 @@ function isTableVariant(v:any) {
 export function TableVariantPicker({ variants = [], qtyMap = {}, onQtyChange, onAddSelected, onBuySelected }: Props) {
   const tableVariants = useMemo(() => variants.filter(isTableVariant), [variants]);
   const [q, setQ] = useState('');
+
+  // Sản phẩm dạng bảng mã luôn bắt đầu từ 0 để tránh khách vô tình mua mã đầu tiên.
+  // Chỉ chạy khi danh sách variant của sản phẩm được nạp/thay đổi, không chạy lại khi khách bấm +/-.
+  useEffect(() => {
+    tableVariants.forEach((v:any) => {
+      if (Number(qtyMap[v.id] || 0) !== 0) {
+        onQtyChange(v.id, 0, Math.max(0, Number(v.stock || 0)));
+      }
+    });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tableVariants]);
+
   const rows = useMemo(() => {
     const key = norm(q.trim());
     if (!key) return tableVariants;
