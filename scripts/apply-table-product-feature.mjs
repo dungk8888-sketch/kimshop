@@ -28,7 +28,6 @@ if(!s.includes('<TableProductEntry')) {
   changes++;
 }
 
-// Nhận diện riêng sản phẩm dạng bảng mã. Các sản phẩm thường không đi qua nhánh này.
 const selectedMarker="  const selectedProduct = products.find((p) => p.id === selectedProductId) || null;";
 if(!s.includes(selectedMarker)) throw new Error('table-product: selectedProduct marker missing');
 if(!s.includes('const isTableCodeProduct =')) {
@@ -36,7 +35,6 @@ if(!s.includes('const isTableCodeProduct =')) {
   changes++;
 }
 
-// Với bảng mã: ẩn hoàn toàn chip phân loại + cảnh báo + số lượng chung.
 replaceOnce(
   '{hasVariants && (\n                    <div className="space-y-3 order-4 md:order-none">',
   '{hasVariants && !isTableCodeProduct && (\n                    <div className="space-y-3 order-4 md:order-none">',
@@ -63,6 +61,13 @@ if(!s.includes('<TableVariantPicker')) {
   const oldPicker=`                    <TableVariantPicker\n                      variants={selectedProduct.variants || []}\n                      qtyMap={variantQtyMap}\n                      onQtyChange={(variantId, qty, max) => commitVariantQty(variantId, qty, max)}\n                    />`;
   const newPicker=`                    <TableVariantPicker\n                      variants={selectedProduct.variants || []}\n                      qtyMap={variantQtyMap}\n                      onQtyChange={(variantId, qty, max) => commitVariantQty(variantId, qty, max)}\n                      onAddSelected={(rows:any[]) => {\n                        rows.forEach(({ variant, qty }:any) => addToCart(selectedProduct, variant.name, qty));\n                        showToast('Đã thêm các mã đã chọn vào giỏ hàng!');\n                        flyToCart(productImgRef.current);\n                      }}\n                      onBuySelected={(rows:any[]) => {\n                        setBuyNowItems(rows.map(({ variant, qty }:any) => ({ productId: selectedProduct.id, variant: variant.name, qty })));\n                        setBuyNowItem(null);\n                        setBuyerPage('checkout');\n                        window.scrollTo?.({ top: 0 });\n                      }}\n                    />`;
   if(s.includes(oldPicker)){ s=s.replace(oldPicker,newPicker); changes++; }
+}
+
+if(!s.includes('productId={selectedProduct.id}')){
+  const pickerAnchor=`                    <TableVariantPicker\n                      variants={selectedProduct.variants || []}`;
+  if(!s.includes(pickerAnchor)) throw new Error('table-product: picker product id anchor missing');
+  s=s.replace(pickerAnchor, `                    <TableVariantPicker\n                      productId={selectedProduct.id}\n                      variants={selectedProduct.variants || []}`);
+  changes++;
 }
 
 replaceOnce(
