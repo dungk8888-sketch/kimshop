@@ -2,21 +2,6 @@ import { readFileSync, writeFileSync } from 'node:fs';
 
 /* ------------------------------------------------------------------------
  * [BULK IMPORT PART 1] Thêm Sản Phẩm Hàng Loạt (không dùng AI)
- * ------------------------------------------------------------------------
- * Theo đúng kiến trúc hiện tại của dự án (src/App.tsx được lắp ráp bởi
- * scripts/assemble-app.mjs từ source_parts/* + patches/apply-scripts), tính
- * năng mới được thêm bằng MỘT apply-script mới, giống mọi tính năng khác đã
- * có (mobile layout, guest order, shipping policy, home sort...) — thay vì
- * sửa tay vào src/App.tsx đã lắp ráp (file đó bị ghi đè mỗi lần build).
- *
- * Script này CHỈ nối dây (wiring) 4 điểm rất nhỏ vào App.tsx:
- *   1) lazy-import component BulkImportPanel (src/BulkProductImport.tsx)
- *   2) thêm mục "Thêm Hàng Loạt" vào menu Seller > Quản Lý Sản Phẩm
- *   3) thêm nút tắt "Thêm Hàng Loạt" cạnh nút "Thêm Sản Phẩm"
- *   4) thêm khối render cho sellerPage === 'bulkImport'
- * Toàn bộ logic đọc/parse/validate file nằm ở src/bulkImportParser.ts và
- * toàn bộ UI preview nằm ở src/BulkProductImport.tsx — không đụng tới các
- * luồng checkout / sản phẩm / biến thể / tìm kiếm / guest order hiện có.
  * ------------------------------------------------------------------------ */
 
 const path = 'src/App.tsx';
@@ -35,9 +20,10 @@ replaceOnce(
   'lazy-import-anchor',
   `const HomepageBannerEditor = lazy(() => import('./HomepageBanner').then((m) => ({ default: m.HomepageBannerEditor })));`,
   `const HomepageBannerEditor = lazy(() => import('./HomepageBanner').then((m) => ({ default: m.HomepageBannerEditor })));
-/* [BULK IMPORT PART 1] Thêm sản phẩm hàng loạt từ Excel/CSV — tách chunk
- * riêng như các khu vực seller/admin khác, không tải cho buyer. */
-const BulkImportPanel = lazy(() => import('./BulkProductImport').then((m) => ({ default: m.BulkImportPanel })));`,
+/* [BULK IMPORT PART 1] Thêm sản phẩm hàng loạt từ Excel/CSV */
+const BulkImportPanel = lazy(() => import('./BulkProductImport').then((m) => ({ default: m.BulkImportPanel })));
+/* [QUICK PRODUCT ENTRY] Nhập nhanh 1 sản phẩm, không dùng AI */
+const QuickProductEntry = lazy(() => import('./QuickProductEntry').then((m) => ({ default: m.QuickProductEntry })));`,
 );
 
 // 2) menu item
@@ -73,7 +59,7 @@ replaceOnce(
   'render-block-anchor',
   `              {/* QUẢN LÝ ĐƠN HÀNG */}
               {sellerPage === 'orders' && (`,
-  `              {/* THÊM SẢN PHẨM HÀNG LOẠT — PART 1 (đọc/preview) + PART 2 (đăng thật) */}
+  `              {/* THÊM SẢN PHẨM HÀNG LOẠT */}
               {sellerPage === 'bulkImport' && (
                 <Suspense fallback={<div className="p-10 text-center text-gray-400 text-xs">Đang tải...</div>}>
                   <BulkImportPanel
@@ -92,5 +78,16 @@ replaceOnce(
               {sellerPage === 'orders' && (`,
 );
 
+// 5) Nhập nhanh 1 sản phẩm: đặt ngay trước phần "Hình ảnh sản phẩm" trong form Add/Edit.
+if (!s.includes('<QuickProductEntry')) {
+  const marker = 'Hình ảnh sản phẩm';
+  const markerIndex = s.indexOf(marker);
+  if (markerIndex < 0) throw new Error('KIMSHOP quick-entry: missing product image label');
+  const labelStart = s.lastIndexOf('<label', markerIndex);
+  if (labelStart < 0) throw new Error('KIMSHOP quick-entry: cannot locate image label start');
+  const quickBlock = `                <Suspense fallback={null}>\n                  <QuickProductEntry\n                    currentCategoryId={editingProduct.categoryId || ''}\n                    currentImages={editingProduct.images || []}\n                    onApply={applyAIDraft}\n                  />\n                </Suspense>\n`;
+  s = s.slice(0, labelStart) + quickBlock + s.slice(labelStart);
+}
+
 writeFileSync(path, s);
-console.log('[KIMSHOP FIX] bulk import (PART 1 + PART 2) feature wired into seller product menu — 4 anchors patched');
+console.log('[KIMSHOP FIX] bulk import + quick single-product entry wired into seller product form');
