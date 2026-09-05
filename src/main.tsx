@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { Suspense, lazy } from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
-import AccountSettings from './AccountSettings';
 import './styles.css';
+
+const AccountSettings = lazy(() => import('./AccountSettings'));
 
 // LƯU Ý BẢO MẬT: Trước đây file này gọi một Edge Function "admin-bootstrap"
 // kèm secret và mật khẩu "admin123" hardcode ngay trong bundle frontend —
@@ -14,6 +15,8 @@ import './styles.css';
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <App />
-    <AccountSettings />
+    <Suspense fallback={null}>
+      <AccountSettings />
+    </Suspense>
   </React.StrictMode>
 );
