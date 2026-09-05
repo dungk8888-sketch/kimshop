@@ -65,5 +65,26 @@ replaceOnce(
 `<img src={productThumb(p.image, 320)} loading="lazy" decoding="async" className="w-full h-24 object-cover" />`,
 'flash sale thumbnail width');
 
+// Progressive product detail: render the card data immediately and refresh the full product in the background.
+replaceOnce(
+`          {buyerPage === 'product' && productDetailLoading && (\n            <main className="max-w-6xl mx-auto px-4 py-10 flex-1 w-full">\n              <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-8 text-center text-gray-500">\n                <div className="w-8 h-8 mx-auto mb-3 border-2 border-[#EE4D2D] border-t-transparent rounded-full animate-spin" />\n                <div className="text-sm font-semibold">Đang tải đầy đủ thông tin sản phẩm...</div>\n                <div className="text-[11px] text-gray-400 mt-1">Ảnh, phân loại và đánh giá đang được đồng bộ.</div>\n              </div>\n            </main>\n          )}`,
+`          {buyerPage === 'product' && productDetailLoading && selectedProduct && (\n            <div className="fixed top-20 left-1/2 -translate-x-1/2 z-30 rounded-full bg-white/95 border border-orange-100 shadow px-3 py-1.5 text-[11px] text-gray-600 flex items-center gap-2 pointer-events-none">\n              <span className="w-3 h-3 border-2 border-[#EE4D2D] border-t-transparent rounded-full animate-spin" />\n              Đang cập nhật phân loại và tồn kho…\n            </div>\n          )}`,
+'progressive detail loading UI');
+replaceOnce("buyerPage === 'product' && !productDetailLoading && selectedProduct && !isShopActive(selectedProduct.shopId)", "buyerPage === 'product' && selectedProduct && !isShopActive(selectedProduct.shopId)", 'inactive detail progressive gate');
+replaceOnce("buyerPage === 'product' && !productDetailLoading && selectedProduct && isShopActive(selectedProduct.shopId)", "buyerPage === 'product' && selectedProduct && isShopActive(selectedProduct.shopId)", 'active detail progressive gate');
+
+replaceOnce(
+`      const rawRes = await detailQueryRetry(\n        () => supabase.from('products').select('*').eq('id', product.id).single(),\n        'sản phẩm',\n      );\n      if (rawRes?.error || !rawRes?.data) throw (rawRes?.error || new Error('Không tìm thấy sản phẩm'));\n      const rel = await loadProductDetailRelations(product.id);`,
+`      const [rawRes, rel] = await Promise.all([\n        detailQueryRetry(\n          () => supabase.from('products').select('*').eq('id', product.id).single(),\n          'sản phẩm',\n        ),\n        loadProductDetailRelations(product.id),\n      ]);\n      if (rawRes?.error || !rawRes?.data) throw (rawRes?.error || new Error('Không tìm thấy sản phẩm'));`,
+'parallel product detail fetch');
+
+// Keep purchase controls hidden until the authoritative variant/stock data has arrived.
+replaceOnce('{hasVariants && !isTableCodeProduct && (', '{!productDetailLoading && hasVariants && !isTableCodeProduct && (', 'normal variant readiness');
+replaceOnce('{!isTableCodeProduct && !isMultiVariantQty && (', '{!productDetailLoading && !isTableCodeProduct && !isMultiVariantQty && (', 'single quantity readiness');
+replaceOnce('{!isTableCodeProduct && isMultiVariantQty && (', '{!productDetailLoading && !isTableCodeProduct && isMultiVariantQty && (', 'multi quantity readiness');
+replaceOnce('variants={selectedProduct.variants || []}', 'variants={productDetailLoading ? [] : (selectedProduct.variants || [])}', 'table picker readiness');
+replaceOnce('className={isTableCodeProduct ? "hidden" : "hidden md:flex gap-3 pt-2"}', 'className={isTableCodeProduct || productDetailLoading ? "hidden" : "hidden md:flex gap-3 pt-2"}', 'desktop action readiness');
+replaceOnce('className={isTableCodeProduct ? "hidden" : "md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-gray-200 shadow-[0_-2px_10px_rgba(0,0,0,0.08)] flex items-stretch gap-2 px-3 py-2"}', 'className={isTableCodeProduct || productDetailLoading ? "hidden" : "md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-gray-200 shadow-[0_-2px_10px_rgba(0,0,0,0.08)] flex items-stretch gap-2 px-3 py-2"}', 'mobile action readiness');
+
 writeFileSync(path, s);
-console.log('[KIMSHOP PERF] storefront relation preloads removed + light rows + valid flash thumbnail:', changes);
+console.log('[KIMSHOP PERF] storefront light + progressive product detail applied:', changes);
