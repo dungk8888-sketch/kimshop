@@ -26,12 +26,12 @@ html,body{overflow-x:hidden}
 /* Home product cards: reveal with compositor-friendly opacity/translate only.
    Delay is capped in React so later cards never feel artificially slow. */
 @keyframes kimshop-product-reveal{
-  0%{opacity:0;transform:translate3d(0,10px,0)}
+  0%{opacity:0;transform:translate3d(0,12px,0)}
   100%{opacity:1;transform:translate3d(0,0,0)}
 }
 .kimshop-product-reveal{
   opacity:0;
-  animation:kimshop-product-reveal 360ms cubic-bezier(.22,1,.36,1) both;
+  animation:kimshop-product-reveal 460ms cubic-bezier(.22,1,.36,1) both;
 }
 @media (prefers-reduced-motion:reduce){
   .kimshop-product-reveal{opacity:1;transform:none;animation:none}
