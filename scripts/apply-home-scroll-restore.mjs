@@ -9,12 +9,18 @@ const productNavMatches=s.match(productNavRe)||[];
 if(productNavMatches.length<1) throw new Error(`[home scroll] product navigation found ${productNavMatches.length} time(s)`);
 s=s.replace(productNavRe, `sessionStorage.setItem('kimshop_home_scroll_y', String(window.scrollY)); setBuyerPage('product')`);
 
-// Replace home navigation calls with a helper. Insert the helper afterwards so its own
-// internal setBuyerPage('home') is not replaced recursively.
+// Keep the logo's explicit reset-to-home behavior untouched so its existing verification
+// remains valid. Other home navigations (notably product back buttons) use the helper.
+const logoReset="setSearchQuery(''); setSearchDraft(''); setBuyerPage('home'); setSelectedCategory('all')";
+const logoToken='__KIMSHOP_LOGO_HOME_RESET__';
+if(!s.includes(logoReset)) throw new Error('[home scroll] logo home reset anchor missing');
+s=s.replace(logoReset,logoToken);
+
 const homeNavRe=/setBuyerPage\('home'\)/g;
 const homeNavMatches=s.match(homeNavRe)||[];
 if(homeNavMatches.length<1) throw new Error(`[home scroll] home navigation found ${homeNavMatches.length} time(s)`);
 s=s.replace(homeNavRe, `returnHomeWithScroll()`);
+s=s.replace(logoToken,logoReset);
 
 const helperAnchor="  const selectedProduct = products.find((p) => p.id === selectedProductId) || null;";
 if(!s.includes(helperAnchor)) throw new Error('[home scroll] selectedProduct helper anchor missing');
