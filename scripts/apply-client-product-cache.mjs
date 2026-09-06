@@ -34,7 +34,7 @@ s=s.replace(loadingMarker,"        if(products.length===0) setStorefrontLoading(
 
 const initial='        setProducts(buildProducts(page.rawProducts,shops,categories));\n        dataReadyRef.current=true; storefrontReadyRef.current=true;';
 if(!s.includes(initial)) throw new Error('[client cache] initial storefront marker missing');
-s=s.replace(initial,`        const freshProducts=buildProducts(page.rawProducts,shops,categories);\n        setProducts(freshProducts);\n        writeStorefrontCache(freshProducts);\n        dataReadyRef.current=true; storefrontReadyRef.current=true;`); changes++;
+s=s.replace(initial,`        const freshProducts=buildProducts(page.rawProducts,shops,categories);\n        setProducts(prev=>{\n          if(!prev.length){ writeStorefrontCache(freshProducts); return freshProducts; }\n          const byId=new Map(prev.map((p:any)=>[p.id,p]));\n          freshProducts.forEach((p:any)=>byId.set(p.id,p));\n          const merged=Array.from(byId.values());\n          writeStorefrontCache(merged);\n          return merged;\n        });\n        dataReadyRef.current=true; storefrontReadyRef.current=true;`); changes++;
 
 writeFileSync(path,s);
 console.log('[KIMSHOP PERF] client storefront stale-while-revalidate cache applied:',changes);
