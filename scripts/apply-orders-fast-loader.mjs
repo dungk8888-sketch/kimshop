@@ -15,9 +15,9 @@ const replacement = `  const loadOrdersOnly = async (scope: 'buyer' | 'seller' |
     }
     if (!userId) return [];
 
+    // Legacy fast loader used: select('*,order_items(*)'). We deliberately split it now.
     // Keep orders and order_items as two simple RLS queries. The previous nested
-    // select('*,order_items(*)') could leave the buyer screen waiting/failing in
-    // some browser sessions. This path is predictable and uses the existing indexes.
+    // relationship fetch could leave the buyer screen waiting/failing in some sessions.
     let orderQuery: any = supabase.from('orders').select('*');
     if (scope === 'buyer') {
       orderQuery = orderQuery.eq('buyer_id', userId);
