@@ -10,9 +10,6 @@ function once(from,to,label){
   s=s.replace(from,to); patched++;
 }
 
-// Cart / wishlist / viewed store only product ids. Storefront pagination may currently
-// contain only the first 4 products, so hydrate exactly the referenced products and
-// merge them into products state without replacing the storefront list.
 once(
 `  const loadUserSession = async (session: any) => {`,
 `  const ensureSupportProducts = async (ids: string[]) => {
@@ -37,8 +34,6 @@ once(
     }
   };
 
-  // Orders are critical buyer/seller data. Load them independently so a voucher or
-  // seller-application query can never make both order screens look empty.
   const loadOrdersOnly = async () => {
     const meta = storefrontMetaRef.current || await loadCatalogMeta();
     if (!storefrontMetaRef.current) storefrontMetaRef.current = meta;
@@ -49,8 +44,7 @@ once(
     if (oiRes.error) throw oiRes.error;
     const itemsByOrder=(oiRes.data||[]).reduce((acc:any,it:any)=>{
       (acc[it.order_id] ||= []).push({
-        productId: it.product_id,
-        name: it.product_name,
+        productId: it.product_id, name: it.product_name,
         image: it.product_image || it.product_image_url || '',
         variant: it.variant || it.variant_name || '',
         qty: Number(it.qty ?? it.quantity ?? 0),
@@ -61,26 +55,16 @@ once(
     },{});
     const shopById=(id:string)=>meta.shops.find((x:any)=>x.id===id);
     return (os.data||[]).map((o:any)=>({
-      ...o,
-      orderStatus:o.status,
-      buyerId:o.buyer_id,
-      customerUserId:o.buyer_id,
-      shopId:o.shop_id,
-      shopName:shopById(o.shop_id)?.name || o.shop_name || o.shop_id,
-      totalAmount:Number(o.total_amount||0),
-      total:Number(o.total_amount||0),
-      createdAt:o.created_at,
+      ...o, orderStatus:o.status, buyerId:o.buyer_id, customerUserId:o.buyer_id,
+      shopId:o.shop_id, shopName:shopById(o.shop_id)?.name || o.shop_name || o.shop_id,
+      totalAmount:Number(o.total_amount||0), total:Number(o.total_amount||0), createdAt:o.created_at,
       customerName:o.customer_name || o.recipient_name || '',
       customerPhone:o.customer_phone || o.recipient_phone || '',
       customerAddress:o.customer_address || o.shipping_address || '',
-      paymentMethod:o.payment_method,
-      pendingPickup:o.pending_pickup,
-      cancelReason:o.cancel_reason,
-      returnReason:o.return_reason,
-      sellerNote:o.seller_note || '',
-      refundResolved:o.refund_resolved,
-      reviewDeadline:o.review_deadline,
-      isPreferred:o.is_preferred,
+      paymentMethod:o.payment_method, pendingPickup:o.pending_pickup,
+      cancelReason:o.cancel_reason, returnReason:o.return_reason,
+      sellerNote:o.seller_note || '', refundResolved:o.refund_resolved,
+      reviewDeadline:o.review_deadline, isPreferred:o.is_preferred,
       items:itemsByOrder[o.id] || [],
     }));
   };
@@ -108,15 +92,8 @@ once(
       const guestCart = readLocalJSON(GUEST_CART_LS_KEY, []);
       const guestWishlist = readLocalJSON(GUEST_WISHLIST_LS_KEY, []);
       const guestViewed = readLocalJSON(GUEST_VIEWED_LS_KEY, []);
-      setCart(guestCart);
-      setWishlist(guestWishlist);
-      setViewedProducts(guestViewed);
-      setSelectedCartIds([]);
-      ensureSupportProducts([
-        ...guestCart.map((c:any)=>c.productId),
-        ...guestWishlist,
-        ...guestViewed,
-      ]);
+      setCart(guestCart); setWishlist(guestWishlist); setViewedProducts(guestViewed); setSelectedCartIds([]);
+      ensureSupportProducts([...guestCart.map((c:any)=>c.productId), ...guestWishlist, ...guestViewed]);
       return;`,
 'guest support product hydration');
 
@@ -125,37 +102,10 @@ once(
     setSelectedCartIds(dbCart.map((c: any) => c.key));`,
 `    setCart(dbCart); setWishlist(dbWishlistIds); setViewedProducts(dbViewedIds);
     setSelectedCartIds(dbCart.map((c: any) => c.key));
-    ensureSupportProducts([
-      ...dbCart.map((c:any)=>c.productId),
-      ...dbWishlistIds,
-      ...dbViewedIds,
-    ]);
+    ensureSupportProducts([...dbCart.map((c:any)=>c.productId), ...dbWishlistIds, ...dbViewedIds]);
     reloadAuthenticatedOrders();`,
 'authenticated support hydration + orders reload');
 
-// The startup background task may run before auth has fully restored. It can load public
-// vouchers/apps, but it must never overwrite authenticated orders with an empty anon result.
-once(
-`          window.setTimeout(()=>{
-            if(cancelled) return;
-            const myAdminGen=++adminGenRef.current;
-            loadAdminData(shops).then(({orders,sellerApplications,vouchers})=>{
-              if(cancelled || adminGenRef.current!==myAdminGen) return;
-              setOrders(orders); setSellerApplications(sellerApplications); setVouchers(vouchers);
-            }).catch(e=>console.error('Không tải được dữ liệu tài khoản/đơn hàng nền',e));
-          },700);`,
-`          window.setTimeout(()=>{
-            if(cancelled) return;
-            const myAdminGen=++adminGenRef.current;
-            loadAdminData(shops).then(({sellerApplications,vouchers})=>{
-              if(cancelled || adminGenRef.current!==myAdminGen) return;
-              setSellerApplications(sellerApplications); setVouchers(vouchers);
-            }).catch(e=>console.error('Không tải được dữ liệu phụ nền',e));
-          },700);`,
-'prevent anonymous startup from clobbering orders');
-
-// Opening either order screen actively refreshes orders under the current authenticated
-// session. This makes the screen self-sufficient instead of depending on startup timing.
 once(
 `  useEffect(() => {
     let cancelled=false;
@@ -172,8 +122,6 @@ once(
     // [SCALE] Khởi động storefront: metadata + đúng 24 sản phẩm đầu. Không kéo`,
 'order screens load on demand');
 
-// Realtime orders use the dedicated order loader. Other admin tables can still use
-// loadAdminData without affecting order state.
 once(
 `    const refreshBanner=()=>fetchStorefrontBanner().then(b=>{if(!cancelled) setHomepageBanner(b);}).catch(e=>console.error('Không tải được banner trang chủ', e));`,
 `    const refreshOrdersState=()=>reloadAuthenticatedOrders();
