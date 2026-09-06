@@ -123,6 +123,20 @@ once(
 'order screens load on demand');
 
 once(
+`            loadAdminData(shops).then(({orders,sellerApplications,vouchers})=>{
+              if(cancelled || adminGenRef.current!==myAdminGen) return;
+              setOrders(orders); setSellerApplications(sellerApplications); setVouchers(vouchers);
+            }).catch(e=>console.error('Không tải được dữ liệu tài khoản/đơn hàng nền',e));`,
+`            loadAdminData(shops).then(({sellerApplications,vouchers})=>{
+              if(cancelled || adminGenRef.current!==myAdminGen) return;
+              // Orders are intentionally NOT written here. This delayed loader can run
+              // before Supabase Auth has restored the persisted session and would then
+              // overwrite authenticated orders with an empty RLS-filtered result.
+              setSellerApplications(sellerApplications); setVouchers(vouchers);
+            }).catch(e=>console.error('Không tải được dữ liệu tài khoản nền',e));`,
+'prevent delayed anonymous admin loader from clearing orders');
+
+once(
 `    const refreshBanner=()=>fetchStorefrontBanner().then(b=>{if(!cancelled) setHomepageBanner(b);}).catch(e=>console.error('Không tải được banner trang chủ', e));`,
 `    const refreshOrdersState=()=>reloadAuthenticatedOrders();
     const refreshAdminState=()=>{
