@@ -24,3 +24,4 @@ writeFileSync(path,s,'utf8');
 console.log('[KIMSHOP PERF] persistent storefront + per-user orders cache applied:',changes);
 execFileSync('node',['scripts/apply-storefront-realtime-merge-fix.mjs'],{stdio:'inherit'});
 execFileSync('node',['scripts/apply-checkout-orders-scope-fix.mjs'],{stdio:'inherit'});
+execFileSync('node',['scripts/apply-orders-cache-user-scope-fix.mjs'],{stdio:'inherit'});
