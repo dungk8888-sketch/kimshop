@@ -40,6 +40,6 @@ const sigFrom=`const loadStorefrontPage = async ({offset=0, categoryId='all', se
 const sigTo=`const loadStorefrontPage = async ({offset=0, categoryId='all', search='', sortBy='popular', limit}: any = {}) => {`;
 if(s.split(sigFrom).length-1!==1) throw new Error('[storefront realtime merge fix] loadStorefrontPage signature not found');s=s.replace(sigFrom,sigTo);
 const batchFrom=`  const storefrontBatchSize = offset === 0 ? 4 : STOREFRONT_PAGE_SIZE;`;
-const batchTo=`  const storefrontBatchSize = limit ?? (offset === 0 ? 4 : STOREFRONT_PAGE_SIZE);`;
+const batchTo=`  const storefrontBatchSize = limit ?? STOREFRONT_PAGE_SIZE;`;
 if(s.split(batchFrom).length-1!==1) throw new Error('[storefront realtime merge fix] storefrontBatchSize line not found');s=s.replace(batchFrom,batchTo);
-writeFileSync(path,s);console.log('[KIMSHOP FIX] refreshCatalog now merges + caches instead of replacing with 4 rows');
+writeFileSync(path,s);console.log('[KIMSHOP FIX] storefront first page is 24 and realtime refresh merges into cache');
