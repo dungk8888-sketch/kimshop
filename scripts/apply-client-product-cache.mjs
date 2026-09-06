@@ -28,6 +28,10 @@ const stateRe=/const\s*\[products\s*,\s*setProducts\]\s*=\s*useState<any\[\]>\(\
 if(!stateRe.test(s)) throw new Error('[client cache] products state marker missing');
 s=s.replace(stateRe,"const [products,setProducts]=useState<any[]>(()=>readStorefrontCache());"); changes++;
 
+const loadingMarker='        setStorefrontLoading(true);';
+if(!s.includes(loadingMarker)) throw new Error('[client cache] storefront loading marker missing');
+s=s.replace(loadingMarker,"        if(products.length===0) setStorefrontLoading(true);"); changes++;
+
 const initial='        setProducts(buildProducts(page.rawProducts,shops,categories));\n        dataReadyRef.current=true; storefrontReadyRef.current=true;';
 if(!s.includes(initial)) throw new Error('[client cache] initial storefront marker missing');
 s=s.replace(initial,`        const freshProducts=buildProducts(page.rawProducts,shops,categories);\n        setProducts(freshProducts);\n        writeStorefrontCache(freshProducts);\n        dataReadyRef.current=true; storefrontReadyRef.current=true;`); changes++;
