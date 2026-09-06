@@ -7,9 +7,13 @@ const re = /  const loadOrdersOnly = async \(scope: 'buyer' \| 'seller' \| 'auto
 if (!re.test(s)) throw new Error('KIMSHOP orders-fast-loader: loadOrdersOnly block not found');
 
 const replacement = `  const loadOrdersOnly = async (scope: 'buyer' | 'seller' | 'auto' = 'auto') => {
-    // Fast path: không chờ catalog metadata và không gọi auth.getUser() qua network.
-    // RLS vẫn xác thực bằng access token mà Supabase client tự gửi kèm request.
-    const userId = currentUser?.id;
+    // Fast path: dùng currentUser nếu đã hydrate; sau F5 có thể lấy session local
+    // từ Supabase client mà không cần auth.getUser() network call.
+    let userId = currentUser?.id;
+    if (!userId) {
+      const { data } = await supabase.auth.getSession();
+      userId = data?.session?.user?.id;
+    }
     if (!userId) return [];
 
     let orderQuery: any = supabase
@@ -71,5 +75,10 @@ const replacement = `  const loadOrdersOnly = async (scope: 'buyer' | 'seller' |
   const reloadAuthenticatedOrders`;
 
 s = s.replace(re, replacement);
+
+const effectAnchor = `  useEffect(() => {\n    if (!currentUser?.id) return;\n    if (view === 'buyer' && buyerPage === 'purchase') {`;
+if (!s.includes(effectAnchor)) throw new Error('KIMSHOP orders-fast-loader: order effect guard not found');
+s = s.replace(effectAnchor, `  useEffect(() => {\n    if (view === 'buyer' && buyerPage === 'purchase') {`);
+
 writeFileSync(path, s, 'utf8');
-console.log('[KIMSHOP PERF] orders loader reduced to one Supabase request');
+console.log('[KIMSHOP PERF] orders loader uses restored session after reload');
