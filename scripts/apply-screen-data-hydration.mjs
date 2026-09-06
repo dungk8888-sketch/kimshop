@@ -122,19 +122,10 @@ once(
     // [SCALE] Khởi động storefront: metadata + đúng 24 sản phẩm đầu. Không kéo`,
 'order screens load on demand');
 
-once(
-`            loadAdminData(shops).then(({orders,sellerApplications,vouchers})=>{
-              if(cancelled || adminGenRef.current!==myAdminGen) return;
-              setOrders(orders); setSellerApplications(sellerApplications); setVouchers(vouchers);
-            }).catch(e=>console.error('Không tải được dữ liệu tài khoản/đơn hàng nền',e));`,
-`            loadAdminData(shops).then(({sellerApplications,vouchers})=>{
-              if(cancelled || adminGenRef.current!==myAdminGen) return;
-              // Orders are intentionally NOT written here. This delayed loader can run
-              // before Supabase Auth has restored the persisted session and would then
-              // overwrite authenticated orders with an empty RLS-filtered result.
-              setSellerApplications(sellerApplications); setVouchers(vouchers);
-            }).catch(e=>console.error('Không tải được dữ liệu tài khoản nền',e));`,
-'prevent delayed anonymous admin loader from clearing orders');
+const delayedAdminRe=/loadAdminData\(shops\)\.then\(\(\{orders,sellerApplications,vouchers\}\)=>\{\s*if\(cancelled \|\| adminGenRef\.current!==myAdminGen\) return;\s*setOrders\(orders\);\s*setSellerApplications\(sellerApplications\);\s*setVouchers\(vouchers\);\s*\}\)\.catch\(e=>console\.error\('Không tải được dữ liệu tài khoản\/đơn hàng nền',e\)\);/;
+if(!delayedAdminRe.test(s)) throw new Error('[screen data] delayed admin/order writer not found');
+s=s.replace(delayedAdminRe,`loadAdminData(shops).then(({sellerApplications,vouchers})=>{\n              if(cancelled || adminGenRef.current!==myAdminGen) return;\n              setSellerApplications(sellerApplications); setVouchers(vouchers);\n            }).catch(e=>console.error('Không tải được dữ liệu tài khoản nền',e));`);
+patched++;
 
 once(
 `    const refreshBanner=()=>fetchStorefrontBanner().then(b=>{if(!cancelled) setHomepageBanner(b);}).catch(e=>console.error('Không tải được banner trang chủ', e));`,
