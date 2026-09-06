@@ -24,9 +24,9 @@ function writeStorefrontCache(products:any[]) {
 `;
 s=s.replace(appMarker,helpers+appMarker); changes++;
 
-const stateRe=/const\s*\[products\s*,\s*setProducts\]\s*=\s*useState<Product\[\]>\(\[\]\);/;
+const stateRe=/const\s*\[products\s*,\s*setProducts\]\s*=\s*useState<any\[\]>\(\[\]\);/;
 if(!stateRe.test(s)) throw new Error('[client cache] products state marker missing');
-s=s.replace(stateRe,"const [products,setProducts]=useState<Product[]>(()=>readStorefrontCache() as Product[]);"); changes++;
+s=s.replace(stateRe,"const [products,setProducts]=useState<any[]>(()=>readStorefrontCache());"); changes++;
 
 const initial='        setProducts(buildProducts(page.rawProducts,shops,categories));\n        dataReadyRef.current=true; storefrontReadyRef.current=true;';
 if(!s.includes(initial)) throw new Error('[client cache] initial storefront marker missing');
