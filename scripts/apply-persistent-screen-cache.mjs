@@ -9,7 +9,6 @@ function once(from,to,label){
   s=s.replace(from,to); changes++;
 }
 
-// Cache every storefront page that has actually been loaded, not only the first 4-card fast batch.
 once(
 `      const base=buildProducts(page.rawProducts,meta.shops,meta.categories);\n      setProducts(prev=>[...prev,...base.filter(x=>!prev.some(p=>p.id===x.id))]);\n      setStorefrontTotal(page.total); setStorefrontHasMore(offset+page.rawProducts.length<page.total);`,
 `      const base=buildProducts(page.rawProducts,meta.shops,meta.categories);\n      setProducts(prev=>{\n        const next=[...prev,...base.filter(x=>!prev.some(p=>p.id===x.id))];\n        writeStorefrontCache(next);\n        return next;\n      });\n      setStorefrontTotal(page.total); setStorefrontHasMore(offset+page.rawProducts.length<page.total);`,
@@ -21,7 +20,7 @@ s=s.replace(helperMarker, helperMarker+`\nconst KIMSHOP_ORDERS_CACHE_PREFIX='kim
 
 once(
 `  const reloadAuthenticatedOrders = async (scope: 'buyer' | 'seller' | 'auto' = 'auto') => {\n    try {\n      const freshOrders = await loadOrdersOnly(scope);\n      setOrders(freshOrders);\n    } catch (e) {\n      console.error('Không tải được đơn hàng của màn hiện tại', e);\n    }\n  };`,
-`  const reloadAuthenticatedOrders = async (scope: 'buyer' | 'seller' | 'auto' = 'auto') => {\n    try {\n      let cacheUserId=currentUser?.id;\n      if(!cacheUserId){\n        const {data}=await supabase.auth.getSession();\n        cacheUserId=data?.session?.user?.id;\n      }\n      const cacheScope=scope==='seller'?'seller':'buyer';\n      if(cacheUserId){\n        const cachedOrders=readOrdersCache(cacheUserId,cacheScope);\n        if(cachedOrders.length) setOrders(cachedOrders);\n      }\n      const freshOrders = await loadOrdersOnly(scope);\n      setOrders(freshOrders);\n      if(cacheUserId) writeOrdersCache(cacheUserId,cacheScope,freshOrders);\n    } catch (e) {\n      console.error('Không tải được đơn hàng của màn hiện tại', e);\n    }\n  };`,
+`  const reloadAuthenticatedOrders = async (scope: 'buyer' | 'seller' | 'auto' = 'auto') => {\n    try {\n      let cacheUserId=currentUser?.id;\n      if(!cacheUserId){\n        const {data}=await supabase.auth.getSession();\n        cacheUserId=data?.session?.user?.id;\n      }\n      const cacheScope=scope==='seller'?'seller':'buyer';\n      let cachedOrders:any[]=[];\n      if(cacheUserId){\n        cachedOrders=readOrdersCache(cacheUserId,cacheScope);\n        if(cachedOrders.length) setOrders(cachedOrders);\n      }\n      const freshOrders = await loadOrdersOnly(scope);\n      if(freshOrders.length || !cachedOrders.length){\n        setOrders(freshOrders);\n        if(cacheUserId) writeOrdersCache(cacheUserId,cacheScope,freshOrders);\n      }\n    } catch (e) {\n      console.error('Không tải được đơn hàng của màn hiện tại', e);\n    }\n  };`,
 'orders stale-while-revalidate cache');
 
 writeFileSync(path,s,'utf8');
