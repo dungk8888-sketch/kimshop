@@ -98,9 +98,19 @@ const newBlock = `  const [savingProduct, setSavingProduct] = useState(false);
         const { error: varErr } = await supabase.from('product_variants').insert(variantRows); if (varErr) throw varErr;
       }
       productDataPersisted = true;
-      catalogGenRef.current++; adminGenRef.current++;
-      const d = await loadRemoteData();
-      setProducts(d.products); setShops(d.shops); setOrders(d.orders); setSellerApplications(d.sellerApplications); setCategories(d.categories); setVouchers(d.vouchers);
+      catalogGenRef.current++;
+      // [FIX] Chỉ nạp lại catalog (không đụng orders/vouchers/seller_applications) —
+      // xem loadCatalogOnly(). Lưu sản phẩm không được phép báo lỗi chỉ vì 1 bảng
+      // quản trị không liên quan gặp sự cố.
+      try {
+        const d = await loadCatalogOnly();
+        setProducts(d.products); setShops(d.shops); setCategories(d.categories);
+      } catch (refreshErr) {
+        // Ghi đã thành công (productDataPersisted=true) — nạp lại catalog thất bại
+        // chỉ ảnh hưởng tới việc đồng bộ danh sách, KHÔNG được coi là lưu thất bại.
+        console.warn('Lưu sản phẩm thành công; nạp lại catalog sau khi lưu bị lỗi', refreshErr);
+        setProducts((prev: any[]) => { const optimistic = buildOptimisticProduct(persistedProductId as string); return prev.some((p: any) => p.id === persistedProductId) ? prev.map((p: any) => p.id === persistedProductId ? { ...p, ...optimistic } : p) : [optimistic, ...prev]; });
+      }
       showToast(isEdit ? 'Cập nhật sản phẩm thành công!' : 'Đã thêm sản phẩm mới!'); setEditingProduct(null); goSellerPage('products');
     } catch (e: any) {
       if (persistedProductId) {
@@ -120,8 +130,12 @@ const newBlock = `  const [savingProduct, setSavingProduct] = useState(false);
       const { error } = await supabase.from('products').update({ status: 'deleted' }).eq('id', id);
       if (error) { const { data: verifyRow } = await supabase.from('products').select('status').eq('id', id).maybeSingle(); if (verifyRow?.status !== 'deleted') throw error; }
       deletedConfirmed = true;
-      setProducts((prev: any[]) => prev.filter((p: any) => p.id !== id)); showToast('Đã xóa sản phẩm'); catalogGenRef.current++; adminGenRef.current++;
-      try { const d = await loadRemoteData(); setProducts(d.products); setShops(d.shops); setOrders(d.orders); setSellerApplications(d.sellerApplications); setCategories(d.categories); setVouchers(d.vouchers); }
+      setProducts((prev: any[]) => prev.filter((p: any) => p.id !== id)); showToast('Đã xóa sản phẩm'); catalogGenRef.current++;
+      // [FIX] Chỉ nạp lại catalog sau khi xoá — không phụ thuộc orders/vouchers/
+      // seller_applications (xem loadCatalogOnly()). Sản phẩm đã ẩn khỏi state
+      // ngay ở dòng trên; refresh dưới đây chỉ để đồng bộ, không quyết định
+      // thành/bại của thao tác xoá.
+      try { const d = await loadCatalogOnly(); setProducts(d.products); setShops(d.shops); setCategories(d.categories); }
       catch (refreshErr) { console.warn('Sản phẩm đã xóa; chỉ nạp lại dữ liệu sau xóa bị lỗi', refreshErr); }
     } catch (e: any) { if (!deletedConfirmed) { console.error('Xoá sản phẩm thất bại', e); showToast('Xoá sản phẩm thất bại: ' + (e?.message || 'vui lòng thử lại')); } }
   };
