@@ -19,7 +19,7 @@ if(!s.includes(dataReadyMarker)) throw new Error('[indexeddb home] dataReadyRef 
 s=s.replace(dataReadyMarker,dataReadyMarker+`\n  const indexedDbHomeHydratedRef = useRef(false);\n  useEffect(()=>{\n    let dead=false;\n    readKimshopHomeCache().then((cached:any[])=>{\n      if(dead) return;\n      indexedDbHomeHydratedRef.current=true;\n      if(cached.length){\n        setProducts(cached);\n        dataReadyRef.current=true;\n        storefrontReadyRef.current=true;\n        setStorefrontHasMore(true);\n        setStorefrontLoading(false);\n      }\n    });\n    return()=>{dead=true};\n  },[]);`); changes++;
 
 once(
-`        const freshHome=buildProducts(page.rawProducts,shops,categories);\n        setProducts(freshHome);\n        void writeKimshopHomeCache(freshHome);\n        dataReadyRef.current=true; storefrontReadyRef.current=true;`,
+`        setProducts(buildProducts(page.rawProducts,shops,categories));\n        dataReadyRef.current=true; storefrontReadyRef.current=true;`,
 `        const freshHome=buildProducts(page.rawProducts,shops,categories);\n        setProducts(prev=>{\n          const byId=new Map((prev||[]).map((p:any)=>[p.id,p]));\n          freshHome.forEach((p:any)=>byId.set(p.id,p));\n          const next=Array.from(byId.values());\n          void writeKimshopHomeCache(next);\n          return next;\n        });\n        dataReadyRef.current=true; storefrontReadyRef.current=true;`,
 'merge background first page into cached home');
 
