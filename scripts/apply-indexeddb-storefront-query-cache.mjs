@@ -14,20 +14,22 @@ if(!queryEffectRe.test(s)) throw new Error('[indexeddb storefront query] storefr
 const replacement=`useEffect(()=>{\n    if(!storefrontReadyRef.current || view!=='buyer' || buyerPage!=='home') return;\n    const meta=storefrontMetaRef.current; if(!meta) return;\n    const gen=++storefrontQueryGenRef.current; let dead=false;\n    setStorefrontLoading(false);\n    (async()=>{\n      const cached=await readKimshopStorefrontQueryCache(selectedCategory,searchQuery,sortBy);\n      if(dead || storefrontQueryGenRef.current!==gen) return;\n      const cachedProducts=Array.isArray(cached?.products)?cached.products:[];\n      if(cachedProducts.length){\n        setProducts(cachedProducts);\n        setStorefrontTotal(Number(cached.total ?? cachedProducts.length));\n        setStorefrontHasMore(Boolean(cached.hasMore));\n      }\n      try{\n        const page=await loadStorefrontPage({offset:0,categoryId:selectedCategory,search:searchQuery,sortBy});\n        if(dead || storefrontQueryGenRef.current!==gen) return;\n        const base=buildProducts(page.rawProducts,meta.shops,meta.categories);\n        const hasMore=page.rawProducts.length<page.total;\n        setStorefrontTotal(page.total); setStorefrontHasMore(hasMore); setProducts(base);\n        void writeKimshopStorefrontQueryCache(selectedCategory,searchQuery,sortBy,base,page.total,hasMore);\n      }catch(e){\n        console.error('Storefront query failed',e);\n      }finally{\n        if(!dead && storefrontQueryGenRef.current===gen) setStorefrontLoading(false);\n      }\n    })();\n    return()=>{dead=true};\n  },[selectedCategory,searchQuery,sortBy,view]);`;
 s=s.replace(queryEffectRe,replacement); changes++;
 
-// Infinite-scroll used the same storefrontLoading flag as visible query loading.
-// After a sort/category change the sentinel is often already inside the 500px rootMargin,
-// so it immediately flipped storefrontLoading=true and showed “Đang tải thêm sản phẩm...”.
-// Keep pagination fully in the background; products append when ready without flashing loading.
-const loadMoreRe=/const loadMoreStorefront = async\(\)=>\{[\s\S]*?\n    \};\n    useEffect\(\(\)=>\{\n      const el=loadMoreSentinelRef\.current;/;
-const loadMoreMatch=s.match(loadMoreRe);
-if(!loadMoreMatch) throw new Error('[indexeddb storefront query] loadMoreStorefront block not found');
-let loadMorePatched=loadMoreMatch[0];
-if(!loadMorePatched.includes('setStorefrontLoading(true);')) throw new Error('[indexeddb storefront query] load-more loading start missing');
-if(!loadMorePatched.includes('finally {setStorefrontLoading(false)}')) throw new Error('[indexeddb storefront query] load-more loading finish missing');
-loadMorePatched=loadMorePatched
-  .replace('setStorefrontLoading(true);','// background pagination: do not blank/flash the suggestion grid')
+// Infinite scroll must stay invisible. It used storefrontLoading, which caused the
+// “Đang tải thêm sản phẩm...” flash immediately after changing category/sort because
+// the sentinel often remains within the 500px rootMargin.
+const loadMoreStart=s.indexOf('const loadMoreStorefront = async()=>{');
+if(loadMoreStart<0) throw new Error('[indexeddb storefront query] loadMoreStorefront start not found');
+let loadMoreEnd=s.indexOf('\n  };',loadMoreStart);
+if(loadMoreEnd<0) loadMoreEnd=s.indexOf('\n    };',loadMoreStart);
+if(loadMoreEnd<0) throw new Error('[indexeddb storefront query] loadMoreStorefront end not found');
+loadMoreEnd += s.startsWith('\n    };',loadMoreEnd) ? 7 : 5;
+let loadMoreBlock=s.slice(loadMoreStart,loadMoreEnd);
+if(!loadMoreBlock.includes('setStorefrontLoading(true);')) throw new Error('[indexeddb storefront query] load-more loading start missing');
+if(!loadMoreBlock.includes('finally {setStorefrontLoading(false)}')) throw new Error('[indexeddb storefront query] load-more loading finish missing');
+const loadMorePatched=loadMoreBlock
+  .replace('setStorefrontLoading(true);','// background pagination: keep current products visible')
   .replace('finally {setStorefrontLoading(false)}','finally {}');
-s=s.replace(loadMoreRe,loadMorePatched); changes++;
+s=s.slice(0,loadMoreStart)+loadMorePatched+s.slice(loadMoreEnd); changes++;
 
 writeFileSync(path,s,'utf8');
 console.log('[KIMSHOP PERF] IndexedDB local-first storefront query cache applied:',changes);
