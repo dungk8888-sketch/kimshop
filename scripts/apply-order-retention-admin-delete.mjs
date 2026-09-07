@@ -95,7 +95,7 @@ const injected=`  const myPendingApplication = currentUser ? sellerApplications.
         const op = document.createElement('option');
         op.value = String(o.id || '');
         const when = String(o.createdAt || o.created_at || '').slice(0,10);
-        op.textContent = `${String(o.id||'').slice(0,12)} · ${o.customerName || o.recipient_name || 'Khách'} · ${when}`;
+        op.textContent = String(o.id||'').slice(0,12) + ' · ' + (o.customerName || o.recipient_name || 'Khách') + ' · ' + when;
         select.appendChild(op);
       });
 
