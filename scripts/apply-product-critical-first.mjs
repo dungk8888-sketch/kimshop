@@ -57,7 +57,7 @@ const to=`      // Critical path: load the product row, variants/stock, and the 
         setProducts((prev) => prev.some((p:any)=>p.id===critical.id)
           ? prev.map((p:any)=>p.id===critical.id ? critical : p)
           : [critical, ...prev]);
-        // Product, stock and every gallery image are authoritative now. Reviews can refresh later.
+        // Variant/stock is authoritative now; the gallery images are loaded in the same critical pass.
         setProductDetailLoading(false);
       }
 
