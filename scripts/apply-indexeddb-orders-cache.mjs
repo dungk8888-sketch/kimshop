@@ -19,20 +19,5 @@ once(
 `  const reloadAuthenticatedOrders = async (scope: 'buyer' | 'seller' | 'auto' = 'auto') => {\n    try {\n      let userId=currentUser?.id;\n      if(!userId){\n        const {data}=await supabase.auth.getSession();\n        userId=data?.session?.user?.id;\n      }\n      if(scope==='buyer' && userId){\n        const cached=await readKimshopOrdersCache(userId);\n        if(cached.length) setOrders(cached);\n      }\n      const freshOrders = await loadOrdersOnly(scope);\n      setOrders(freshOrders);\n      if(scope==='buyer' && userId) void writeKimshopOrdersCache(userId,freshOrders);\n    } catch (e) {\n      console.error('Không tải được đơn hàng của màn hiện tại', e);\n    }\n  };`,
 'cache-first buyer orders');
 
-once(
-`    let orderQuery: any = supabase.from('orders').select('*');\n    if (scope === 'buyer') {\n      orderQuery = orderQuery.eq('buyer_id', userId);\n    } else if (scope === 'seller' && currentUser?.role !== 'admin' && currentUser?.shopId) {\n      orderQuery = orderQuery.eq('shop_id', currentUser.shopId);\n    }`,
-`    let orderQuery: any = supabase.from('orders').select('*');\n    if (scope === 'buyer') {\n      orderQuery = orderQuery.eq('buyer_id', userId);\n    } else if (scope === 'seller' && currentUser?.role !== 'admin') {\n      let sellerShops = (storefrontMetaRef.current?.shops || shops || []).filter((x:any)=>x.ownerId===userId);\n      if (!sellerShops.length) {\n        const meta = await loadCatalogMeta();\n        storefrontMetaRef.current = meta;\n        if (!shops.length) setShops(meta.shops);\n        sellerShops = meta.shops.filter((x:any)=>x.ownerId===userId);\n      }\n      const sellerShopIds = sellerShops.map((x:any)=>x.id).filter(Boolean);\n      if (!sellerShopIds.length) return [];\n      orderQuery = orderQuery.in('shop_id', sellerShopIds);\n    }`,
-'seller orders scoped by owned shops');
-
-once(
-`    if (view === 'seller' && sellerPage === 'orders') {\n      reloadAuthenticatedOrders('seller');\n    }`,
-`    if (view === 'seller' && (currentUser?.role === 'seller' || currentUser?.role === 'admin')) {\n      reloadAuthenticatedOrders('seller');\n    }`,
-'load seller orders when entering seller view');
-
-once(
-`  const sellerOrders = orders.filter((o) => o.shopId && managedShopIds.includes(o.shopId));`,
-`  const sellerOrders = myUser?.role === 'admin'\n    ? orders.filter((o) => o.shopId && managedShopIds.includes(o.shopId))\n    : orders;`,
-'seller render uses already scoped orders');
-
 writeFileSync(path,s,'utf8');
-console.log('[KIMSHOP PERF] IndexedDB buyer orders cache + seller order scope applied:',changes);
+console.log('[KIMSHOP PERF] IndexedDB buyer orders cache applied:',changes);
