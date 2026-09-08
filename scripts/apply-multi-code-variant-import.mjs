@@ -6,7 +6,7 @@ let s=readFileSync(path,'utf8');
 const anchor="                    {(editingProduct.variantGroups || []).filter((g:any) => g.name?.trim() && (g.values || []).length).length === 0 && (";
 if(!s.includes(anchor)) throw new Error('[multi-code variants] seller variant form anchor missing');
 
-const panel=`                    <div className="border border-orange-200 bg-orange-50 rounded-lg p-3 mb-3">
+const panel=String.raw`                    <div className="border border-orange-200 bg-orange-50 rounded-lg p-3 mb-3">
                       <div className="flex items-start justify-between gap-3 mb-2">
                         <div>
                           <div className="font-bold text-sm text-gray-800">Đăng chung nhiều mã trong 1 sản phẩm</div>
