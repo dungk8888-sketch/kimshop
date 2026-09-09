@@ -18,16 +18,10 @@ const roEnd=s.indexOf('const loadUserSession = async',roStart);
 if(roStart<0||roEnd<0) throw new Error('[seller stable] reloadAuthenticatedOrders block missing');
 const roLine=s.lastIndexOf('\n',roStart)+1;
 const indent=s.slice(roLine,roStart);
-const replacement=`${indent}const reloadAuthenticatedOrders = async (scope: 'buyer' | 'seller' | 'auto' = 'auto') => {\n${indent}  try {\n${indent}    // Dọn cache thử nghiệm cũ để nó không bao giờ bơm đơn stale/deleted trở lại UI.\n${indent}    if (typeof window !== 'undefined' && currentUser?.id) {\n${indent}      try {\n${indent}        for (const sc of ['buyer','seller','auto']) window.sessionStorage.removeItem(\`kimshop_orders_cache_v1_\${currentUser.id}_\${sc}\`);\n${indent}      } catch {}\n${indent}    }\n${indent}    const freshOrders = await loadOrdersOnly(scope);\n${indent}    const clean = (freshOrders || []).filter((o:any) => o?.status !== 'deleted' && o?.orderStatus !== 'deleted');\n${indent}    setOrders(clean);\n${indent}  } catch (e) {\n${indent}    console.error('Không tải được đơn hàng của màn hiện tại', e);\n${indent}  }\n${indent}};\n${indent}`;
+const replacement=`${indent}const reloadAuthenticatedOrders = async (scope: 'buyer' | 'seller' | 'auto' = 'auto') => {\n${indent}  try {\n${indent}    if (typeof window !== 'undefined' && currentUser?.id) {\n${indent}      try {\n${indent}        for (const sc of ['buyer','seller','auto']) window.sessionStorage.removeItem(\`kimshop_orders_cache_v1_\${currentUser.id}_\${sc}\`);\n${indent}      } catch {}\n${indent}    }\n${indent}    const freshOrders = await loadOrdersOnly(scope);\n${indent}    const clean = (freshOrders || []).filter((o:any) => o?.status !== 'deleted' && o?.orderStatus !== 'deleted');\n${indent}    setOrders(clean);\n${indent}  } catch (e) {\n${indent}    console.error('Không tải được đơn hàng của màn hiện tại', e);\n${indent}  }\n${indent}};\n${indent}`;
 s=s.slice(0,roLine)+replacement+s.slice(roEnd);
 
-// 3) When opening seller orders, clear any orders left by overview/admin data first,
-// then let the existing orders effect populate exactly one authoritative result.
-const ordersEffectNeedle="if (view === 'seller' && sellerPage === 'orders') {\n        reloadAuthenticatedOrders('seller');";
-if(!s.includes(ordersEffectNeedle)) throw new Error('[seller stable] seller orders effect missing');
-s=s.replace(ordersEffectNeedle,"if (view === 'seller' && sellerPage === 'orders') {\n        setOrders([]);\n        reloadAuthenticatedOrders('seller');");
-
-// 4) Add screen-specific seller loading after the existing orders effect.
+// 3) Add screen-specific seller loading after the existing orders effect.
 const effectAnchor="}, [view, buyerPage, sellerPage, currentUser?.id, currentUser?.role, currentUser?.shopId]);";
 const ei=s.indexOf(effectAnchor);
 if(ei<0) throw new Error('[seller stable] screen effect anchor missing');
