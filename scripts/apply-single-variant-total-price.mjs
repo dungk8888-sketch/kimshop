@@ -8,10 +8,10 @@ if(!priceRe.test(s)) throw new Error('[single variant total] price block missing
 
 s=s.replace(priceRe,`const purchaseDisplayPrice = isMultiVariantQty
       ? multiVariantPriceTotal
-      : (hasVariants && purchasableSelectedVariants.length === 1 ? Number(displayPrice || 0) * Math.max(1, Number(selectedQty || 1)) : displayPrice);
+      : Number(displayPrice || 0) * Math.max(1, Number(selectedQty || 1));
     const purchaseDisplayOriginalPrice = isMultiVariantQty
       ? multiVariantOriginalPriceTotal
-      : (hasVariants && purchasableSelectedVariants.length === 1 ? Number(displayOriginalPrice || 0) * Math.max(1, Number(selectedQty || 1)) : displayOriginalPrice);`);
+      : Number(displayOriginalPrice || 0) * Math.max(1, Number(selectedQty || 1));`);
 
 writeFileSync(path,s,'utf8');
-console.log('[KIMSHOP VARIANT] single selected variant price now follows quantity');
+console.log('[KIMSHOP PRICE] regular + single-variant product total follows quantity');
