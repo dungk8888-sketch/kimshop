@@ -21,7 +21,13 @@ const indent=s.slice(roLine,roStart);
 const replacement=`${indent}const reloadAuthenticatedOrders = async (scope: 'buyer' | 'seller' | 'auto' = 'auto') => {\n${indent}  try {\n${indent}    if (typeof window !== 'undefined' && currentUser?.id) {\n${indent}      try {\n${indent}        for (const sc of ['buyer','seller','auto']) window.sessionStorage.removeItem(\`kimshop_orders_cache_v1_\${currentUser.id}_\${sc}\`);\n${indent}      } catch {}\n${indent}    }\n${indent}    const freshOrders = await loadOrdersOnly(scope);\n${indent}    const clean = (freshOrders || []).filter((o:any) => o?.status !== 'deleted' && o?.orderStatus !== 'deleted');\n${indent}    setOrders(clean);\n${indent}  } catch (e) {\n${indent}    console.error('Không tải được đơn hàng của màn hiện tại', e);\n${indent}  }\n${indent}};\n${indent}`;
 s=s.slice(0,roLine)+replacement+s.slice(roEnd);
 
-// 3) Add screen-specific seller loading after the existing orders effect.
+// 3) Final UI guard: even if any legacy/background loader writes old order rows into state,
+// seller order lists/counts must never accept soft-deleted orders.
+const sellerOrdersOld="const sellerOrders = orders.filter((o) => o.shopId && managedShopIds.includes(o.shopId));";
+if(!s.includes(sellerOrdersOld)) throw new Error('[seller stable] sellerOrders declaration missing');
+s=s.replace(sellerOrdersOld,"const sellerOrders = orders.filter((o) => o.shopId && managedShopIds.includes(o.shopId) && o.status !== 'deleted' && o.orderStatus !== 'deleted');");
+
+// 4) Add screen-specific seller loading after the existing orders effect.
 const effectAnchor="}, [view, buyerPage, sellerPage, currentUser?.id, currentUser?.role, currentUser?.shopId]);";
 const ei=s.indexOf(effectAnchor);
 if(ei<0) throw new Error('[seller stable] screen effect anchor missing');
@@ -30,4 +36,4 @@ const screenEffect=`\n    // [PERF] Seller/Admin: chỉ tải dữ liệu nặng
 s=s.slice(0,insertAt)+screenEffect+s.slice(insertAt);
 
 writeFileSync(path,s,'utf8');
-console.log('[KIMSHOP ORDERS] seller orders now single-source, cache-free, deleted-safe');
+console.log('[KIMSHOP ORDERS] seller orders single-source + UI deleted guard applied');
