@@ -1,0 +1,107 @@
+name: migration-export-binary-20260913
+
+on:
+  push:
+    branches:
+      - migration-export-binary-20260913
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  export-binary:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download and verify public Storage + anon-visible data URIs
+        shell: bash
+        run: |
+          python - <<'PY'
+          import base64, csv, hashlib, json, os
+          from pathlib import Path
+          from urllib.parse import quote
+          import urllib.request
+
+          PROJECT = 'ygqqtudavuugrvpkhvdp'
+          BASE = f'https://{PROJECT}.supabase.co'
+          APIKEY = 'sb_publishable_8B6gKD7mNeh8Ny8DtPXdrQ_trIgA2Rb'
+          root = Path('binary_export')
+          storage_root = root / 'storage' / 'product-images'
+          payload_root = root / 'embedded_payloads'
+          storage_root.mkdir(parents=True, exist_ok=True)
+          payload_root.mkdir(parents=True, exist_ok=True)
+
+          def get(url, headers=None):
+              req = urllib.request.Request(url, headers=headers or {})
+              with urllib.request.urlopen(req, timeout=120) as r:
+                  return r.read(), dict(r.headers)
+
+          rows = list(csv.DictReader(open('migration_export_20260913/objects_manifest.csv', newline='', encoding='utf-8')))
+          storage_verified = []
+          for row in rows:
+              name = row['name']
+              url = BASE + '/storage/v1/object/public/product-images/' + quote(name, safe='/')
+              data, hdr = get(url)
+              md5 = hashlib.md5(data).hexdigest()
+              size = len(data)
+              if size != int(row['size_bytes']):
+                  raise SystemExit(f'SIZE MISMATCH {name}: {size} != {row["size_bytes"]}')
+              if md5 != row['md5_etag']:
+                  raise SystemExit(f'MD5 MISMATCH {name}: {md5} != {row["md5_etag"]}')
+              out = storage_root / name
+              out.parent.mkdir(parents=True, exist_ok=True)
+              out.write_bytes(data)
+              storage_verified.append({'name':name,'bytes':size,'md5':md5})
+
+          if len(storage_verified) != 35:
+              raise SystemExit(f'expected 35 storage objects, got {len(storage_verified)}')
+          total = sum(x['bytes'] for x in storage_verified)
+          if total != 21173217:
+              raise SystemExit(f'expected 21173217 storage bytes, got {total}')
+          (root/'storage_verified.json').write_text(json.dumps(storage_verified, ensure_ascii=False, indent=2), encoding='utf-8')
+
+          headers = {'apikey': APIKEY, 'Authorization': 'Bearer ' + APIKEY, 'Range': '0-9999'}
+          specs = [
+              ('products','image_url'),
+              ('product_images','public_url'),
+              ('product_variants','image_url'),
+          ]
+          refs=[]
+          unique={}
+          for table, col in specs:
+              url = f'{BASE}/rest/v1/{table}?select=id,{col}'
+              raw, _ = get(url, headers)
+              data = json.loads(raw)
+              for row in data:
+                  v = row.get(col)
+                  if not isinstance(v,str) or not v.startswith('data:') or ';base64,' not in v:
+                      continue
+                  header, b64 = v.split(',',1)
+                  blob = base64.b64decode(b64, validate=True)
+                  md5 = hashlib.md5(blob).hexdigest()
+                  mime = header[5:].split(';',1)[0]
+                  ext = {'image/jpeg':'jpg','image/png':'png','image/webp':'webp','image/gif':'gif'}.get(mime,'bin')
+                  p = payload_root / f'{md5}.{ext}'
+                  if not p.exists():
+                      p.write_bytes(blob)
+                  elif p.read_bytes() != blob:
+                      raise SystemExit('MD5 collision/content mismatch: '+md5)
+                  unique[md5]={'md5':md5,'bytes':len(blob),'mime':mime,'file':p.name}
+                  refs.append({'table':table,'row_id':str(row['id']),'column':col,'md5':md5})
+
+          if len(unique) != 66:
+              raise SystemExit(f'expected 66 anon-visible unique data payloads, got {len(unique)}')
+          (root/'anon_data_uri_payloads.json').write_text(json.dumps(sorted(unique.values(), key=lambda x:x['md5']), ensure_ascii=False, indent=2), encoding='utf-8')
+          (root/'anon_data_uri_refs.json').write_text(json.dumps(refs, ensure_ascii=False, indent=2), encoding='utf-8')
+          print(json.dumps({'storage_objects':len(storage_verified),'storage_bytes':total,'anon_unique_payloads':len(unique),'anon_refs':len(refs)}, indent=2))
+          PY
+      - name: Upload binary export artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: migration-export-binary-20260913
+          path: binary_export
+          if-no-files-found: error
+          retention-days: 1
+          compression-level: 0
