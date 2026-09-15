@@ -1,0 +1,46 @@
+name: diag-preview-runtime
+on:
+  push:
+    branches: [perf-egress-test-20260915]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  diag:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm ci
+      - run: npx --yes playwright@1.55.0 install chromium --with-deps
+      - name: Inspect preview in Chromium
+        run: |
+          cat > /tmp/diag.mjs <<'EOF'
+          import { chromium } from 'playwright';
+          const url='https://kimshop-git-perf-egress-test-20260915-dungk8888-6492.vercel.app';
+          const browser=await chromium.launch({headless:true});
+          const page=await browser.newPage();
+          page.on('console',m=>console.log('CONSOLE',m.type(),m.text()));
+          page.on('pageerror',e=>console.log('PAGEERROR',e.message));
+          page.on('response',async r=>{
+            if(r.url().includes('supabase.co')){
+              let len=''; try{len=(await r.body()).length}catch{}
+              console.log('SUPABASE',r.status(),len,r.request().method(),r.url().replace(/apikey=[^&]+/g,'apikey=REDACTED'));
+            }
+          });
+          await page.goto(url,{waitUntil:'networkidle',timeout:120000});
+          await page.waitForTimeout(5000);
+          console.log('TITLE',await page.title());
+          console.log('BODY', (await page.locator('body').innerText()).slice(0,2500));
+          await page.screenshot({path:'preview-diag.png',fullPage:true});
+          await browser.close();
+          EOF
+          node /tmp/diag.mjs | tee preview-diag.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: preview-runtime-diag
+          path: |
+            preview-diag.txt
+            preview-diag.png
