@@ -8,46 +8,67 @@ permissions:
 jobs:
   diag:
     runs-on: ubuntu-latest
+    env:
+      VITE_SUPABASE_URL: https://ygqqtudavuugrvpkhvdp.supabase.co
+      VITE_SUPABASE_ANON_KEY: sb_publishable_8B6gKD7mNeh8Ny8DtPXdrQ_trIgA2Rb
     steps:
+      - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-      - name: Install Playwright only
+      - name: Install app
+        run: npm install --no-audit --no-fund
+      - name: Build current test branch
+        run: npm run build
+      - name: Install Playwright
         run: |
-          mkdir -p /tmp/diagpkg
-          cd /tmp/diagpkg
-          npm init -y >/dev/null
-          npm install --no-audit --no-fund playwright@1.55.0
+          npm install --no-save --no-audit --no-fund playwright@1.55.0
           npx playwright install chromium --with-deps
-      - name: Inspect preview in Chromium
-        working-directory: /tmp/diagpkg
+      - name: Run local storefront smoke test
         run: |
-          cat > diag.mjs <<'EOF'
+          (npm run preview -- --host 127.0.0.1 --port 4173 > /tmp/kimshop-vite.log 2>&1 & echo $! > /tmp/kimshop-vite.pid)
+          for i in $(seq 1 40); do
+            if curl -fsS http://127.0.0.1:4173/ >/dev/null; then break; fi
+            sleep 1
+          done
+          cat > /tmp/storefront-smoke.mjs <<'EOF'
           import { chromium } from 'playwright';
-          const url='https://kimshop-git-perf-egress-test-20260915-dungk8888-6492.vercel.app/?_vercel_share=eQEW7PwdTqmGk0eB9PczWgZJdlIyLPi1';
           const browser=await chromium.launch({headless:true});
-          const page=await browser.newPage();
-          page.on('console',m=>console.log('CONSOLE',m.type(),m.text()));
-          page.on('pageerror',e=>console.log('PAGEERROR',e.message));
-          page.on('requestfailed',r=>{ if(r.url().includes('supabase.co')) console.log('SUPABASE_FAIL',r.failure()?.errorText,r.url()); });
+          const page=await browser.newPage({viewport:{width:1280,height:900}});
+          const sb=[];
+          const errors=[];
+          page.on('console',m=>{ if(m.type()==='error') errors.push('console:'+m.text()); });
+          page.on('pageerror',e=>errors.push('page:'+e.message));
+          page.on('requestfailed',r=>{ if(r.url().includes('supabase.co')) errors.push('request:'+r.failure()?.errorText+':'+r.url()); });
           page.on('response',async r=>{
-            if(r.url().includes('supabase.co')){
-              let len=''; try{len=(await r.body()).length}catch{}
-              console.log('SUPABASE',r.status(),len,r.request().method(),r.url());
-            }
+            if(!r.url().includes('supabase.co')) return;
+            let bytes=0; try{ bytes=(await r.body()).length; }catch{}
+            sb.push({status:r.status(),bytes,method:r.request().method(),url:r.url()});
           });
-          await page.goto(url,{waitUntil:'domcontentloaded',timeout:120000});
-          await page.waitForTimeout(12000);
-          console.log('TITLE',await page.title());
-          console.log('BODY', (await page.locator('body').innerText()).slice(0,3000));
-          await page.screenshot({path:'preview-diag.png',fullPage:true});
+          await page.goto('http://127.0.0.1:4173/',{waitUntil:'domcontentloaded',timeout:120000});
+          await page.waitForTimeout(14000);
+          const body=await page.locator('body').innerText();
+          const cards=await page.locator('[data-reveal-verify]').count();
+          const empty=body.includes('Không tìm thấy sản phẩm phù hợp');
+          const heading=(body.match(/GỢI Ý HÔM NAY\s*\([^\n)]*\)/)||[])[0]||'';
+          const totalBytes=sb.reduce((n,x)=>n+x.bytes,0);
+          console.log('SMOKE_HEADING',heading);
+          console.log('SMOKE_CARDS',cards);
+          console.log('SMOKE_EMPTY',empty);
+          console.log('SUPABASE_REQUESTS',sb.length);
+          console.log('SUPABASE_BYTES',totalBytes);
+          for(const x of sb) console.log('SUPABASE',x.status,x.bytes,x.method,x.url.replace(/apikey=[^&]+/g,'apikey=REDACTED'));
+          for(const e of errors) console.log('ERROR',e);
+          await page.screenshot({path:'/tmp/storefront-smoke.png',fullPage:true});
           await browser.close();
+          if(empty || cards===0 || !heading) process.exit(2);
           EOF
-          node diag.mjs | tee preview-diag.txt
+          node /tmp/storefront-smoke.mjs | tee /tmp/storefront-smoke.txt
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: preview-runtime-diag
           path: |
-            /tmp/diagpkg/preview-diag.txt
-            /tmp/diagpkg/preview-diag.png
+            /tmp/storefront-smoke.txt
+            /tmp/storefront-smoke.png
+            /tmp/kimshop-vite.log
