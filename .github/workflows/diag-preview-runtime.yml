@@ -35,7 +35,7 @@ jobs:
           import { chromium } from 'playwright';
           const browser=await chromium.launch({headless:true});
           const page=await browser.newPage({viewport:{width:1280,height:900}});
-          const sb=[];
+          let sb=[];
           const errors=[];
           page.on('console',m=>{ if(m.type()==='error') errors.push('console:'+m.text()); });
           page.on('pageerror',e=>errors.push('page:'+e.message));
@@ -45,23 +45,53 @@ jobs:
             let bytes=0; try{ bytes=(await r.body()).length; }catch{}
             sb.push({status:r.status(),bytes,method:r.request().method(),url:r.url()});
           });
+          async function inspect(label){
+            await page.waitForTimeout(12000);
+            const body=await page.locator('body').innerText();
+            const cards=await page.locator('[data-reveal-verify]').count();
+            const empty=body.includes('Không tìm thấy sản phẩm phù hợp');
+            const heading=(body.match(/GỢI Ý HÔM NAY\s*\([^\n)]*\)/)||[])[0]||'';
+            const totalBytes=sb.reduce((n,x)=>n+x.bytes,0);
+            console.log(label+'_HEADING',heading);
+            console.log(label+'_CARDS',cards);
+            console.log(label+'_EMPTY',empty);
+            console.log(label+'_SUPABASE_REQUESTS',sb.length);
+            console.log(label+'_SUPABASE_BYTES',totalBytes);
+            for(const x of sb) console.log(label+'_SUPABASE',x.status,x.bytes,x.method,x.url.replace(/apikey=[^&]+/g,'apikey=REDACTED'));
+            if(empty || cards===0 || !heading) throw new Error(label+' storefront empty');
+          }
+
           await page.goto('http://127.0.0.1:4173/',{waitUntil:'domcontentloaded',timeout:120000});
-          await page.waitForTimeout(14000);
-          const body=await page.locator('body').innerText();
-          const cards=await page.locator('[data-reveal-verify]').count();
-          const empty=body.includes('Không tìm thấy sản phẩm phù hợp');
-          const heading=(body.match(/GỢI Ý HÔM NAY\s*\([^\n)]*\)/)||[])[0]||'';
-          const totalBytes=sb.reduce((n,x)=>n+x.bytes,0);
-          console.log('SMOKE_HEADING',heading);
-          console.log('SMOKE_CARDS',cards);
-          console.log('SMOKE_EMPTY',empty);
-          console.log('SUPABASE_REQUESTS',sb.length);
-          console.log('SUPABASE_BYTES',totalBytes);
-          for(const x of sb) console.log('SUPABASE',x.status,x.bytes,x.method,x.url.replace(/apikey=[^&]+/g,'apikey=REDACTED'));
+          await inspect('FRESH');
+          await page.screenshot({path:'/tmp/storefront-fresh.png',fullPage:true});
+
+          // Reproduce the browser state that previously showed GỢI Ý HÔM NAY (0):
+          // both legacy and current keys contain an empty cached product array.
+          await page.evaluate(async()=>{
+            const db=await new Promise((resolve,reject)=>{
+              const req=indexedDB.open('kimshop_local_v1',1);
+              req.onupgradeneeded=()=>{ if(!req.result.objectStoreNames.contains('storefront')) req.result.createObjectStore('storefront'); };
+              req.onsuccess=()=>resolve(req.result); req.onerror=()=>reject(req.error);
+            });
+            await new Promise((resolve,reject)=>{
+              const tx=db.transaction('storefront','readwrite');
+              const st=tx.objectStore('storefront');
+              const empty={savedAt:Date.now(),products:[],total:0,hasMore:false};
+              st.put(empty,'default-home');
+              st.put(empty,'default-home-v6');
+              st.put(empty,'query:all::popular');
+              st.put(empty,'query:v6:all::popular');
+              tx.oncomplete=()=>resolve(); tx.onerror=()=>reject(tx.error);
+            });
+            db.close();
+          });
+          sb=[];
+          await page.reload({waitUntil:'domcontentloaded',timeout:120000});
+          await inspect('EMPTY_CACHE_RECOVERY');
+          await page.screenshot({path:'/tmp/storefront-empty-cache-recovery.png',fullPage:true});
+
           for(const e of errors) console.log('ERROR',e);
-          await page.screenshot({path:'/tmp/storefront-smoke.png',fullPage:true});
           await browser.close();
-          if(empty || cards===0 || !heading) process.exit(2);
           EOF
           node /tmp/storefront-smoke.mjs | tee /tmp/storefront-smoke.txt
       - uses: actions/upload-artifact@v4
@@ -70,5 +100,6 @@ jobs:
           name: preview-runtime-diag
           path: |
             /tmp/storefront-smoke.txt
-            /tmp/storefront-smoke.png
+            /tmp/storefront-fresh.png
+            /tmp/storefront-empty-cache-recovery.png
             /tmp/kimshop-vite.log
