@@ -1,13 +1,22 @@
 import { createClient } from '@supabase/supabase-js';
 
-export const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
-export const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
+// Preview/test branch fallback only: Vite replaces import.meta.env values at build time.
+// The Vercel Preview environment may not have the two VITE_* variables configured,
+// which previously made this module throw before React mounted and left a completely
+// blank page. These are the OLD project's public URL + publishable/anon key (not a
+// service-role secret), so they are safe to use in browser code. Production can still
+// override them through the normal VITE_* environment variables.
+const TEST_FALLBACK_SUPABASE_URL = 'https://ygqqtudavuugrvpkhvdp.supabase.co';
+const TEST_FALLBACK_SUPABASE_ANON_KEY = 'sb_publishable_8B6gKD7mNeh8Ny8DtPXdrQ_trIgA2Rb';
+
+export const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || TEST_FALLBACK_SUPABASE_URL;
+export const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY || TEST_FALLBACK_SUPABASE_ANON_KEY;
 
 if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
-  throw new Error('Thiếu VITE_SUPABASE_URL hoặc VITE_SUPABASE_ANON_KEY trên Vercel.');
+  throw new Error('Thiếu cấu hình Supabase.');
 }
 
-// Chỉ dùng Anon Key ở frontend. TUYỆT ĐỐI không đặt Service Role Key ở đây.
+// Chỉ dùng Anon/Publishable Key ở frontend. TUYỆT ĐỐI không đặt Service Role Key ở đây.
 export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
   auth: {
     // Lưu session vào localStorage để F5/đóng-mở lại tab không bị đăng xuất.
