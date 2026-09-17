@@ -27,13 +27,13 @@ jobs:
       - name: Run local storefront egress test
         shell: bash
         run: |
-          set -o pipefail
+          set -euo pipefail
           (npm run preview -- --host 127.0.0.1 --port 4173 > /tmp/kimshop-vite.log 2>&1 & echo $! > /tmp/kimshop-vite.pid)
           for i in $(seq 1 40); do
             if curl -fsS http://127.0.0.1:4173/ >/dev/null; then break; fi
             sleep 1
           done
-          cat > /tmp/storefront-smoke.mjs <<'EOF'
+          cat > ./storefront-smoke.mjs <<'EOF'
           import { chromium } from 'playwright';
           import fs from 'node:fs';
 
@@ -166,7 +166,8 @@ jobs:
           }
           if (failed) process.exitCode = 1;
           EOF
-          node /tmp/storefront-smoke.mjs 2>&1 | tee /tmp/storefront-smoke.txt
+          node ./storefront-smoke.mjs 2>&1 | tee /tmp/storefront-smoke.txt
+          rm -f ./storefront-smoke.mjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:
