@@ -1,7 +1,6 @@
 import React, { Suspense, lazy, useEffect, useState } from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
-import { SUPABASE_ANON_KEY, SUPABASE_URL } from './supabaseClient';
 import './styles.css';
 
 // [FIX] Trước đây không có Error Boundary nào bao ngoài <App />: BẤT KỲ lỗi
@@ -91,49 +90,3 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
     </AppErrorBoundary>
   </React.StrictMode>
 );
-
-// TEST BRANCH DIAGNOSTIC ONLY.
-// Nếu storefront vẫn rỗng trên đúng trình duyệt thật của người dùng, kiểm tra
-// trực tiếp REST bằng publishable key (không dùng session hiện tại của app) và
-// hiện kết quả ngay trên màn hình. Không ghi/xoá dữ liệu.
-window.setTimeout(async () => {
-  try {
-    const bodyText = document.body?.innerText || '';
-    const cardCount = document.querySelectorAll('[data-reveal-verify]').length;
-    const looksEmpty = /GỢI Ý HÔM NAY\s*\(0\)/i.test(bodyText) ||
-      bodyText.includes('Không tìm thấy sản phẩm phù hợp') || cardCount === 0;
-    if (!looksEmpty) return;
-
-    let diag = '';
-    try {
-      const endpoint = `${SUPABASE_URL.replace(/\/$/, '')}/rest/v1/products?select=id,status&status=neq.deleted&limit=6`;
-      const r = await fetch(endpoint, {
-        headers: {
-          apikey: SUPABASE_ANON_KEY,
-          Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
-          Accept: 'application/json',
-        },
-      });
-      const raw = await r.text();
-      let rows = -1;
-      try {
-        const parsed = JSON.parse(raw);
-        rows = Array.isArray(parsed) ? parsed.length : -1;
-      } catch {}
-      diag = `DB trực tiếp: HTTP ${r.status} / ${rows >= 0 ? rows + ' SP' : 'không đọc được JSON'}`;
-    } catch (e: any) {
-      diag = `DB trực tiếp: LỖI ${String(e?.message || e)}`;
-    }
-
-    const existing = document.getElementById('kimshop-preview-diag');
-    if (existing) existing.remove();
-    const el = document.createElement('div');
-    el.id = 'kimshop-preview-diag';
-    el.style.cssText = 'position:fixed;left:8px;right:8px;bottom:8px;z-index:2147483647;background:#111827;color:#fff;padding:10px 12px;border-radius:10px;font:600 12px/1.45 system-ui;box-shadow:0 8px 30px rgba(0,0,0,.28);';
-    const projectRef = (() => { try { return new URL(SUPABASE_URL).hostname.split('.')[0]; } catch { return 'unknown'; } })();
-    el.textContent = `TEST V7 • UI cards: ${cardCount} • ${diag} • project: ${projectRef} • online: ${navigator.onLine ? 'yes' : 'no'}`;
-    document.body.appendChild(el);
-  } catch (e) {
-    console.error('KIMSHOP preview diagnostic failed', e);
-  }
-}, 8000);
