@@ -10,7 +10,15 @@ if (!s.includes('directProductImage')) {
   const pos=(last.index??0)+last[0].length;
   s=s.slice(0,pos)+`
 
-const directProductImage = (src:any, _width?:number) => String(src || '');
+const directProductImage = (src:any, _width?:number) => {
+  const value = String(src || '');
+  if (!value) return value;
+  if (value.includes('.supabase.co/storage/v1/object/public/product-images/')) {
+    const sep = value.includes('?') ? '&' : '?';
+    return value + sep + 'v=20260918-2';
+  }
+  return value;
+};
 `+s.slice(pos);
 }
 
