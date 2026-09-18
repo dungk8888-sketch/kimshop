@@ -1,0 +1,50 @@
+name: run-image-migration-once
+
+on:
+  push:
+    branches:
+      - perf-egress-test-20260915
+    paths:
+      - '.github/workflows/run-image-migration-once.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  migrate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Wait for temporary DB authorization
+        run: sleep 60
+
+      - name: Migrate base64 images in small batches
+        shell: bash
+        env:
+          SUPABASE_URL: https://ygqqtudavuugrvpkhvdp.supabase.co
+          SUPABASE_ANON_JWT: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlncXF0dWRhdnV1Z3J2cGtodmRwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgxNjYyODYsImV4cCI6MjEwMzc0MjI4Nn0.orqPP_2qeNOwgTTuo_sqo7O_3iYXirV0yafsqYFPTJ0
+        run: |
+          set -euo pipefail
+          TOKEN="kimshop-migration-${GITHUB_SHA}"
+          for i in $(seq 1 40); do
+            BODY=$(curl -fsS               -X POST "$SUPABASE_URL/functions/v1/migration-runner-v3-temp"               -H "Authorization: Bearer $SUPABASE_ANON_JWT"               -H "apikey: $SUPABASE_ANON_JWT"               -H "x-migration-token: $TOKEN"               -H "content-type: application/json"               --data '{"limit":5}')
+            echo "$BODY" | jq '{ok,migrated:(.migrated|length),failures:(.failures|length),remaining}'
+            FAIL=$(echo "$BODY" | jq '(.failures // []) | length')
+            LEFT=$(echo "$BODY" | jq '[.remaining[] // 0] | add // 0')
+            MIG=$(echo "$BODY" | jq '(.migrated // []) | length')
+            if [ "$FAIL" -gt 0 ]; then
+              echo "Migration failure"
+              exit 1
+            fi
+            if [ "$LEFT" -eq 0 ]; then
+              echo "Migration complete"
+              exit 0
+            fi
+            if [ "$MIG" -eq 0 ]; then
+              echo "Migration stalled"
+              exit 1
+            fi
+            sleep 1
+          done
+          echo "Exceeded max batches"
+          exit 1
