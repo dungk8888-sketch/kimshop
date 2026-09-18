@@ -23,6 +23,17 @@ export default function handler(req, res) {
     }
   }
 
+  const imageErrors = Array.isArray(b.imageErrors)
+    ? b.imageErrors.slice(0, 20).map((x) => {
+        try {
+          const u = new URL(String(x || ''));
+          return (u.hostname + u.pathname).slice(0, 300);
+        } catch {
+          return String(x || '').split('?')[0].slice(0, 300);
+        }
+      }).filter(Boolean)
+    : [];
+
   const metric = {
     tag: 'KIMSHOP_TEST_METRIC',
     session: String(b.session || '').slice(0, 64),
@@ -39,6 +50,7 @@ export default function handler(req, res) {
       fcpMs: Math.round(Number(b.nav?.fcpMs) || 0),
     },
     routes: cleanRouteStats,
+    imageErrors,
     at: new Date().toISOString(),
   };
 
