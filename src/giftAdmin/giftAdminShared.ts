@@ -279,7 +279,7 @@ export const GIFT_ADMIN_STYLES = `
 @keyframes gaFadeIn{0%{opacity:0}100%{opacity:1}}
 .ga-sheet-in{animation:gaSheetIn .28s cubic-bezier(.22,1,.36,1) both}
 .ga-fade-in{animation:gaFadeIn .2s ease-out both}
-.ga-code-input{letter-spacing:.14em}
+.ga-code-input{letter-spacing:.14em}\n.ga-input{width:100%;border:1px solid #cbd5e1;border-radius:.75rem;padding:.65rem .75rem;font-size:.8125rem;color:#1e293b;background:#fff;outline:none}.ga-input:focus{border-color:#EE4D2D;box-shadow:0 0 0 2px rgba(238,77,45,.12)}
 .ga-scroll{-webkit-overflow-scrolling:touch}
 @media (prefers-reduced-motion:reduce){.ga-sheet-in,.ga-fade-in{animation:none!important}}
 `;
