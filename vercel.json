@@ -1,7 +1,14 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "images": {
-    "sizes": [320, 400, 480, 640, 960, 1280],
+    "sizes": [
+      320,
+      400,
+      480,
+      640,
+      960,
+      1280
+    ],
     "remotePatterns": [
       {
         "protocol": "https",
@@ -10,7 +17,25 @@
       }
     ],
     "minimumCacheTTL": 86400,
-    "qualities": [65, 75, 85],
-    "formats": ["image/webp"]
-  }
+    "qualities": [
+      65,
+      75,
+      85
+    ],
+    "formats": [
+      "image/webp"
+    ]
+  },
+  "redirects": [
+    {
+      "source": "/mo-qua",
+      "destination": "/?campaign=hop-chan-sac",
+      "permanent": false
+    },
+    {
+      "source": "/mo-qua/",
+      "destination": "/?campaign=hop-chan-sac",
+      "permanent": false
+    }
+  ]
 }
