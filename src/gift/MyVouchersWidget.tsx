@@ -120,7 +120,7 @@ export default function MyVouchersWidget() {
       <button
         onClick={openModal}
         aria-label="Voucher của tôi"
-        className="fixed z-[70] right-3.5 bottom-24 sm:bottom-8 w-12 h-12 rounded-full bg-[#EE4D2D] text-white shadow-lg shadow-orange-300/50 flex items-center justify-center hover:bg-[#f63] transition-colors"
+        className="fixed z-[70] right-3.5 bottom-24 w-12 h-12 rounded-full bg-[#EE4D2D] text-white shadow-lg shadow-orange-300/50 flex items-center justify-center hover:bg-[#f63] transition-colors"
       >
         <Gift size={21} />
       </button>
