@@ -317,8 +317,8 @@ export default function GiftVoucherCampaign({ slug, onClose }: { slug: string; o
   );
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-[2px] gift-anim-overlay p-0 sm:p-4">
-      <div className="relative w-full sm:max-w-md bg-gradient-to-b from-[#fff7f2] to-white rounded-t-3xl sm:rounded-3xl overflow-hidden shadow-2xl max-h-[92vh] overflow-y-auto">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-[2px] gift-anim-overlay p-4">
+      <div className="relative w-full max-w-md bg-gradient-to-b from-[#fff7f2] to-white rounded-3xl overflow-hidden shadow-2xl max-h-[88vh] overflow-y-auto">
         <button onClick={onClose} aria-label="Đóng" className="absolute right-3 top-3 z-10 w-9 h-9 rounded-full bg-white/90 shadow flex items-center justify-center text-gray-500 hover:text-gray-800">
           <X size={18} />
         </button>
