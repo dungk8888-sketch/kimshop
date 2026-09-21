@@ -1,5 +1,4 @@
 import React, { Suspense, useEffect, useState } from 'react';
-import { ShieldCheck } from 'lucide-react';
 import {
   GIFT_ADMIN_HASH,
   GIFT_ADMIN_OPEN_EVENT,
@@ -33,15 +32,11 @@ class GiftAdminErrorBoundary extends React.Component<{ children: React.ReactNode
 
 export default function GiftAdminRoot() {
   const [open, setOpen] = useState(false);
-  const [showLauncher, setShowLauncher] = useState(false);
 
   useEffect(() => {
     try {
       if (adminDeepLinkRequested()) {
         setOpen(true);
-        setShowLauncher(true);
-      } else if (readAdminHint() && hasStoredSupabaseSession()) {
-        setShowLauncher(true);
       }
     } catch (e) {
       console.error('[gift-admin] không đọc được trạng thái mở màn quản trị', e);
@@ -70,21 +65,11 @@ export default function GiftAdminRoot() {
     } catch {}
   };
 
-  if (!showLauncher && !open) return null;
+  if (!open) return null;
 
   return (
     <>
       <style>{GIFT_ADMIN_STYLES}</style>
-      {showLauncher && !open && (
-        <button
-          onClick={() => setOpen(true)}
-          aria-label="Mở quản trị hộp quà"
-          title="Quản trị hộp quà"
-          className="fixed right-3.5 bottom-[12.25rem] z-[70] flex h-12 w-12 items-center justify-center rounded-full bg-slate-900 text-white shadow-lg shadow-slate-400/40 transition-colors hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-400"
-        >
-          <ShieldCheck size={20} />
-        </button>
-      )}
       {open && (
         <GiftAdminErrorBoundary onError={close}>
           <Suspense
