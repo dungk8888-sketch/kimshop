@@ -80,7 +80,7 @@ export default function GiftAdminRoot() {
           onClick={() => setOpen(true)}
           aria-label="Mở quản trị hộp quà"
           title="Quản trị hộp quà"
-          className="fixed right-3.5 bottom-[9.5rem] z-[70] flex h-12 w-12 items-center justify-center rounded-full bg-slate-900 text-white shadow-lg shadow-slate-400/40 transition-colors hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-400 sm:bottom-[5.5rem]"
+          className="fixed right-3.5 bottom-[9.5rem] z-[70] flex h-12 w-12 items-center justify-center rounded-full bg-slate-900 text-white shadow-lg shadow-slate-400/40 transition-colors hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-400"
         >
           <ShieldCheck size={20} />
         </button>
