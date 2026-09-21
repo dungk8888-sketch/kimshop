@@ -4,8 +4,6 @@ import {
   GIFT_ADMIN_OPEN_EVENT,
   GIFT_ADMIN_STYLES,
   adminDeepLinkRequested,
-  hasStoredSupabaseSession,
-  readAdminHint,
 } from './giftAdminShared';
 
 const GiftAdminConsole = React.lazy(() => import('./GiftAdminConsole'));
