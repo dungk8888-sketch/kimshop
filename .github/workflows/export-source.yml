@@ -14,3 +14,4 @@ jobs:
           path: .
           retention-days: 1
 # export trigger: current preview snapshot 2026-09-06
+# claude2 export trigger 2026-09-21
