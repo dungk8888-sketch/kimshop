@@ -364,7 +364,20 @@ export default function GiftVoucherCampaign({ slug, onClose }: { slug: string; o
                 <div className="gift-premium-sheen" />
                 <div className={`gift-box-wrap ${boxWrapAnimClass}`}>
                   <div className="gift-premium-halo" />
-                  <div className="gift-orbit gift-orbit-back" />
+                  <svg className="gift-orbit gift-orbit-back" viewBox="0 0 360 140" aria-hidden="true">
+                    <defs>
+                      <linearGradient id="giftRibbonGoldBack" x1="0%" y1="0%" x2="100%" y2="0%">
+                        <stop offset="0%" stopColor="#F8A918" stopOpacity="0" />
+                        <stop offset="16%" stopColor="#F8B62A" stopOpacity=".68" />
+                        <stop offset="48%" stopColor="#FFE69A" stopOpacity=".92" />
+                        <stop offset="78%" stopColor="#F7A81C" stopOpacity=".64" />
+                        <stop offset="100%" stopColor="#F7A81C" stopOpacity="0" />
+                      </linearGradient>
+                    </defs>
+                    <path className="gift-orbit-shadow" d="M14 91 C86 26 242 8 347 70" />
+                    <path className="gift-orbit-ribbon" d="M14 91 C86 26 242 8 347 70" stroke="url(#giftRibbonGoldBack)" />
+                    <path className="gift-orbit-shine" d="M28 84 C103 33 236 20 332 66" />
+                  </svg>
                   <div className="gift-box-shadow" />
 
                   <div className={`gift-box-burst-wrap ${boxStage === 'burst' ? 'is-active' : ''}`}>
@@ -397,7 +410,20 @@ export default function GiftVoucherCampaign({ slug, onClose }: { slug: string; o
                     <div className="gift-box-base-highlight" />
                   </div>
 
-                  <div className="gift-orbit gift-orbit-front" />
+                  <svg className="gift-orbit gift-orbit-front" viewBox="0 0 360 140" aria-hidden="true">
+                    <defs>
+                      <linearGradient id="giftRibbonGoldFront" x1="0%" y1="0%" x2="100%" y2="0%">
+                        <stop offset="0%" stopColor="#FFB025" stopOpacity="0" />
+                        <stop offset="18%" stopColor="#FFB52A" stopOpacity=".82" />
+                        <stop offset="50%" stopColor="#FFF0B8" stopOpacity=".98" />
+                        <stop offset="78%" stopColor="#F59A0A" stopOpacity=".88" />
+                        <stop offset="100%" stopColor="#F59A0A" stopOpacity="0" />
+                      </linearGradient>
+                    </defs>
+                    <path className="gift-orbit-shadow" d="M15 65 C104 137 258 148 348 67" />
+                    <path className="gift-orbit-ribbon" d="M15 65 C104 137 258 148 348 67" stroke="url(#giftRibbonGoldFront)" />
+                    <path className="gift-orbit-shine" d="M31 70 C116 127 251 135 333 69" />
+                  </svg>
                   <div className="gift-promo-card gift-promo-percent">%</div>
                   <div className="gift-promo-card gift-promo-fs">FS</div>
 
