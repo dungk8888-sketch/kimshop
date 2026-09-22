@@ -424,6 +424,27 @@ export default function GiftVoucherCampaign({ slug, onClose }: { slug: string; o
                         <stop offset="0%" stopColor="#C9E3FF" stopOpacity=".92" />
                         <stop offset="100%" stopColor="#5F96EF" stopOpacity=".16" />
                       </linearGradient>
+                      <linearGradient id="giftEdgeSpecular" x1="0%" y1="0%" x2="100%" y2="0%">
+                        <stop offset="0%" stopColor="#FFFFFF" stopOpacity=".15" />
+                        <stop offset="25%" stopColor="#FFFFFF" stopOpacity=".72" />
+                        <stop offset="55%" stopColor="#FFFFFF" stopOpacity=".22" />
+                        <stop offset="100%" stopColor="#FFFFFF" stopOpacity="0" />
+                      </linearGradient>
+                      <linearGradient id="giftEdgeDark" x1="0%" y1="0%" x2="100%" y2="0%">
+                        <stop offset="0%" stopColor="#061B54" stopOpacity="0" />
+                        <stop offset="55%" stopColor="#061B54" stopOpacity=".12" />
+                        <stop offset="100%" stopColor="#061B54" stopOpacity=".42" />
+                      </linearGradient>
+                      <linearGradient id="giftGoldSpecular" x1="0%" y1="0%" x2="100%" y2="0%">
+                        <stop offset="0%" stopColor="#FFF8D2" stopOpacity="0" />
+                        <stop offset="45%" stopColor="#FFF8D2" stopOpacity=".78" />
+                        <stop offset="62%" stopColor="#FFFFFF" stopOpacity=".96" />
+                        <stop offset="100%" stopColor="#FFF8D2" stopOpacity="0" />
+                      </linearGradient>
+                      <filter id="giftMaterialDepth" x="-40%" y="-40%" width="180%" height="200%">
+                        <feDropShadow dx="0" dy="2" stdDeviation="1.4" floodColor="#0A1B4D" floodOpacity=".28" />
+                        <feDropShadow dx="0" dy="9" stdDeviation="7" floodColor="#08163D" floodOpacity=".18" />
+                      </filter>
                       <linearGradient id="giftBlueCenter" x1="0%" y1="0%" x2="100%" y2="0%">
                         <stop offset="0%" stopColor="#1746A3" />
                         <stop offset="18%" stopColor="#4F87E7" />
@@ -515,11 +536,16 @@ export default function GiftVoucherCampaign({ slug, onClose }: { slug: string; o
                         <rect x="160" y="156" width="104" height="80" fill="#215ACB" opacity=".08" />
                         <path d="M264 156 H292 Q300 156 300 164 V228 Q300 236 292 236 H264 Z" fill="#0B2C77" opacity=".18" />
                         <rect x="124" y="156" width="176" height="80" rx="8" fill="url(#giftBlueGloss)" opacity=".76" />
+                        <path className="gift-svg-body-edge-light" d="M133 157 H291 Q298 157 299 165" fill="none" stroke="url(#giftEdgeSpecular)" strokeWidth="2.4" strokeLinecap="round" />
+                        <path className="gift-svg-body-edge-dark" d="M299 166 V226 Q299 235 290 235 H134" fill="none" stroke="url(#giftEdgeDark)" strokeWidth="2.2" strokeLinecap="round" />
+                        <path className="gift-svg-body-contact" d="M140 235 H284" fill="none" stroke="#07173E" strokeOpacity=".22" strokeWidth="3.2" strokeLinecap="round" />
 
                         <rect x="158" y="156" width="18" height="80" rx="4" fill="url(#giftGold)" />
                         <rect x="248" y="156" width="18" height="80" rx="4" fill="url(#giftGold)" />
                         <rect x="163" y="159" width="5" height="74" rx="2.5" fill="#FFF4B7" opacity=".56" />
                         <rect x="253" y="159" width="5" height="74" rx="2.5" fill="#FFF4B7" opacity=".48" />
+                        <rect className="gift-svg-gold-spec" x="166" y="156" width="8" height="80" rx="4" fill="url(#giftGoldSpecular)" opacity=".52" />
+                        <rect className="gift-svg-gold-spec" x="256" y="156" width="8" height="80" rx="4" fill="url(#giftGoldSpecular)" opacity=".45" />
 
                         <path className="gift-svg-body-shine" d="M134 165 V226" fill="none" stroke="#F1F7FF" strokeWidth="2.1" strokeLinecap="round" opacity=".28" />
                         <path className="gift-svg-body-shine" d="M290 165 V226" fill="none" stroke="#82AEFF" strokeWidth="1.2" strokeLinecap="round" opacity=".12" />
@@ -546,11 +572,16 @@ export default function GiftVoucherCampaign({ slug, onClose }: { slug: string; o
                         <path d="M116 132 H308 V151 Q308 158 301 158 H123 Q116 158 116 151 Z" fill="#0D3D9D" opacity=".11" />
                         <path d="M286 120 H300 Q308 120 308 128 V150 Q308 158 300 158 H286 Z" fill="#092B73" opacity=".18" />
                         <path d="M116 128 Q116 120 124 120 H140 V158 H124 Q116 158 116 150 Z" fill="#7DACF7" opacity=".15" />
+                        <path className="gift-svg-lid-edge-light" d="M124 121 H300 Q307 121 307 128" fill="none" stroke="url(#giftEdgeSpecular)" strokeWidth="2.5" strokeLinecap="round" />
+                        <path className="gift-svg-lid-edge-dark" d="M307 130 V149 Q307 157 299 157 H125" fill="none" stroke="url(#giftEdgeDark)" strokeWidth="2.2" strokeLinecap="round" />
+                        <path className="gift-svg-lid-contact" d="M128 157 H296" fill="none" stroke="#07173E" strokeOpacity=".20" strokeWidth="2.8" strokeLinecap="round" />
 
                         <rect x="153" y="120" width="21" height="38" rx="4" fill="url(#giftGold)" />
                         <rect x="250" y="120" width="21" height="38" rx="4" fill="url(#giftGold)" />
                         <rect x="159" y="123" width="6" height="32" rx="3" fill="#FFF5BF" opacity=".56" />
                         <rect x="256" y="123" width="6" height="32" rx="3" fill="#FFF5BF" opacity=".50" />
+                        <rect className="gift-svg-lid-gold-spec" x="156" y="120" width="8" height="38" rx="4" fill="url(#giftGoldSpecular)" opacity=".50" />
+                        <rect className="gift-svg-lid-gold-spec" x="253" y="120" width="8" height="38" rx="4" fill="url(#giftGoldSpecular)" opacity=".44" />
 
                         <path className="gift-svg-lid-shine" d="M128 125 H296" fill="none" stroke="#F3F9FF" strokeWidth="2" strokeLinecap="round" opacity=".32" />
 
