@@ -496,4 +496,31 @@ export const GIFT_FEATURE_STYLES = `
   .gift-float-piece-a{left:7%}.gift-float-piece-b{right:7%}
 }
 
+/* KIMSHOP_GIFT_PREMIUM_V4_DEPTH */
+@keyframes giftPromoFloatA{0%,100%{transform:translateY(0) rotate(-10deg)}50%{transform:translateY(-7px) rotate(-5deg)}}
+@keyframes giftPromoFloatB{0%,100%{transform:translateY(0) rotate(9deg)}50%{transform:translateY(-8px) rotate(4deg)}}
+.gift-box-wrap{width:242px!important;height:212px!important}
+.gift-box-3d{width:164px!important;height:160px!important;transform:translateY(8px) perspective(700px) rotateX(1deg)!important}
+.gift-box-body{width:142px!important;height:96px!important}
+.gift-box-lid{width:154px!important;height:49px!important}
+.gift-box-shadow{width:138px!important;opacity:.9}
+.gift-orbit-back{width:284px!important;opacity:.48!important}
+.gift-orbit-front{width:318px!important;opacity:.72!important}
+.gift-orbit-back::before{border-top-width:10px!important}
+.gift-orbit-front::before{border-bottom-width:12px!important}
+.gift-orbit-back::after{border-top-width:3px!important}
+.gift-orbit-front::after{border-bottom-width:4px!important}
+.gift-promo-card{position:absolute;z-index:16;display:flex;align-items:center;justify-content:center;width:42px;height:34px;border-radius:9px;font-weight:900;font-size:15px;color:#fff;box-shadow:0 8px 18px rgba(15,23,42,.16),inset 0 1px 1px rgba(255,255,255,.35);backdrop-filter:blur(2px)}
+.gift-promo-percent{left:8px;top:44px;background:linear-gradient(160deg,#ff6c3f,#ef3f25);animation:giftPromoFloatA 2.5s ease-in-out infinite}
+.gift-promo-fs{right:10px;top:50px;background:linear-gradient(160deg,#4c85ff,#245ee0);animation:giftPromoFloatB 2.7s ease-in-out infinite}
+.gift-promo-card::after{content:'';position:absolute;inset:3px;border-radius:7px;border:1px solid rgba(255,255,255,.18)}
+.gift-box-body::before{content:'';position:absolute;inset:0;background:linear-gradient(100deg,rgba(255,255,255,.20) 0%,rgba(255,255,255,.04) 32%,transparent 60%,rgba(0,0,0,.12) 100%);z-index:1;pointer-events:none}
+.gift-box-lid::before{content:'';position:absolute;left:10px;right:10px;top:-5px;height:10px;border-radius:13px 13px 5px 5px;background:linear-gradient(180deg,rgba(158,197,255,.95),rgba(86,136,232,.74));box-shadow:inset 0 1px 1px rgba(255,255,255,.55);z-index:-1}
+.gift-box-face-left{opacity:.92}
+.gift-box-face-right{opacity:.9}
+@media (max-width:640px){
+  .gift-promo-card{width:38px;height:31px;font-size:14px}
+  .gift-promo-percent{left:2px}.gift-promo-fs{right:3px}
+}
+
 `;
