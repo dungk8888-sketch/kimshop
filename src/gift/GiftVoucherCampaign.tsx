@@ -342,6 +342,11 @@ export default function GiftVoucherCampaign({ slug, onClose }: { slug: string; o
                 <span className="gift-deco gift-deco-4" />
                 <span className="gift-deco gift-deco-5" />
                 <span className="gift-deco gift-deco-6" />
+                <div className="gift-ribbon-swoosh gift-ribbon-swoosh-a" />
+                <div className="gift-ribbon-swoosh gift-ribbon-swoosh-b" />
+                <div className="gift-burst-star gift-burst-star-a">✦</div>
+                <div className="gift-burst-star gift-burst-star-b">✦</div>
+                <div className="gift-burst-star gift-burst-star-c">✧</div>
                 <div className="gift-stage-ring" />
                 <div className={`gift-box-wrap ${phase === 'opening' ? 'gift-anim-shake gift-box-open' : 'gift-anim-float'}`}>
                   <div className="gift-box-shadow" />
@@ -351,6 +356,8 @@ export default function GiftVoucherCampaign({ slug, onClose }: { slug: string; o
                       <div className="gift-box-ribbon-v" />
                     </div>
                     <div className="gift-box-body">
+                      <div className="gift-box-face gift-box-face-left" />
+                      <div className="gift-box-face gift-box-face-right" />
                       <div className="gift-box-gloss" />
                       <div className="gift-box-ribbon-v" />
                       <div className="gift-box-ribbon-h" />
