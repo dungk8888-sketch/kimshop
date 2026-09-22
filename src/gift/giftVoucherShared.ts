@@ -1703,4 +1703,49 @@ export const GIFT_FEATURE_STYLES = `
   .gift-box-wrap{width:min(348px,91vw)!important;height:232px!important}
 }
 
+
+/* KIMSHOP_GIFT_REAL_MATERIAL_PASS_20260922 */
+.gift-svg-body{
+  filter:
+    drop-shadow(0 2px 2px rgba(5,18,56,.30))
+    drop-shadow(0 10px 10px rgba(5,18,56,.17))
+    drop-shadow(0 18px 18px rgba(5,18,56,.11))!important;
+}
+.gift-svg-lid{
+  filter:
+    drop-shadow(0 2px 2px rgba(5,18,56,.26))
+    drop-shadow(0 8px 9px rgba(5,18,56,.16))!important;
+}
+.gift-svg-body-edge-light,.gift-svg-lid-edge-light{
+  opacity:.82;
+  filter:drop-shadow(0 0 2px rgba(255,255,255,.42));
+}
+.gift-svg-body-edge-dark,.gift-svg-lid-edge-dark{
+  opacity:.78;
+}
+.gift-svg-body-contact,.gift-svg-lid-contact{
+  filter:blur(.25px);
+}
+.gift-svg-gold-spec,.gift-svg-lid-gold-spec{
+  mix-blend-mode:screen;
+  filter:drop-shadow(0 0 3px rgba(255,231,150,.20));
+}
+.gift-svg-body-shine,.gift-svg-lid-shine{
+  opacity:.78!important;
+  filter:drop-shadow(0 0 3px rgba(255,255,255,.34))!important;
+}
+.gift-svg-stage{
+  filter:
+    drop-shadow(0 1px 1px rgba(129,78,0,.14))
+    drop-shadow(0 0 10px rgba(255,176,25,.23))!important;
+}
+.gift-svg-closed-glints{
+  filter:drop-shadow(0 0 5px rgba(255,255,255,.35));
+}
+.gift-svg-bow{
+  filter:
+    drop-shadow(0 3px 2px rgba(125,70,0,.16))
+    drop-shadow(0 6px 7px rgba(125,70,0,.10))!important;
+}
+
 `;
