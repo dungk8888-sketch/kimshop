@@ -13,11 +13,11 @@ if(!s.includes("AdminUserManagerEnhancer")){
 }
 
 if(!s.includes('<AdminUserManagerEnhancer />')){
-  const mountAnchor="      <GiftFeatureRoot />\n    </AppErrorBoundary>";
-  if(!s.includes(mountAnchor)) throw new Error('[admin-user-manager-integration] mount anchor missing');
+  const boundary="    </AppErrorBoundary>";
+  if(!s.includes(boundary)) throw new Error('[admin-user-manager-integration] boundary anchor missing');
   s=s.replace(
-    mountAnchor,
-    "      <GiftFeatureRoot />\n      <Suspense fallback={null}><AdminUserManagerEnhancer /></Suspense>\n    </AppErrorBoundary>"
+    boundary,
+    "      <Suspense fallback={null}><AdminUserManagerEnhancer /></Suspense>\n"+boundary
   );
 }
 
