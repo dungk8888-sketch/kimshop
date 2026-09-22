@@ -405,7 +405,7 @@ export default function GiftVoucherCampaign({ slug, onClose }: { slug: string; o
                   </div>
                   <p className="text-[11px] text-gray-400 mt-2">Hạn dùng: {formatVNDate(result.expires_at)}</p>
                 </div>
-                <p className="text-[12px] text-gray-500 mb-5">Gửi mã này cho KIMSHOP qua Facebook/Zalo để được áp dụng, hoặc xem lại bất cứ lúc nào ở mục "Voucher của tôi".</p>
+                <p className="text-[12px] text-gray-500 mb-5">Mã này dùng trực tiếp ở bước Thanh Toán khi mua hộp chân sạc thông dụng. Bạn cũng có thể xem lại bất cứ lúc nào ở mục "Voucher của tôi".</p>
                 <button onClick={onClose} className="w-full max-w-[220px] bg-[#EE4D2D] hover:bg-[#f63] text-white font-bold py-3 rounded-2xl">Tuyệt vời!</button>
               </div>
             </div>
