@@ -201,8 +201,8 @@ export const GIFT_FEATURE_STYLES = `
 .gift-coin{position:absolute;width:20px;height:20px;border-radius:9999px;background:linear-gradient(180deg,#FFE57A 0%,#F59E0B 100%);border:1px solid rgba(255,255,255,.55);box-shadow:0 7px 16px rgba(245,158,11,.38);animation:giftCoinFloat 1.35s ease-out infinite;z-index:7}
 .gift-coin::after{content:'₫';position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:900;color:#fff}
 .gift-hero{width:100%;min-height:182px}
-.gift-premium-rays{position:absolute;left:50%;top:45%;width:315px;height:228px;transform:translate(-50%,-50%);border-radius:50%;background:repeating-conic-gradient(from 0deg,rgba(255,255,255,.90) 0deg 6deg,rgba(255,190,54,.09) 6deg 17deg);mask-image:radial-gradient(circle,#000 0 34%,rgba(0,0,0,.72) 54%,transparent 77%);opacity:.78;filter:blur(.1px);pointer-events:none}
-.gift-premium-halo{position:absolute;left:50%;top:48%;width:210px;height:150px;transform:translate(-50%,-50%);border-radius:50%;background:radial-gradient(circle,#fff5b8 0%,rgba(255,196,61,.58) 32%,rgba(255,127,0,.14) 62%,transparent 78%);filter:blur(3px);pointer-events:none}
+.gift-premium-rays{position:absolute;left:50%;top:45%;width:305px;height:220px;transform:translate(-50%,-50%);border-radius:50%;background:repeating-conic-gradient(from 0deg,rgba(255,255,255,.72) 0deg 6deg,rgba(255,190,54,.07) 6deg 17deg);mask-image:radial-gradient(circle,#000 0 34%,rgba(0,0,0,.62) 54%,transparent 77%);opacity:.46;filter:blur(.1px);pointer-events:none}
+.gift-premium-halo{position:absolute;left:50%;top:48%;width:205px;height:145px;transform:translate(-50%,-50%);border-radius:50%;background:radial-gradient(circle,#fff7c9 0%,rgba(255,196,61,.42) 32%,rgba(255,127,0,.10) 62%,transparent 78%);filter:blur(4px);pointer-events:none}
 .gift-deco{position:absolute;z-index:4;width:10px;height:18px;border-radius:3px;box-shadow:0 6px 12px rgba(15,23,42,.10);animation:giftFloat 2.6s ease-in-out infinite}
 .gift-deco-1{left:20%;top:18%;background:#ff6b35;transform:rotate(-22deg);animation-delay:-.3s}
 .gift-deco-2{right:18%;top:20%;background:#3b82f6;transform:rotate(25deg);animation-delay:-.7s}
@@ -263,9 +263,8 @@ export const GIFT_FEATURE_STYLES = `
 @media (prefers-reduced-motion:reduce){
   .gift-anim-float,.gift-anim-glow,.gift-anim-shake,.gift-anim-pop,.gift-anim-fadeup,.gift-anim-overlay,.gift-confetti-piece,.gift-coin,.gift-box-open .gift-box-lid,.gift-box-open .gift-open-light,.gift-premium-cta::after{animation:none!important}
 }
-`;
 
-@keyframes giftSvgLidPop{0%,28%{transform:translateY(0) rotate(0deg)}48%{transform:translateY(-16px) rotate(-4deg)}68%{transform:translateY(-54px) rotate(8deg)}82%{transform:translateY(-44px) rotate(5deg)}100%{transform:translateY(-48px) rotate(6deg)}}
+@keyframes giftSvgLidPop{0%,24%{transform:translateY(0) rotate(0deg) scale(1)}46%{transform:translateY(-20px) rotate(-5deg) scale(1.02)}66%{transform:translateY(-72px) rotate(10deg) scale(1.08)}82%{transform:translateY(-61px) rotate(6deg) scale(1.06)}100%{transform:translateY(-66px) rotate(7deg) scale(1.07)}}
 @keyframes giftSvgGlowBurst{0%,32%{opacity:.18;transform:scale(.65)}60%{opacity:1;transform:scale(1.22)}100%{opacity:.74;transform:scale(1.04)}}
 @keyframes giftSvgCoinsPop{0%,30%{opacity:0;transform:translateY(0) scale(.7)}62%{opacity:1;transform:translateY(-22px) scale(1.12)}100%{opacity:.9;transform:translateY(-15px) scale(1)}}
 .gift-svg-3d{position:relative;z-index:6;width:210px;height:182px;overflow:visible;filter:drop-shadow(0 20px 28px rgba(20,55,130,.22))}
@@ -276,3 +275,4 @@ export const GIFT_FEATURE_STYLES = `
 .gift-box-open .gift-svg-glow{animation:giftSvgGlowBurst .9s ease-out forwards}
 .gift-box-open .gift-svg-coins{animation:giftSvgCoinsPop .9s ease-out forwards}
 @media (max-width:640px){.gift-svg-3d{width:188px;height:164px}}
+`;
