@@ -60,6 +60,7 @@ export default function GiftVoucherCampaign({ slug, onClose }: { slug: string; o
   const [result, setResult] = useState<OpenVoucherGiftResult | null>(null);
   const [already, setAlready] = useState<AlreadyVoucherView | null>(null);
   const [copied, setCopied] = useState(false);
+  const [boxStage, setBoxStage] = useState<'idle' | 'shake' | 'burst'>('idle');
   const pendingOpenRef = useRef(false);
   const openingRef = useRef(false);
   const authLockRef = useRef(false);
@@ -130,6 +131,15 @@ export default function GiftVoucherCampaign({ slug, onClose }: { slug: string; o
     const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => setIsLoggedIn(!!session?.user));
     return () => sub?.subscription?.unsubscribe();
   }, []);
+
+  useEffect(() => {
+    if (phase === 'opening') {
+      setBoxStage('shake');
+      const t = window.setTimeout(() => setBoxStage('burst'), 420);
+      return () => window.clearTimeout(t);
+    }
+    if (phase === 'teaser') setBoxStage('idle');
+  }, [phase]);
 
   const doOpenGiftInner = async () => {
     setPhase('opening');
@@ -316,6 +326,22 @@ export default function GiftVoucherCampaign({ slug, onClose }: { slug: string; o
     []
   );
 
+  const burstConfetti = useMemo(
+    () =>
+      Array.from({ length: 18 }).map((_, i) => ({
+        left: Math.round(10 + Math.random() * 80),
+        top: Math.round(18 + Math.random() * 42),
+        delay: Math.round(Math.random() * 240),
+        rotate: Math.round(Math.random() * 360),
+        dx: Math.round((Math.random() - 0.5) * 92),
+        color: CONFETTI_COLORS[i % CONFETTI_COLORS.length],
+      })),
+    []
+  );
+
+  const boxWrapAnimClass =
+    boxStage === 'shake' ? 'gift-anim-shake-once' : boxStage === 'burst' ? 'gift-anim-burst-settle' : 'gift-anim-float';
+
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-[2px] gift-anim-overlay p-4">
       <div className="gift-premium-card relative w-full max-w-md rounded-[30px] overflow-hidden shadow-2xl max-h-[92vh]">
@@ -333,134 +359,74 @@ export default function GiftVoucherCampaign({ slug, onClose }: { slug: string; o
 
           {(phase === 'teaser' || phase === 'opening') && campaign && (
             <>
-              <div className="gift-hero relative mb-3 flex flex-col items-center">
-                <div className="gift-premium-rays" />
-                <div className="gift-premium-halo gift-anim-glow" />
-                <span className="gift-deco gift-deco-1" />
-                <span className="gift-deco gift-deco-2" />
-                <span className="gift-deco gift-deco-3" />
-                <span className="gift-deco gift-deco-4" />
-                <span className="gift-deco gift-deco-5" />
-                <span className="gift-deco gift-deco-6" />
-                <div className="gift-ribbon-swoosh gift-ribbon-swoosh-a" />
-                <div className="gift-ribbon-swoosh gift-ribbon-swoosh-b" />
-                <div className="gift-burst-star gift-burst-star-a">✦</div>
-                <div className="gift-burst-star gift-burst-star-b">✦</div>
-                <div className="gift-burst-star gift-burst-star-c">✧</div>
-                <svg className="gift-silk-svg" viewBox="0 0 360 220" aria-hidden="true">
-                  <defs>
-                    <linearGradient id="silkGoldA" x1="0" y1="0" x2="1" y2="0">
-                      <stop offset="0%" stopColor="#F59E0B" stopOpacity=".08" />
-                      <stop offset="18%" stopColor="#FFD95A" stopOpacity=".85" />
-                      <stop offset="50%" stopColor="#FFF3A8" stopOpacity=".98" />
-                      <stop offset="78%" stopColor="#FFB31A" stopOpacity=".90" />
-                      <stop offset="100%" stopColor="#F97316" stopOpacity=".12" />
-                    </linearGradient>
-                    <linearGradient id="silkGoldB" x1="1" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="#FFF2A0" stopOpacity=".92" />
-                      <stop offset="42%" stopColor="#FFC83D" stopOpacity=".82" />
-                      <stop offset="100%" stopColor="#F59E0B" stopOpacity=".05" />
-                    </linearGradient>
-                    <filter id="silkGlow" x="-20%" y="-80%" width="140%" height="260%">
-                      <feGaussianBlur stdDeviation="2.2" result="blur"/>
-                      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
-                    </filter>
-                  </defs>
-                  <path className="gift-silk-path gift-silk-back" d="M18 132 C88 58 248 48 338 120" fill="none" stroke="url(#silkGoldB)" strokeWidth="12" strokeLinecap="round" filter="url(#silkGlow)"/>
-                  <path className="gift-silk-path gift-silk-front" d="M26 148 C112 207 266 205 336 130" fill="none" stroke="url(#silkGoldA)" strokeWidth="15" strokeLinecap="round" filter="url(#silkGlow)"/>
-                  <path className="gift-silk-highlight" d="M38 145 C120 192 256 190 326 132" fill="none" stroke="rgba(255,255,255,.62)" strokeWidth="2.5" strokeLinecap="round"/>
-                </svg>
-                <div className="gift-stage-ring" />
-                <div className={`gift-box-wrap ${phase === 'opening' ? 'gift-anim-shake gift-box-open' : 'gift-anim-float'}`}>
+              <div className="relative mb-6 flex flex-col items-center">
+                <div className="absolute inset-0 rounded-full bg-[#FFB020]/45 blur-3xl gift-anim-glow" />
+                <div className={`gift-box-wrap ${boxWrapAnimClass}`}>
                   <div className="gift-box-shadow" />
-                  <svg className="gift-svg-3d" viewBox="0 0 220 190" aria-label="Hộp quà KIMSHOP" role="img">
-                    <defs>
-                      <linearGradient id="giftBlueFront" x1="0" y1="0" x2="1" y2="1">
-                        <stop offset="0%" stopColor="#5D91FF" />
-                        <stop offset="38%" stopColor="#2F69EE" />
-                        <stop offset="100%" stopColor="#173A97" />
-                      </linearGradient>
-                      <linearGradient id="giftBlueSide" x1="0" y1="0" x2="1" y2="1">
-                        <stop offset="0%" stopColor="#2859CF" />
-                        <stop offset="100%" stopColor="#102B78" />
-                      </linearGradient>
-                      <linearGradient id="giftGold" x1="0" y1="0" x2="1" y2="0">
-                        <stop offset="0%" stopColor="#E99400" />
-                        <stop offset="28%" stopColor="#FFD85B" />
-                        <stop offset="52%" stopColor="#FFF0A0" />
-                        <stop offset="76%" stopColor="#FFC52C" />
-                        <stop offset="100%" stopColor="#DF8700" />
-                      </linearGradient>
-                      <radialGradient id="giftInsideGlow" cx="50%" cy="50%" r="50%">
-                        <stop offset="0%" stopColor="#FFFCE3" stopOpacity="1" />
-                        <stop offset="42%" stopColor="#FFD85A" stopOpacity=".9" />
-                        <stop offset="100%" stopColor="#FF9C1A" stopOpacity="0" />
-                      </radialGradient>
-                      <filter id="giftShadow" x="-40%" y="-40%" width="180%" height="200%">
-                        <feDropShadow dx="0" dy="14" stdDeviation="12" floodColor="#153B8F" floodOpacity=".30"/>
-                      </filter>
-                    </defs>
+                  <div className={`gift-box-burst-wrap ${boxStage === 'burst' ? 'is-active' : ''}`}>
+                    <div className="gift-box-burst-rays" />
+                    <div className="gift-box-burst-core" />
+                  </div>
+                  <div className="gift-box-3d">
+                    <div className="gift-box-ribbon-back" />
+                    <div className={`gift-box-lid ${boxStage === 'burst' ? 'gift-box-lid-pop' : ''}`}>
+                      <div className="gift-box-gloss" />
+                      <div className="gift-box-lid-edge" />
+                      <div className="gift-box-ribbon-v" />
+                      <div className="gift-box-bow"><div className="gift-box-knot" /></div>
+                    </div>
+                    <div className="gift-box-body">
+                      <div className="gift-box-gloss" />
+                      <div className="gift-box-body-edge" />
+                      <div className="gift-box-ribbon-v" />
+                      <div className="gift-box-ribbon-h" />
+                    </div>
+                    <div className="gift-box-base-highlight" />
+                  </div>
 
-                    <ellipse cx="110" cy="164" rx="63" ry="13" fill="rgba(27,63,145,.20)" />
+                  <Sparkles size={20} className="absolute top-1 right-4 text-yellow-300 gift-sparkle-a" />
+                  <Sparkles size={16} className="absolute left-5 top-9 text-yellow-200 gift-sparkle-b" />
+                  <Sparkles size={12} className="absolute right-6 bottom-9 text-orange-200 gift-sparkle-c" />
 
-                    <g className="gift-svg-glow">
-                      <ellipse cx="110" cy="95" rx="75" ry="66" fill="url(#giftInsideGlow)" />
-                    </g>
+                  <div className="gift-coin" style={{ left: '8px', top: '22px', animationDelay: '0ms' }} />
+                  <div className="gift-coin" style={{ right: '12px', top: '40px', animationDelay: '200ms' }} />
+                  <div className="gift-coin" style={{ left: '32px', bottom: '24px', animationDelay: '400ms' }} />
+                  <div className="gift-coin" style={{ right: '26px', bottom: '30px', animationDelay: '600ms' }} />
+                  <div className="gift-coin gift-coin-deep" style={{ left: '52%', top: '0px', animationDelay: '120ms' }} />
 
-                    <g filter="url(#giftShadow)">
-                      <g className="gift-svg-body">
-                        <path d="M54 80 L110 70 L166 80 L166 148 Q166 158 156 160 L64 160 Q54 158 54 148 Z" fill="url(#giftBlueFront)" />
-                        <path d="M54 80 L110 70 L110 160 L64 160 Q54 158 54 148 Z" fill="rgba(255,255,255,.08)" />
-                        <path d="M166 80 L110 70 L110 160 L156 160 Q166 158 166 148 Z" fill="url(#giftBlueSide)" opacity=".46" />
-                        <rect x="98" y="75" width="25" height="86" rx="4" fill="url(#giftGold)" />
-                        <rect x="54" y="104" width="112" height="24" rx="2" fill="url(#giftGold)" />
-                        <path d="M66 88 Q96 75 126 80" stroke="rgba(255,255,255,.28)" strokeWidth="8" strokeLinecap="round" fill="none" />
-                        <path d="M72 146 Q107 156 146 145" stroke="rgba(255,255,255,.10)" strokeWidth="7" strokeLinecap="round" fill="none" />
-                      </g>
-
-                      <g className="gift-svg-lid">
-                        <path d="M46 71 Q46 59 59 55 L110 45 L163 55 Q176 59 176 71 L172 86 L50 86 Z" fill="url(#giftBlueFront)" />
-                        <path d="M98 48 L123 48 L123 87 L98 87 Z" fill="url(#giftGold)" />
-                        <path d="M60 62 Q104 48 154 61" stroke="rgba(255,255,255,.32)" strokeWidth="8" strokeLinecap="round" fill="none" />
-                        <g className="gift-svg-bow">
-                          <path d="M108 49 C87 28 70 31 74 45 C77 56 94 57 108 50 Z" fill="url(#giftGold)" />
-                          <path d="M113 49 C134 28 151 31 147 45 C144 56 127 57 113 50 Z" fill="url(#giftGold)" />
-                          <circle cx="110" cy="49" r="9" fill="#FFC62E" />
-                          <circle cx="108" cy="46" r="3.5" fill="#FFF2A1" opacity=".8" />
-                        </g>
-                      </g>
-                    </g>
-
-                    <g className="gift-svg-coins">
-                      <circle cx="54" cy="69" r="8" fill="#FFC934" stroke="#FFF2A0" strokeWidth="2" />
-                      <circle cx="173" cy="67" r="7" fill="#FFB817" stroke="#FFF2A0" strokeWidth="2" />
-                      <circle cx="153" cy="39" r="5" fill="#FFD95A" />
-                    </g>
-                  </svg>
-                  <Sparkles size={20} className="absolute top-2 right-5 text-yellow-300" />
-                  <Sparkles size={16} className="absolute left-7 top-10 text-yellow-200" />
-                  <Sparkles size={12} className="absolute right-7 bottom-10 text-orange-200" />
-                  <Sparkles size={14} className="absolute left-3 bottom-14 text-yellow-300/90" />
-                  <Sparkles size={10} className="absolute right-2 top-16 text-amber-300/90" />
-                  <div className="gift-coin" style={{ left: '10px', top: '24px', animationDelay: '0ms' }} />
-                  <div className="gift-coin" style={{ right: '14px', top: '42px', animationDelay: '220ms' }} />
-                  <div className="gift-coin" style={{ left: '34px', bottom: '26px', animationDelay: '420ms' }} />
-                  <div className="gift-coin" style={{ right: '28px', bottom: '32px', animationDelay: '620ms' }} />
-                  <div className="gift-premium-ticket gift-premium-ticket-left">%</div>
-                  <div className="gift-premium-ticket gift-premium-ticket-right">FS</div>
-                  <div className="gift-open-light" />
+                  {boxStage === 'burst' &&
+                    burstConfetti.map((c, i) => (
+                      <span
+                        key={i}
+                        className="gift-confetti-piece gift-confetti-burst"
+                        style={{
+                          left: `${c.left}%`,
+                          top: `${c.top}%`,
+                          backgroundColor: c.color,
+                          animationDelay: `${c.delay}ms`,
+                          transform: `rotate(${c.rotate}deg)`,
+                          '--gx': `${c.dx}px`,
+                        } as React.CSSProperties}
+                      />
+                    ))}
                 </div>
               </div>
-              <div className="gift-premium-badges gift-anim-fadeup">
-                <span><b>Giảm đến 50.000đ</b></span>
-                <span><b>Freeship</b></span>
-              </div>
-              <h2 className="gift-premium-title text-[21px] leading-tight font-extrabold text-slate-800 mb-2 gift-anim-fadeup">{campaign.title}</h2>
-              {campaign.description && <p className="text-[13px] leading-relaxed text-slate-500 mb-5 max-w-[330px] gift-anim-fadeup">{campaign.description}</p>}
-              <button onClick={handleOpenClick} disabled={phase === 'opening'} className="gift-premium-cta w-full max-w-[310px] text-white font-extrabold py-4 rounded-[22px] transition-all disabled:opacity-80 flex items-center justify-center gap-2 text-[15px]">
-                {phase === 'opening' ? <><Loader2 size={18} className="animate-spin" /> Đang mở quà...</> : <><Gift size={18} /> {isLoggedIn ? 'Mở quà ngay' : 'Mở quà — Đăng nhập để nhận'}</>}
+              <h2 className="text-lg font-bold text-gray-800 mb-1.5 gift-anim-fadeup">{campaign.title}</h2>
+              {campaign.description && (
+                <p className="text-[13px] text-gray-500 mb-5 max-w-xs gift-anim-fadeup">{campaign.description}</p>
+              )}
+              <button
+                onClick={handleOpenClick}
+                disabled={phase === 'opening'}
+                className="w-full max-w-[290px] bg-gradient-to-b from-[#FF6A3D] to-[#EE4D2D] hover:from-[#ff774d] hover:to-[#f35a34] text-white font-extrabold py-4 rounded-[22px] shadow-[0_14px_30px_rgba(238,77,45,.28)] transition-all disabled:opacity-70 flex items-center justify-center gap-2 text-[15px]"
+              >
+                {phase === 'opening' ? (
+                  <><Loader2 size={18} className="animate-spin" /> Đang mở quà...</>
+                ) : (
+                  <><Gift size={18} /> {isLoggedIn ? 'Mở quà ngay' : 'Mở quà — Đăng nhập để nhận'}</>
+                )}
               </button>
-              <p className="text-[11px] text-slate-400 mt-3">Mỗi tài khoản được mở tối đa {campaign.max_opens_per_user} lần.</p>
+              <p className="text-[11px] text-gray-400 mt-3">Mỗi tài khoản được mở {campaign.max_opens_per_user} lần.</p>
             </>
           )}
 
