@@ -1223,4 +1223,93 @@ export const GIFT_FEATURE_STYLES = `
   }
 }
 
+
+/* KIMSHOP_GIFT_CLEAN_CUBE_PASS_20260922 */
+.gift-box-wrap{
+  width:min(352px,92vw)!important;
+  height:246px!important;
+}
+.gift-scene-svg{
+  transform:scale(1.02)!important;
+  transform-origin:50% 53%!important;
+}
+.gift-svg-body{
+  filter:drop-shadow(0 16px 16px rgba(6,27,82,.24))!important;
+}
+.gift-svg-lid{
+  transform-box:fill-box;
+  transform-origin:50% 76%!important;
+  filter:drop-shadow(0 11px 10px rgba(7,27,80,.20))!important;
+}
+
+/* The art is drawn CLOSED. No offset hacks in idle. */
+.gift-scene-svg.is-closed .gift-svg-lid{
+  transform:none!important;
+  animation:none!important;
+}
+.gift-scene-svg.is-closed .gift-gap-burst,
+.gift-scene-svg.is-closed .gift-svg-cavity,
+.gift-scene-svg.is-closed .gift-svg-open-glow,
+.gift-scene-svg.is-closed .gift-svg-coins,
+.gift-scene-svg.is-closed .gift-svg-confetti,
+.gift-scene-svg.is-closed .gift-svg-sparkles{
+  opacity:0!important;
+  pointer-events:none!important;
+}
+.gift-scene-svg.is-closed .gift-svg-rays{opacity:.20!important}
+.gift-scene-svg.is-closed .gift-svg-swoosh-back{opacity:.42!important}
+.gift-scene-svg.is-closed .gift-svg-closed-glints{opacity:1!important}
+
+@keyframes giftCubeLidOpen{
+  0%{transform:translateY(0) rotate(0deg) scale(1)}
+  24%{transform:translateY(-8px) rotate(-3deg) scale(1.01)}
+  68%{transform:translateY(-54px) rotate(-10deg) scale(1.045)}
+  100%{transform:translateY(-45px) rotate(-7deg) scale(1.03)}
+}
+.gift-scene-svg.is-open .gift-svg-lid{
+  animation:giftCubeLidOpen .82s cubic-bezier(.2,1.45,.35,1) both!important;
+}
+.gift-scene-svg.is-open .gift-gap-burst,
+.gift-scene-svg.is-open .gift-svg-cavity{
+  animation:giftOpenDetailPop .58s .15s ease-out both!important;
+}
+.gift-scene-svg.is-open .gift-svg-open-glow{
+  animation:giftSvgGlowOpen .88s .10s ease-out both!important;
+}
+.gift-scene-svg.is-open .gift-svg-coins{
+  animation:giftOpenDetailRise .62s .22s ease-out both!important;
+}
+.gift-scene-svg.is-open .gift-svg-confetti{
+  animation:giftOpenDetailRise .56s .17s ease-out both!important;
+}
+.gift-scene-svg.is-open .gift-svg-sparkles{
+  animation:giftOpenDetailPop .54s .24s ease-out both!important;
+}
+.gift-scene-svg.is-open .gift-svg-rays{
+  animation:giftOpenRays .7s ease-out both!important;
+}
+.gift-scene-svg.is-open .gift-svg-closed-glints{opacity:0!important}
+
+.gift-svg-body-shine,.gift-svg-lid-shine{
+  filter:drop-shadow(0 0 4px rgba(255,255,255,.38));
+}
+.gift-svg-cavity{filter:drop-shadow(0 0 14px rgba(255,193,42,.72))!important}
+.gift-svg-stage{filter:drop-shadow(0 0 11px rgba(255,176,25,.30))!important}
+
+@media (max-width:640px){
+  .gift-box-wrap{width:min(334px,91vw)!important;height:234px!important}
+}
+@media (prefers-reduced-motion:reduce){
+  .gift-scene-svg.is-open .gift-svg-lid,
+  .gift-scene-svg.is-open .gift-gap-burst,
+  .gift-scene-svg.is-open .gift-svg-cavity,
+  .gift-scene-svg.is-open .gift-svg-open-glow,
+  .gift-scene-svg.is-open .gift-svg-coins,
+  .gift-scene-svg.is-open .gift-svg-confetti,
+  .gift-scene-svg.is-open .gift-svg-sparkles,
+  .gift-scene-svg.is-open .gift-svg-rays{
+    animation:none!important;
+  }
+}
+
 `;
