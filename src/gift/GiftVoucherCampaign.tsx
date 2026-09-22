@@ -551,6 +551,64 @@ export default function GiftVoucherCampaign({ slug, onClose }: { slug: string; o
                       <path d="M210 139 L320 55 L335 78 Z" fill="#fff4ad" opacity=".34" />
                     </g>
 
+                    <g className="gift-svg-ambient" pointerEvents="none">
+                      <g className="gift-svg-ambient-halo">
+                        <ellipse cx="210" cy="142" rx="142" ry="94" fill="none" stroke="#FFE8A4" strokeOpacity=".22" strokeWidth="2" />
+                        <ellipse cx="210" cy="142" rx="124" ry="78" fill="none" stroke="#FFFFFF" strokeOpacity=".15" strokeWidth="1.2" />
+                      </g>
+
+                      <g className="gift-svg-ambient-badge gift-svg-ambient-sale" transform="translate(79 83) rotate(-9)">
+                        <rect x="-21" y="-18" width="42" height="36" rx="10" fill="#F64C38" />
+                        <rect x="-17" y="-14" width="34" height="8" rx="4" fill="#FF8A78" opacity=".42" />
+                        <text y="7" textAnchor="middle" fill="#FFFFFF" fontSize="18" fontWeight="900">%</text>
+                      </g>
+
+                      <g className="gift-svg-ambient-badge gift-svg-ambient-fs" transform="translate(340 85) rotate(8)">
+                        <rect x="-22" y="-18" width="44" height="36" rx="10" fill="#2E6EE8" />
+                        <rect x="-18" y="-14" width="36" height="8" rx="4" fill="#77A8FF" opacity=".42" />
+                        <text y="6" textAnchor="middle" fill="#FFFFFF" fontSize="15" fontWeight="900">Fs</text>
+                      </g>
+
+                      <g className="gift-svg-ambient-coin gift-svg-ambient-coin-a" transform="translate(104 139) rotate(-14)">
+                        <ellipse rx="16" ry="14" fill="url(#giftGoldSoft)" />
+                        <ellipse rx="11" ry="9" fill="none" stroke="#FFF4AF" strokeWidth="2" opacity=".9" />
+                        <path d="M-5 -8 C-1 -12 8 -10 11 -4" fill="none" stroke="#FFFFFF" strokeOpacity=".54" strokeWidth="2" strokeLinecap="round" />
+                        <text y="4" textAnchor="middle" fill="#995500" fontSize="11" fontWeight="900">₫</text>
+                      </g>
+
+                      <g className="gift-svg-ambient-coin gift-svg-ambient-coin-b" transform="translate(319 143) rotate(15)">
+                        <ellipse rx="16" ry="14" fill="url(#giftGoldSoft)" />
+                        <ellipse rx="11" ry="9" fill="none" stroke="#FFF4AF" strokeWidth="2" opacity=".9" />
+                        <path d="M-5 -8 C-1 -12 8 -10 11 -4" fill="none" stroke="#FFFFFF" strokeOpacity=".54" strokeWidth="2" strokeLinecap="round" />
+                        <text y="4" textAnchor="middle" fill="#995500" fontSize="11" fontWeight="900">₫</text>
+                      </g>
+
+                      <g className="gift-svg-ambient-coin gift-svg-ambient-coin-c" transform="translate(132 64) rotate(8)">
+                        <ellipse rx="10" ry="9" fill="url(#giftGoldSoft)" />
+                        <ellipse rx="6.5" ry="5.5" fill="none" stroke="#FFF4AF" strokeWidth="1.4" opacity=".88" />
+                        <text y="3" textAnchor="middle" fill="#995500" fontSize="7" fontWeight="900">₫</text>
+                      </g>
+
+                      <g className="gift-svg-ambient-coin gift-svg-ambient-coin-d" transform="translate(288 62) rotate(-9)">
+                        <ellipse rx="10" ry="9" fill="url(#giftGoldSoft)" />
+                        <ellipse rx="6.5" ry="5.5" fill="none" stroke="#FFF4AF" strokeWidth="1.4" opacity=".88" />
+                        <text y="3" textAnchor="middle" fill="#995500" fontSize="7" fontWeight="900">₫</text>
+                      </g>
+
+                      <g className="gift-svg-ambient-stars">
+                        <path className="gift-svg-ambient-star gift-svg-ambient-star-a" d="M118 105 l4 9 l9 4 l-9 4 l-4 9 l-4-9 l-9-4 l9-4Z" fill="#FFF8D3" />
+                        <path className="gift-svg-ambient-star gift-svg-ambient-star-b" d="M303 111 l4 9 l9 4 l-9 4 l-4 9 l-4-9 l-9-4 l9-4Z" fill="#FFE35A" />
+                        <path className="gift-svg-ambient-star gift-svg-ambient-star-c" d="M145 199 l3 7 l7 3 l-7 3 l-3 7 l-3-7 l-7-3 l7-3Z" fill="#FFFFFF" />
+                        <path className="gift-svg-ambient-star gift-svg-ambient-star-d" d="M282 202 l3 7 l7 3 l-7 3 l-3 7 l-3-7 l-7-3 l7-3Z" fill="#FFF1A4" />
+                        <circle className="gift-svg-ambient-dot gift-svg-ambient-dot-a" cx="95" cy="180" r="3" fill="#F6A316" />
+                        <circle className="gift-svg-ambient-dot gift-svg-ambient-dot-b" cx="326" cy="183" r="3" fill="#2E73E7" />
+                        <rect className="gift-svg-ambient-confetti gift-svg-ambient-confetti-a" x="102" y="72" width="6" height="16" rx="2" fill="#F47C16" transform="rotate(-28 102 72)" />
+                        <rect className="gift-svg-ambient-confetti gift-svg-ambient-confetti-b" x="315" y="71" width="6" height="16" rx="2" fill="#2D73E9" transform="rotate(28 315 71)" />
+                        <rect className="gift-svg-ambient-confetti gift-svg-ambient-confetti-c" x="147" y="88" width="5" height="13" rx="2" fill="#2D73E9" transform="rotate(-18 147 88)" />
+                        <rect className="gift-svg-ambient-confetti gift-svg-ambient-confetti-d" x="270" y="88" width="5" height="13" rx="2" fill="#F49A17" transform="rotate(20 270 88)" />
+                      </g>
+                    </g>
+
                     <g className="gift-svg-box">
                       <g className="gift-svg-body">
                         <rect x="124" y="156" width="176" height="80" rx="8" fill="url(#giftBlueFront)" stroke="#194BAE" strokeWidth="1.45" />
@@ -737,13 +795,17 @@ export default function GiftVoucherCampaign({ slug, onClose }: { slug: string; o
               <button
                 onClick={handleOpenClick}
                 disabled={phase === 'opening'}
-                className="w-full max-w-[290px] bg-gradient-to-b from-[#FF6A3D] to-[#EE4D2D] hover:from-[#ff774d] hover:to-[#f35a34] text-white font-extrabold py-4 rounded-[22px] shadow-[0_14px_30px_rgba(238,77,45,.28)] transition-all disabled:opacity-70 flex items-center justify-center gap-2 text-[15px]"
+                className="gift-premium-cta w-full max-w-[290px] bg-gradient-to-b from-[#FF6A3D] to-[#EE4D2D] hover:from-[#ff774d] hover:to-[#f35a34] text-white font-extrabold py-4 rounded-[22px] transition-all disabled:opacity-70 text-[15px]"
               >
-                {phase === 'opening' ? (
-                  <><Loader2 size={18} className="animate-spin" /> Đang mở quà...</>
-                ) : (
-                  <><Gift size={18} /> {isLoggedIn ? 'Mở quà ngay' : 'Mở quà — Đăng nhập để nhận'}</>
-                )}
+                <span className="gift-premium-cta-border" aria-hidden="true" />
+                <span className="gift-premium-cta-sheen" aria-hidden="true" />
+                <span className="gift-premium-cta-inner">
+                  {phase === 'opening' ? (
+                    <><Loader2 size={18} className="animate-spin" /> Đang mở quà...</>
+                  ) : (
+                    <><Gift size={18} /> {isLoggedIn ? 'Mở quà ngay' : 'Mở quà — Đăng nhập để nhận'}</>
+                  )}
+                </span>
               </button>
               <p className="text-[11px] text-gray-400 mt-3">Mỗi tài khoản được mở {campaign.max_opens_per_user} lần.</p>
             </>
