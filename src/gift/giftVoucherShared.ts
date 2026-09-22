@@ -472,4 +472,56 @@ export const GIFT_FEATURE_STYLES = `
   }
 }
 
+
+/* KIMSHOP_GIFT_SVG_HERO_20260922 */
+@keyframes giftSvgCoinA{0%,100%{transform:translate(91px,155px) translateY(0) rotate(0deg)}50%{transform:translate(91px,155px) translateY(-9px) rotate(13deg)}}
+@keyframes giftSvgCoinB{0%,100%{transform:translate(330px,157px) translateY(0) rotate(0deg)}50%{transform:translate(330px,157px) translateY(-7px) rotate(-12deg)}}
+@keyframes giftSvgBadgeA{0%,100%{transform:translateY(0) rotate(-4deg)}50%{transform:translateY(-5px) rotate(2deg)}}
+@keyframes giftSvgBadgeB{0%,100%{transform:translateY(0) rotate(4deg)}50%{transform:translateY(-6px) rotate(-1deg)}}
+@keyframes giftSvgBowLeft{0%,100%{transform:rotate(0deg) scale(1)}50%{transform:rotate(-3deg) scale(1.025)}}
+@keyframes giftSvgBowRight{0%,100%{transform:rotate(0deg) scale(1)}50%{transform:rotate(3deg) scale(1.025)}}
+@keyframes giftSvgLidOpen{0%{transform:translateY(0) rotate(0deg) scale(1)}34%{transform:translateY(-24px) rotate(-4deg) scale(1.02)}72%{transform:translateY(-68px) rotate(-13deg) scale(1.06)}100%{transform:translateY(-58px) rotate(-10deg) scale(1.045)}}
+@keyframes giftSvgGlowOpen{0%{opacity:0;transform:scale(.5)}40%{opacity:1;transform:scale(1.12)}100%{opacity:.88;transform:scale(1)}}
+@keyframes giftSvgFrontSwoosh{0%,100%{transform:translateX(0) translateY(0)}50%{transform:translateX(4px) translateY(-2px)}}
+@keyframes giftSvgBackSwoosh{0%,100%{transform:translateX(0) translateY(0)}50%{transform:translateX(-4px) translateY(2px)}}
+
+.gift-box-wrap{
+  width:min(342px,92vw)!important;
+  height:228px!important;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  overflow:visible!important;
+}
+.gift-scene-svg{
+  width:100%;
+  height:100%;
+  overflow:visible;
+  filter:drop-shadow(0 16px 24px rgba(36,49,96,.10));
+}
+.gift-svg-floor-shadow{transform-origin:210px 228px}
+.gift-svg-swoosh-back{animation:giftSvgBackSwoosh 4.6s ease-in-out infinite}
+.gift-svg-swoosh-front{animation:giftSvgFrontSwoosh 4s ease-in-out infinite}
+.gift-svg-badge-percent{transform-origin:94px 96px;animation:giftSvgBadgeA 2.8s ease-in-out infinite}
+.gift-svg-badge-fs{transform-origin:326px 99px;animation:giftSvgBadgeB 3s ease-in-out infinite}
+.gift-svg-coin-a{transform-origin:center;animation:giftSvgCoinA 2.7s ease-in-out infinite}
+.gift-svg-coin-b{transform-origin:center;animation:giftSvgCoinB 3.1s ease-in-out infinite}
+.gift-svg-bow-left{transform-box:fill-box;transform-origin:100% 60%;animation:giftSvgBowLeft 2.7s ease-in-out infinite}
+.gift-svg-bow-right{transform-box:fill-box;transform-origin:0% 60%;animation:giftSvgBowRight 2.7s ease-in-out infinite}
+.gift-svg-lid{transform-box:fill-box;transform-origin:50% 90%;will-change:transform}
+.gift-svg-open-glow{opacity:0;transform-box:fill-box;transform-origin:center;pointer-events:none}
+.gift-scene-svg.is-open .gift-svg-lid{animation:giftSvgLidOpen .74s cubic-bezier(.28,1.5,.45,1) both}
+.gift-scene-svg.is-open .gift-svg-open-glow{animation:giftSvgGlowOpen .82s ease-out both}
+.gift-scene-svg.is-open .gift-svg-floor-shadow{opacity:.12;transform:scaleX(1.16)}
+.gift-scene-svg.is-open .gift-svg-confetti{filter:drop-shadow(0 3px 3px rgba(0,0,0,.08))}
+.gift-premium-bg{height:258px!important;opacity:.54!important}
+.gift-premium-sheen{opacity:.54!important}
+
+@media (max-width:640px){
+  .gift-box-wrap{width:min(315px,91vw)!important;height:214px!important}
+}
+@media (prefers-reduced-motion:reduce){
+  .gift-svg-swoosh-back,.gift-svg-swoosh-front,.gift-svg-badge-percent,.gift-svg-badge-fs,.gift-svg-coin-a,.gift-svg-coin-b,.gift-svg-bow-left,.gift-svg-bow-right,.gift-scene-svg.is-open .gift-svg-lid,.gift-scene-svg.is-open .gift-svg-open-glow{animation:none!important}
+}
+
 `;
