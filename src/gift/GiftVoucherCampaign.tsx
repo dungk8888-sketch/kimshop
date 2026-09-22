@@ -343,6 +343,24 @@ export default function GiftVoucherCampaign({ slug, onClose }: { slug: string; o
   const boxWrapAnimClass =
     boxStage === 'shake' ? 'gift-anim-shake-once' : boxStage === 'burst' ? 'gift-anim-burst-settle' : 'gift-anim-float';
 
+  const campaignTitleNode = (() => {
+    const title = campaign?.title || '';
+    const match = title.match(/^(.*?)(?:\s+)?KIMSHOP$/i);
+    if (!match) return title;
+    const before = match[1].trim();
+    const dashIndex = before.indexOf('—');
+    if (dashIndex >= 0) {
+      return (
+        <>
+          {before.slice(0, dashIndex + 1)}
+          <br />
+          {before.slice(dashIndex + 1).trim()} <span className="text-[#EE4D2D]">KIMSHOP</span>
+        </>
+      );
+    }
+    return <>{before} <span className="text-[#EE4D2D]">KIMSHOP</span></>;
+  })();
+
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-[2px] gift-anim-overlay p-4">
       <div className="gift-premium-card relative w-full max-w-[480px] rounded-[34px] overflow-hidden shadow-2xl max-h-[92vh] border border-white/60">
@@ -392,7 +410,7 @@ export default function GiftVoucherCampaign({ slug, onClose }: { slug: string; o
                     ))}
                 </div>
               </div>
-              <h2 className="text-[18px] leading-[1.15] font-extrabold text-gray-800 mb-2 gift-anim-fadeup max-w-[320px]">{campaign.title}</h2>
+              <h2 className="text-[18px] leading-[1.15] font-extrabold text-gray-800 mb-2 gift-anim-fadeup max-w-[320px]">{campaignTitleNode}</h2>
               {campaign.description && (
                 <p className="text-[13px] leading-6 text-gray-500 mb-5 max-w-[315px] gift-anim-fadeup">{campaign.description}</p>
               )}
