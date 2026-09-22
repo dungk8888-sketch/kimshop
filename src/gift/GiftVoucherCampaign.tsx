@@ -391,6 +391,7 @@ export default function GiftVoucherCampaign({ slug, onClose }: { slug: string; o
                       />
                     ))}
                 </div>
+              </div>
               <h2 className="text-[18px] leading-[1.15] font-extrabold text-gray-800 mb-2 gift-anim-fadeup max-w-[320px]">{campaign.title}</h2>
               {campaign.description && (
                 <p className="text-[13px] leading-6 text-gray-500 mb-5 max-w-[315px] gift-anim-fadeup">{campaign.description}</p>
