@@ -402,6 +402,11 @@ export default function GiftVoucherCampaign({ slug, onClose }: { slug: string; o
                   <Sparkles size={20} className="absolute top-2 right-5 text-yellow-300 gift-sparkle-a z-30" />
                   <Sparkles size={16} className="absolute left-6 top-8 text-yellow-200 gift-sparkle-b z-30" />
                   <Sparkles size={12} className="absolute right-10 bottom-14 text-orange-200 gift-sparkle-c z-30" />
+                  <span className="gift-float-piece gift-float-piece-a" />
+                  <span className="gift-float-piece gift-float-piece-b" />
+                  <span className="gift-float-piece gift-float-piece-c" />
+                  <span className="gift-float-piece gift-float-piece-d" />
+                  <span className="gift-float-piece gift-float-piece-e" />
 
                   <div className="gift-coin z-30" style={{ left: '6px', top: '28px', animationDelay: '0ms' }} />
                   <div className="gift-coin z-30" style={{ right: '16px', top: '34px', animationDelay: '180ms' }} />
