@@ -64,7 +64,7 @@ function sanitizeCachedRecord(v: any): CachedGiftVoucher | null {
   return {
     code: v.code,
     userId: v.userId,
-    prizeLabel: clip(v.prizeLabel),
+    prizeLabel: clip(v.prizeLabel).replace(/\s*\(placeholder\)\s*/gi, ''),
     campaignTitle: clip(v.campaignTitle),
   };
 }
