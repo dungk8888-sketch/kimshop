@@ -1,6 +1,5 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { Lock, LockOpen, KeyRound, Trash2, ShieldCheck } from 'lucide-react';
 import { supabase } from './supabaseClient';
 
 type UserRow = {
@@ -117,7 +116,7 @@ export default function AdminUserManagerEnhancer() {
       <div className="flex items-start justify-between gap-3 mb-3">
         <div>
           <div className="font-bold text-sm text-gray-800 flex items-center gap-2">
-            <ShieldCheck size={16} className="text-[#EE4D2D]" />
+            <span className="text-[#EE4D2D]">◆</span>
             Quản lý tài khoản nâng cao
           </div>
           <div className="text-[11px] text-gray-500 mt-1">
@@ -170,7 +169,7 @@ export default function AdminUserManagerEnhancer() {
                   <td className="p-2.5">
                     <div className="flex flex-wrap gap-1.5">
                       <button disabled={busy || self} onClick={() => resetPassword(u)} className="inline-flex items-center gap-1 border border-blue-200 text-blue-600 px-2.5 py-1.5 rounded hover:bg-blue-50 disabled:opacity-40">
-                        <KeyRound size={12}/> Đặt lại MK
+                        Đặt lại MK
                       </button>
 
                       {admin ? (
@@ -178,10 +177,10 @@ export default function AdminUserManagerEnhancer() {
                       ) : (
                         <>
                           <button disabled={busy} onClick={() => lockOrUnlock(u)} className={`inline-flex items-center gap-1 border px-2.5 py-1.5 rounded disabled:opacity-40 ${blocked ? 'border-emerald-200 text-emerald-600 hover:bg-emerald-50' : 'border-amber-200 text-amber-700 hover:bg-amber-50'}`}>
-                            {blocked ? <LockOpen size={12}/> : <Lock size={12}/>} {blocked ? 'Mở khóa' : 'Khóa'}
+                            {blocked ? 'Mở khóa' : 'Khóa'}
                           </button>
                           <button disabled={busy} onClick={() => remove(u)} className="inline-flex items-center gap-1 border border-rose-200 text-rose-600 px-2.5 py-1.5 rounded hover:bg-rose-50 disabled:opacity-40">
-                            <Trash2 size={12}/> Xóa
+                            Xóa
                           </button>
                         </>
                       )}
