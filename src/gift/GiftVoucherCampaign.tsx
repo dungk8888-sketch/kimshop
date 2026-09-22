@@ -184,7 +184,7 @@ export default function GiftVoucherCampaign({ slug, onClose }: { slug: string; o
     window.setTimeout(() => {
       setResult(row);
       setPhase('result');
-    }, 550);
+    }, 900);
   };
 
   const doOpenGift = async () => {
@@ -318,11 +318,13 @@ export default function GiftVoucherCampaign({ slug, onClose }: { slug: string; o
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-[2px] gift-anim-overlay p-4">
-      <div className="relative w-full max-w-md bg-gradient-to-b from-[#fff7f2] to-white rounded-3xl overflow-hidden shadow-2xl max-h-[88vh] overflow-y-auto">
+      <div className="gift-premium-card relative w-full max-w-md rounded-[30px] overflow-hidden shadow-2xl max-h-[90vh] overflow-y-auto">
         <button onClick={onClose} aria-label="Đóng" className="absolute right-3 top-3 z-10 w-9 h-9 rounded-full bg-white/90 shadow flex items-center justify-center text-gray-500 hover:text-gray-800">
           <X size={18} />
         </button>
-        <div className="px-6 pt-9 pb-7 flex flex-col items-center text-center min-h-[360px] justify-center">
+        <div className="gift-premium-inner relative px-6 pt-8 pb-7 flex flex-col items-center text-center min-h-[420px] justify-center">
+          <div className="gift-premium-orb gift-premium-orb-a" />
+          <div className="gift-premium-orb gift-premium-orb-b" />
           {phase === 'loading' && <div className="flex flex-col items-center gap-3 text-gray-400"><Loader2 size={30} className="animate-spin" /><p className="text-sm">Đang tải hộp quà...</p></div>}
           {phase === 'notfound' && <EmptyState icon={<ShieldAlert size={40} className="text-gray-300" />} title="Không tìm thấy chương trình" desc="Đường dẫn quà tặng này không tồn tại hoặc đã bị gỡ." onClose={onClose} />}
           {phase === 'unavailable' && <EmptyState icon={<ShieldAlert size={40} className="text-gray-300" />} title="Chương trình chưa mở hoặc đã kết thúc" desc="Hộp quà này hiện chưa mở được. Theo dõi Fanpage KIMSHOP để không bỏ lỡ nhé!" onClose={onClose} />}
@@ -333,7 +335,8 @@ export default function GiftVoucherCampaign({ slug, onClose }: { slug: string; o
             <>
               <div className="relative mb-8 flex flex-col items-center">
                 <div className="absolute inset-0 rounded-full bg-[#FFB020]/45 blur-3xl gift-anim-glow" />
-                <div className={`gift-box-wrap ${phase === 'opening' ? 'gift-anim-shake' : 'gift-anim-float'}`}>
+                <div className="gift-stage-ring" />
+                <div className={`gift-box-wrap ${phase === 'opening' ? 'gift-anim-shake gift-box-open' : 'gift-anim-float'}`}>
                   <div className="gift-box-shadow" />
                   <div className="gift-box-3d">
                     <div className="gift-box-lid">
@@ -357,14 +360,21 @@ export default function GiftVoucherCampaign({ slug, onClose }: { slug: string; o
                   <div className="gift-coin" style={{ right: '14px', top: '42px', animationDelay: '220ms' }} />
                   <div className="gift-coin" style={{ left: '34px', bottom: '26px', animationDelay: '420ms' }} />
                   <div className="gift-coin" style={{ right: '28px', bottom: '32px', animationDelay: '620ms' }} />
+                  <div className="gift-premium-ticket gift-premium-ticket-left">%</div>
+                  <div className="gift-premium-ticket gift-premium-ticket-right">FS</div>
+                  <div className="gift-open-light" />
                 </div>
               </div>
-              <h2 className="text-lg font-bold text-gray-800 mb-1.5 gift-anim-fadeup">{campaign.title}</h2>
-              {campaign.description && <p className="text-[13px] text-gray-500 mb-5 max-w-xs gift-anim-fadeup">{campaign.description}</p>}
-              <button onClick={handleOpenClick} disabled={phase === 'opening'} className="w-full max-w-[290px] bg-gradient-to-b from-[#FF6A3D] to-[#EE4D2D] hover:from-[#ff774d] hover:to-[#f35a34] text-white font-extrabold py-4 rounded-[22px] shadow-[0_14px_30px_rgba(238,77,45,.28)] transition-all disabled:opacity-70 flex items-center justify-center gap-2 text-[15px]">
+              <div className="gift-premium-badges gift-anim-fadeup">
+                <span><b>Giảm đến 50.000đ</b></span>
+                <span><b>Freeship</b></span>
+              </div>
+              <h2 className="text-[21px] leading-tight font-extrabold text-slate-800 mb-2 gift-anim-fadeup">{campaign.title}</h2>
+              {campaign.description && <p className="text-[13px] leading-relaxed text-slate-500 mb-5 max-w-[330px] gift-anim-fadeup">{campaign.description}</p>}
+              <button onClick={handleOpenClick} disabled={phase === 'opening'} className="gift-premium-cta w-full max-w-[310px] text-white font-extrabold py-4 rounded-[22px] transition-all disabled:opacity-80 flex items-center justify-center gap-2 text-[15px]">
                 {phase === 'opening' ? <><Loader2 size={18} className="animate-spin" /> Đang mở quà...</> : <><Gift size={18} /> {isLoggedIn ? 'Mở quà ngay' : 'Mở quà — Đăng nhập để nhận'}</>}
               </button>
-              <p className="text-[11px] text-gray-400 mt-3">Mỗi tài khoản được mở {campaign.max_opens_per_user} lần.</p>
+              <p className="text-[11px] text-slate-400 mt-3">Mỗi tài khoản được mở tối đa {campaign.max_opens_per_user} lần.</p>
             </>
           )}
 
