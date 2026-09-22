@@ -218,6 +218,9 @@ export const GIFT_FEATURE_STYLES = `
 .gift-burst-star-b{right:20%;top:13%;font-size:27px;animation-delay:-.5s}
 .gift-burst-star-c{right:27%;bottom:22%;font-size:17px;animation-delay:-.9s}
 .gift-box-wrap{position:relative;width:214px;height:174px;display:flex;align-items:center;justify-content:center}
+.gift-rendered-asset{position:relative;z-index:6;width:182px;height:182px;object-fit:contain;filter:drop-shadow(0 24px 30px rgba(20,55,130,.28));user-select:none;pointer-events:none}
+.gift-opening-scene{animation:giftPopIn .34s cubic-bezier(.2,.9,.3,1) both}
+@media (max-width:640px){.gift-rendered-asset{width:164px;height:164px}}
 .gift-box-shadow{position:absolute;bottom:7px;left:50%;transform:translateX(-50%);width:132px;height:30px;background:rgba(10,18,45,.22);filter:blur(15px);border-radius:9999px}
 .gift-box-3d{position:relative;width:158px;height:142px;transform-style:preserve-3d;filter:drop-shadow(0 24px 38px rgba(21,55,139,.32))}
 .gift-box-lid{position:absolute;top:9px;left:50%;transform:translateX(-50%);width:140px;height:38px;border-radius:17px;background:linear-gradient(180deg,#5b90ff 0%,#2f69ee 32%,#1c4fc7 72%,#153589 100%);box-shadow:0 18px 28px rgba(16,52,140,.30),inset 0 3px 3px rgba(255,255,255,.42),inset 0 -5px 10px rgba(3,28,97,.24);z-index:8;overflow:visible;transform-origin:center bottom}
