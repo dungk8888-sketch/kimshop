@@ -331,16 +331,32 @@ export default function GiftVoucherCampaign({ slug, onClose }: { slug: string; o
 
           {(phase === 'teaser' || phase === 'opening') && campaign && (
             <>
-              <div className="relative mb-5">
-                <div className="absolute inset-0 rounded-full bg-[#FFB020]/40 blur-2xl gift-anim-glow" />
-                <div className={`relative w-32 h-32 rounded-3xl bg-gradient-to-br from-[#EE4D2D] to-[#ff7a3d] flex items-center justify-center shadow-xl ${phase === 'opening' ? 'gift-anim-shake' : 'gift-anim-float'}`}>
-                  <Gift size={62} className="text-white drop-shadow" strokeWidth={1.6} />
-                  <Sparkles size={20} className="absolute -top-1.5 -right-1.5 text-yellow-300" />
+              <div className="relative mb-6 flex flex-col items-center">
+                <div className="absolute inset-0 rounded-full bg-[#FFB020]/45 blur-3xl gift-anim-glow" />
+                <div className={`gift-box-wrap ${phase === 'opening' ? 'gift-anim-shake' : 'gift-anim-float'}`}>
+                  <div className="gift-box-shadow" />
+                  <div className="gift-box-3d">
+                    <div className="gift-box-lid">
+                      <div className="gift-box-ribbon-v" />
+                    </div>
+                    <div className="gift-box-body">
+                      <div className="gift-box-ribbon-v" />
+                      <div className="gift-box-ribbon-h" />
+                    </div>
+                    <div className="gift-box-bow">
+                      <div className="gift-box-knot" />
+                    </div>
+                  </div>
+                  <Sparkles size={18} className="absolute top-1 right-3 text-yellow-300" />
+                  <Sparkles size={14} className="absolute left-4 top-7 text-yellow-200" />
+                  <div className="gift-coin" style={{ left: '8px', top: '18px', animationDelay: '0ms' }} />
+                  <div className="gift-coin" style={{ right: '10px', top: '34px', animationDelay: '220ms' }} />
+                  <div className="gift-coin" style={{ left: '26px', bottom: '18px', animationDelay: '420ms' }} />
                 </div>
               </div>
               <h2 className="text-lg font-bold text-gray-800 mb-1.5 gift-anim-fadeup">{campaign.title}</h2>
               {campaign.description && <p className="text-[13px] text-gray-500 mb-5 max-w-xs gift-anim-fadeup">{campaign.description}</p>}
-              <button onClick={handleOpenClick} disabled={phase === 'opening'} className="w-full max-w-[260px] bg-[#EE4D2D] hover:bg-[#f63] text-white font-bold py-3.5 rounded-2xl shadow-lg shadow-orange-200 transition-colors disabled:opacity-70 flex items-center justify-center gap-2">
+              <button onClick={handleOpenClick} disabled={phase === 'opening'} className="w-full max-w-[290px] bg-gradient-to-b from-[#FF6A3D] to-[#EE4D2D] hover:from-[#ff774d] hover:to-[#f35a34] text-white font-extrabold py-4 rounded-[22px] shadow-[0_14px_30px_rgba(238,77,45,.28)] transition-all disabled:opacity-70 flex items-center justify-center gap-2 text-[15px]">
                 {phase === 'opening' ? <><Loader2 size={18} className="animate-spin" /> Đang mở quà...</> : <><Gift size={18} /> {isLoggedIn ? 'Mở quà ngay' : 'Mở quà — Đăng nhập để nhận'}</>}
               </button>
               <p className="text-[11px] text-gray-400 mt-3">Mỗi tài khoản được mở {campaign.max_opens_per_user} lần.</p>
