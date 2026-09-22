@@ -347,6 +347,29 @@ export default function GiftVoucherCampaign({ slug, onClose }: { slug: string; o
                 <div className="gift-burst-star gift-burst-star-a">✦</div>
                 <div className="gift-burst-star gift-burst-star-b">✦</div>
                 <div className="gift-burst-star gift-burst-star-c">✧</div>
+                <svg className="gift-silk-svg" viewBox="0 0 360 220" aria-hidden="true">
+                  <defs>
+                    <linearGradient id="silkGoldA" x1="0" y1="0" x2="1" y2="0">
+                      <stop offset="0%" stopColor="#F59E0B" stopOpacity=".08" />
+                      <stop offset="18%" stopColor="#FFD95A" stopOpacity=".85" />
+                      <stop offset="50%" stopColor="#FFF3A8" stopOpacity=".98" />
+                      <stop offset="78%" stopColor="#FFB31A" stopOpacity=".90" />
+                      <stop offset="100%" stopColor="#F97316" stopOpacity=".12" />
+                    </linearGradient>
+                    <linearGradient id="silkGoldB" x1="1" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="#FFF2A0" stopOpacity=".92" />
+                      <stop offset="42%" stopColor="#FFC83D" stopOpacity=".82" />
+                      <stop offset="100%" stopColor="#F59E0B" stopOpacity=".05" />
+                    </linearGradient>
+                    <filter id="silkGlow" x="-20%" y="-80%" width="140%" height="260%">
+                      <feGaussianBlur stdDeviation="2.2" result="blur"/>
+                      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+                    </filter>
+                  </defs>
+                  <path className="gift-silk-path gift-silk-back" d="M18 132 C88 58 248 48 338 120" fill="none" stroke="url(#silkGoldB)" strokeWidth="12" strokeLinecap="round" filter="url(#silkGlow)"/>
+                  <path className="gift-silk-path gift-silk-front" d="M26 148 C112 207 266 205 336 130" fill="none" stroke="url(#silkGoldA)" strokeWidth="15" strokeLinecap="round" filter="url(#silkGlow)"/>
+                  <path className="gift-silk-highlight" d="M38 145 C120 192 256 190 326 132" fill="none" stroke="rgba(255,255,255,.62)" strokeWidth="2.5" strokeLinecap="round"/>
+                </svg>
                 <div className="gift-stage-ring" />
                 <div className={`gift-box-wrap ${phase === 'opening' ? 'gift-anim-shake gift-box-open' : 'gift-anim-float'}`}>
                   <div className="gift-box-shadow" />
@@ -417,6 +440,8 @@ export default function GiftVoucherCampaign({ slug, onClose }: { slug: string; o
                   <Sparkles size={20} className="absolute top-2 right-5 text-yellow-300" />
                   <Sparkles size={16} className="absolute left-7 top-10 text-yellow-200" />
                   <Sparkles size={12} className="absolute right-7 bottom-10 text-orange-200" />
+                  <Sparkles size={14} className="absolute left-3 bottom-14 text-yellow-300/90" />
+                  <Sparkles size={10} className="absolute right-2 top-16 text-amber-300/90" />
                   <div className="gift-coin" style={{ left: '10px', top: '24px', animationDelay: '0ms' }} />
                   <div className="gift-coin" style={{ right: '14px', top: '42px', animationDelay: '220ms' }} />
                   <div className="gift-coin" style={{ left: '34px', bottom: '26px', animationDelay: '420ms' }} />
