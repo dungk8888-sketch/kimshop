@@ -342,6 +342,24 @@ export default function GiftVoucherCampaign({ slug, onClose }: { slug: string; o
   const boxWrapAnimClass =
     boxStage === 'shake' ? 'gift-anim-shake-once' : boxStage === 'burst' ? 'gift-anim-burst-settle' : 'gift-anim-float';
 
+  const campaignTitleNode = (() => {
+    const title = campaign?.title || '';
+    const match = title.match(/^(.*?)(?:\s+)?KIMSHOP$/i);
+    if (!match) return title;
+    const before = match[1].trim();
+    const dashIndex = before.indexOf('—');
+    if (dashIndex >= 0) {
+      return (
+        <>
+          {before.slice(0, dashIndex + 1)}
+          <br />
+          {before.slice(dashIndex + 1).trim()} <span className="gift-title-brand">KIMSHOP</span>
+        </>
+      );
+    }
+    return <>{before} <span className="gift-title-brand">KIMSHOP</span></>;
+  })();
+
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-[2px] gift-anim-overlay p-4">
       <div className="gift-premium-card relative w-full max-w-[480px] rounded-[34px] overflow-hidden shadow-2xl max-h-[92vh] border border-white/60">
@@ -362,9 +380,21 @@ export default function GiftVoucherCampaign({ slug, onClose }: { slug: string; o
               <div className="relative mb-5 flex flex-col items-center gift-premium-hero w-full">
                 <div className="gift-premium-bg" />
                 <div className="gift-premium-sheen" />
+                <svg className="gift-card-ribbons" viewBox="0 0 420 520" aria-hidden="true">
+                  <defs>
+                    <linearGradient id="giftCardRibbonGold" x1="0%" y1="0%" x2="100%" y2="100%">
+                      <stop offset="0%" stopColor="#FFE997" stopOpacity=".92" />
+                      <stop offset="34%" stopColor="#FFC43D" stopOpacity=".9" />
+                      <stop offset="70%" stopColor="#F3A20E" stopOpacity=".86" />
+                      <stop offset="100%" stopColor="#FFF1B4" stopOpacity=".72" />
+                    </linearGradient>
+                  </defs>
+                  <path className="gift-card-ribbon gift-card-ribbon-left" d="M-8 410 C35 374 56 418 35 458 C17 493 27 520 58 535" />
+                  <path className="gift-card-ribbon gift-card-ribbon-right" d="M428 398 C386 372 366 414 386 453 C404 488 397 516 368 538" />
+                </svg>
                 <div className={`gift-box-wrap ${boxWrapAnimClass}`}>
                   <svg
-                    className={`gift-scene-svg ${boxStage === 'burst' ? 'is-open' : ''}`}
+                    className={`gift-scene-svg ${boxStage === 'burst' ? 'is-open' : 'is-teaser-open'}`}
                     viewBox="0 0 420 280"
                     role="img"
                     aria-label="Hộp quà KIMSHOP"
@@ -446,36 +476,48 @@ export default function GiftVoucherCampaign({ slug, onClose }: { slug: string; o
                     <ellipse className="gift-svg-floor-shadow" cx="210" cy="228" rx="92" ry="20" fill="#112354" opacity=".2" filter="url(#giftSoftShadow)" />
 
                     <g className="gift-svg-open-glow">
-                      <circle cx="210" cy="150" r="96" fill="url(#giftInnerBurst)" />
-                      <path d="M210 145 L160 35 L190 37 Z" fill="#fff5b5" opacity=".55" />
-                      <path d="M210 145 L250 31 L270 45 Z" fill="#fff2a3" opacity=".45" />
+                      <circle cx="210" cy="139" r="108" fill="url(#giftInnerBurst)" />
+                      <path d="M210 139 L156 22 L190 36 Z" fill="#fff8c7" opacity=".68" />
+                      <path d="M210 139 L252 18 L272 42 Z" fill="#fff2a3" opacity=".56" />
+                      <path d="M210 139 L99 62 L126 54 Z" fill="#fff8cf" opacity=".36" />
+                      <path d="M210 139 L320 55 L335 78 Z" fill="#fff4ad" opacity=".34" />
                     </g>
 
                     <g className="gift-svg-box">
                       <g className="gift-svg-body">
-                        <path d="M137 138 H283 V224 Q283 238 269 241 H151 Q137 238 137 224 Z" fill="url(#giftBlueFront)" />
-                        <path d="M137 138 L153 128 H267 L283 138 H137 Z" fill="#6d9dff" opacity=".92" />
-                        <path d="M258 140 H283 V224 Q283 237 270 240 H258 Z" fill="url(#giftBlueSide)" opacity=".88" />
-                        <path d="M147 146 H198 V224 Q198 233 190 236 H151 Q144 234 144 225 V151 Q144 147 147 146Z" fill="#ffffff" opacity=".08" />
-                        <rect x="198" y="138" width="25" height="102" fill="url(#giftGold)" />
-                        <rect x="137" y="172" width="146" height="22" fill="url(#giftGoldSoft)" />
-                        <path d="M205 141 H212 V236 H205 Z" fill="#fff7c9" opacity=".58" />
-                        <path d="M139 173 H282 V179 H139 Z" fill="#fff2a0" opacity=".52" />
+                        <path d="M145 143 H275 V226 Q275 239 262 242 H158 Q145 239 145 226 Z" fill="url(#giftBlueFront)" />
+                        <path d="M145 143 L160 132 H260 L275 143 L259 153 H160 Z" fill="#6E9BFA" opacity=".9" />
+                        <path d="M253 145 H275 V226 Q275 238 263 241 H253 Z" fill="url(#giftBlueSide)" opacity=".92" />
+                        <path d="M152 151 H194 V226 Q194 235 185 238 H160 Q152 236 152 227 Z" fill="#fff" opacity=".10" />
+                        <rect x="198" y="143" width="24" height="98" fill="url(#giftGold)" />
+                        <path d="M204 145 H211 V239 H204 Z" fill="#FFF7C9" opacity=".62" />
+                        <path d="M145 174 H275 V196 H145 Z" fill="url(#giftGoldSoft)" />
+                        <path d="M147 175 H273 V181 H147 Z" fill="#FFF3A4" opacity=".54" />
+                        <path d="M259 196 H275 V226 Q274 236 265 240 H259 Z" fill="#73500B" opacity=".12" />
+                      </g>
+
+                      <g className="gift-svg-cavity">
+                        <ellipse cx="210" cy="143" rx="61" ry="15" fill="#102D70" opacity=".9" />
+                        <ellipse cx="210" cy="141" rx="58" ry="12" fill="#071D55" opacity=".72" stroke="url(#giftGoldSoft)" strokeWidth="4" />
+                        <ellipse cx="210" cy="139" rx="48" ry="9" fill="url(#giftInnerBurst)" opacity=".9" />
+                        <ellipse cx="210" cy="139" rx="34" ry="6" fill="#FFFDEB" opacity=".96" />
                       </g>
 
                       <g className="gift-svg-lid">
-                        <rect x="127" y="111" width="166" height="48" rx="10" fill="url(#giftBlueLid)" />
-                        <path d="M136 105 H284 Q292 105 294 112 H126 Q128 105 136 105Z" fill="#a8cfff" opacity=".86" />
-                        <path d="M278 112 H293 V150 Q292 158 285 159 H278 Z" fill="#14367e" opacity=".46" />
-                        <rect x="198" y="105" width="25" height="54" fill="url(#giftGold)" />
-                        <path d="M205 106 H212 V158 H205 Z" fill="#fff7cf" opacity=".55" />
+                        <rect x="125" y="106" width="170" height="45" rx="9" fill="url(#giftBlueLid)" />
+                        <path d="M135 99 H285 Q293 99 296 107 H124 Q127 99 135 99Z" fill="#A8CFFF" opacity=".9" />
+                        <path d="M280 107 H295 V143 Q294 150 286 151 H280 Z" fill="#123579" opacity=".5" />
+                        <rect x="198" y="99" width="25" height="52" fill="url(#giftGold)" />
+                        <path d="M205 101 H212 V149 H205 Z" fill="#FFF8D2" opacity=".64" />
+                        <path d="M128 108 H292 V115 H128 Z" fill="#FFF" opacity=".12" />
 
                         <g className="gift-svg-bow" filter="url(#giftTinyShadow)">
-                          <path className="gift-svg-bow-left" d="M205 103 C185 81 156 73 149 87 C143 99 168 110 202 111 C178 102 169 94 174 88 C180 81 195 89 210 105 Z" fill="url(#giftGoldSoft)" />
-                          <path className="gift-svg-bow-right" d="M216 103 C235 80 266 73 272 88 C278 101 251 111 219 111 C243 102 252 94 247 88 C241 81 226 89 211 105 Z" fill="url(#giftGoldSoft)" />
-                          <path d="M205 106 C190 92 182 72 191 67 C200 62 211 82 212 102 C213 82 225 62 234 67 C243 72 234 94 219 107 Z" fill="url(#giftGold)" />
-                          <rect x="202" y="97" width="20" height="20" rx="7" fill="url(#giftGoldSoft)" />
-                          <path d="M205 114 L195 141 L211 131 L213 153 L225 116 Z" fill="url(#giftGold)" />
+                          <path className="gift-svg-bow-left" d="M204 101 C180 76 145 72 142 90 C140 105 173 111 201 108 C174 103 165 94 171 87 C178 78 193 87 210 103 Z" fill="url(#giftGoldSoft)" />
+                          <path className="gift-svg-bow-right" d="M217 101 C241 76 276 72 279 90 C281 105 248 111 220 108 C247 103 256 94 250 87 C243 78 228 87 211 103 Z" fill="url(#giftGoldSoft)" />
+                          <path d="M205 103 C185 88 177 61 189 55 C202 49 211 77 212 98 C214 77 224 48 237 55 C250 62 239 90 219 104 Z" fill="url(#giftGold)" />
+                          <rect x="201" y="94" width="22" height="22" rx="8" fill="url(#giftGoldSoft)" />
+                          <path d="M204 111 L193 145 L210 133 L213 155 L226 111 Z" fill="url(#giftGold)" />
+                          <path d="M205 97 H211 V111 H205 Z" fill="#FFF7C7" opacity=".55" />
                         </g>
                       </g>
                     </g>
@@ -488,38 +530,59 @@ export default function GiftVoucherCampaign({ slug, onClose }: { slug: string; o
 
                     <g className="gift-svg-badges" filter="url(#giftTinyShadow)">
                       <g className="gift-svg-badge-percent">
-                        <rect x="70" y="75" width="48" height="42" rx="10" fill="#ff5138" />
-                        <rect x="74" y="79" width="40" height="34" rx="8" fill="#ff644c" opacity=".64" />
-                        <text x="94" y="103" textAnchor="middle" fill="#fff" fontWeight="900" fontSize="22">%</text>
+                        <rect x="65" y="70" width="49" height="44" rx="11" fill="#FF4E37" />
+                        <rect x="69" y="74" width="41" height="36" rx="9" fill="#FF745F" opacity=".58" />
+                        <text x="89.5" y="100" textAnchor="middle" fill="#fff" fontWeight="900" fontSize="23">%</text>
                       </g>
                       <g className="gift-svg-badge-fs">
-                        <rect x="302" y="78" width="49" height="42" rx="10" fill="#2766e7" />
-                        <rect x="306" y="82" width="41" height="34" rx="8" fill="#4b84f6" opacity=".7" />
-                        <text x="326.5" y="104" textAnchor="middle" fill="#fff" fontWeight="900" fontSize="18">FS</text>
+                        <rect x="307" y="74" width="50" height="44" rx="11" fill="#2867E8" />
+                        <rect x="311" y="78" width="42" height="36" rx="9" fill="#5891FF" opacity=".66" />
+                        <text x="332" y="101" textAnchor="middle" fill="#fff" fontWeight="900" fontSize="18">FS</text>
                       </g>
                     </g>
 
                     <g className="gift-svg-coins" filter="url(#giftTinyShadow)">
-                      <g className="gift-svg-coin gift-svg-coin-a" transform="translate(91 155)">
-                        <circle r="15" fill="url(#giftGoldSoft)" />
-                        <circle r="10" fill="none" stroke="#fff0a5" strokeWidth="2" opacity=".8" />
-                        <text y="5" textAnchor="middle" fill="#945000" fontSize="12" fontWeight="900">₫</text>
+                      <g className="gift-svg-coin gift-svg-coin-a" transform="translate(91 151)">
+                        <circle r="16" fill="url(#giftGoldSoft)" />
+                        <circle r="11" fill="none" stroke="#FFF3AE" strokeWidth="2" opacity=".86" />
+                        <text y="5" textAnchor="middle" fill="#8D4C00" fontSize="12" fontWeight="900">₫</text>
                       </g>
-                      <g className="gift-svg-coin gift-svg-coin-b" transform="translate(330 157)">
-                        <circle r="14" fill="url(#giftGoldSoft)" />
-                        <circle r="9" fill="none" stroke="#fff0a5" strokeWidth="2" opacity=".8" />
-                        <text y="5" textAnchor="middle" fill="#945000" fontSize="11" fontWeight="900">₫</text>
+                      <g className="gift-svg-coin gift-svg-coin-b" transform="translate(333 151)">
+                        <circle r="15" fill="url(#giftGoldSoft)" />
+                        <circle r="10" fill="none" stroke="#FFF3AE" strokeWidth="2" opacity=".86" />
+                        <text y="5" textAnchor="middle" fill="#8D4C00" fontSize="11" fontWeight="900">₫</text>
+                      </g>
+                      <g className="gift-svg-coin gift-svg-coin-c" transform="translate(125 211)">
+                        <circle r="12" fill="url(#giftGoldSoft)" />
+                        <circle r="8" fill="none" stroke="#FFF3AE" strokeWidth="1.8" opacity=".82" />
+                        <text y="4" textAnchor="middle" fill="#8D4C00" fontSize="9" fontWeight="900">₫</text>
+                      </g>
+                      <g className="gift-svg-coin gift-svg-coin-d" transform="translate(304 211)">
+                        <circle r="12" fill="url(#giftGoldSoft)" />
+                        <circle r="8" fill="none" stroke="#FFF3AE" strokeWidth="1.8" opacity=".82" />
+                        <text y="4" textAnchor="middle" fill="#8D4C00" fontSize="9" fontWeight="900">₫</text>
                       </g>
                     </g>
 
+                    <g className="gift-svg-sparkles">
+                      <path className="gift-svg-spark gift-svg-spark-a" d="M333 44 l5 10 l10 5 l-10 5 l-5 10 l-5-10 l-10-5 l10-5Z" fill="#FFD82D" />
+                      <path className="gift-svg-spark gift-svg-spark-b" d="M111 47 l4 8 l8 4 l-8 4 l-4 8 l-4-8 l-8-4 l8-4Z" fill="#FFF1A5" />
+                      <path className="gift-svg-spark gift-svg-spark-c" d="M356 133 l3 7 l7 3 l-7 3 l-3 7 l-3-7 l-7-3 l7-3Z" fill="#FFF3A4" />
+                      <path className="gift-svg-spark gift-svg-spark-d" d="M73 124 l3 7 l7 3 l-7 3 l-3 7 l-3-7 l-7-3 l7-3Z" fill="#FFD331" />
+                    </g>
+
                     <g className="gift-svg-confetti">
-                      <rect x="117" y="46" width="7" height="17" rx="2" fill="#ff8a24" transform="rotate(-24 117 46)" />
-                      <rect x="293" y="48" width="7" height="17" rx="2" fill="#2c73ed" transform="rotate(24 293 48)" />
-                      <rect x="75" y="135" width="8" height="20" rx="2" fill="#ffd132" transform="rotate(18 75 135)" />
-                      <rect x="343" y="132" width="8" height="20" rx="2" fill="#ff7d22" transform="rotate(-8 343 132)" />
-                      <rect x="256" y="32" width="6" height="15" rx="2" fill="#ffd22e" transform="rotate(14 256 32)" />
-                      <path d="M330 53 l5 9 l10 1 l-8 7 l2 10 l-9-5 l-9 5 l2-10 l-8-7 l10-1Z" fill="#ffd62c" opacity=".92" />
-                      <path d="M112 61 l3 6 l7 1 l-5 5 l1 7 l-6-3 l-6 3 l1-7 l-5-5 l7-1Z" fill="#fff2a3" />
+                      <rect x="116" y="31" width="7" height="18" rx="2" fill="#FF8A24" transform="rotate(-24 116 31)" />
+                      <rect x="287" y="31" width="7" height="18" rx="2" fill="#2C73ED" transform="rotate(24 287 31)" />
+                      <rect x="66" y="111" width="8" height="20" rx="2" fill="#FFD132" transform="rotate(18 66 111)" />
+                      <rect x="354" y="112" width="8" height="20" rx="2" fill="#FF7D22" transform="rotate(-8 354 112)" />
+                      <rect x="253" y="19" width="6" height="15" rx="2" fill="#FFD22E" transform="rotate(14 253 19)" />
+                      <rect x="146" y="65" width="6" height="15" rx="2" fill="#2E75EE" transform="rotate(-26 146 65)" />
+                      <rect x="278" y="66" width="6" height="15" rx="2" fill="#FF9A24" transform="rotate(28 278 66)" />
+                      <rect x="102" y="191" width="7" height="17" rx="2" fill="#2D72E9" transform="rotate(-38 102 191)" />
+                      <rect x="321" y="192" width="7" height="17" rx="2" fill="#FF8120" transform="rotate(35 321 192)" />
+                      <circle cx="122" cy="119" r="4" fill="#FFD32D" />
+                      <circle cx="298" cy="124" r="4" fill="#FF7E24" />
                     </g>
                   </svg>
 
@@ -541,7 +604,7 @@ export default function GiftVoucherCampaign({ slug, onClose }: { slug: string; o
                 </div>
 
               </div>
-              <h2 className="text-[18px] leading-[1.15] font-extrabold text-gray-800 mb-2 gift-anim-fadeup max-w-[320px]">{campaign.title}</h2>
+              <h2 className="text-[18px] leading-[1.15] font-extrabold text-gray-800 mb-2 gift-anim-fadeup max-w-[320px]">{campaignTitleNode}</h2>
               {campaign.description && (
                 <p className="text-[13px] leading-6 text-gray-500 mb-5 max-w-[315px] gift-anim-fadeup">{campaign.description}</p>
               )}

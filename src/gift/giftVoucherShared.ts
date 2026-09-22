@@ -524,4 +524,157 @@ export const GIFT_FEATURE_STYLES = `
   .gift-svg-swoosh-back,.gift-svg-swoosh-front,.gift-svg-badge-percent,.gift-svg-badge-fs,.gift-svg-coin-a,.gift-svg-coin-b,.gift-svg-bow-left,.gift-svg-bow-right,.gift-scene-svg.is-open .gift-svg-lid,.gift-scene-svg.is-open .gift-svg-open-glow{animation:none!important}
 }
 
+
+/* KIMSHOP_GIFT_REFERENCE_MATCH_PASS_20260922 */
+@keyframes giftTeaserLidFloat{
+  0%,100%{transform:translateY(-32px) rotate(-2deg) scale(1.01)}
+  50%{transform:translateY(-39px) rotate(1deg) scale(1.025)}
+}
+@keyframes giftTeaserGlow{
+  0%,100%{opacity:.46;transform:scale(.88)}
+  50%{opacity:.70;transform:scale(1.02)}
+}
+@keyframes giftCoinC{0%,100%{transform:translate(125px,211px) translateY(0) rotate(-8deg)}50%{transform:translate(125px,211px) translateY(-7px) rotate(11deg)}}
+@keyframes giftCoinD{0%,100%{transform:translate(304px,211px) translateY(0) rotate(9deg)}50%{transform:translate(304px,211px) translateY(-6px) rotate(-10deg)}}
+@keyframes giftSparkPulse{0%,100%{opacity:.3;transform:scale(.74) rotate(0deg)}50%{opacity:1;transform:scale(1.16) rotate(14deg)}}
+@keyframes giftCardRibbonDrift{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
+
+.gift-premium-card{
+  max-width:410px!important;
+  border-radius:30px!important;
+  background:linear-gradient(180deg,#FFF0D2 0%,#FFF8EA 42%,#FFFDF9 68%,#FFFFFF 100%)!important;
+  box-shadow:0 34px 88px rgba(15,23,42,.34),0 0 0 1px rgba(255,255,255,.9) inset!important;
+}
+.gift-premium-inner{
+  padding:18px 24px 27px!important;
+  min-height:0!important;
+  overflow:hidden!important;
+}
+.gift-premium-inner::before{
+  background:
+    radial-gradient(circle at 50% 19%,rgba(255,213,100,.62),transparent 29%),
+    radial-gradient(circle at 10% 5%,rgba(255,255,255,.98),transparent 25%),
+    linear-gradient(135deg,rgba(255,255,255,.70),transparent 40%)!important;
+}
+.gift-premium-inner::after{
+  left:-24%!important;bottom:-16%!important;width:148%!important;height:34%!important;
+  background:radial-gradient(ellipse at center,rgba(255,188,63,.16),transparent 69%)!important;
+}
+.gift-premium-hero{
+  margin-bottom:4px!important;
+  padding-top:0!important;
+  z-index:2;
+}
+.gift-premium-bg{
+  top:-20px!important;
+  width:calc(100% + 58px)!important;
+  height:258px!important;
+  border-radius:30px!important;
+  opacity:.72!important;
+}
+.gift-premium-bg::before{opacity:.68!important}
+.gift-premium-sheen{opacity:.70!important}
+
+.gift-card-ribbons{
+  position:absolute;
+  inset:0;
+  width:100%;
+  height:100%;
+  pointer-events:none;
+  z-index:-1;
+  overflow:visible;
+}
+.gift-card-ribbon{
+  fill:none;
+  stroke:url(#giftCardRibbonGold);
+  stroke-width:14;
+  stroke-linecap:round;
+  filter:drop-shadow(0 5px 8px rgba(220,133,0,.10));
+  animation:giftCardRibbonDrift 4.8s ease-in-out infinite;
+}
+.gift-card-ribbon-right{animation-delay:-2.2s}
+
+.gift-box-wrap{
+  width:min(348px,92vw)!important;
+  height:236px!important;
+}
+.gift-scene-svg{
+  filter:drop-shadow(0 18px 25px rgba(27,43,94,.12))!important;
+}
+.gift-svg-box{transform-origin:210px 185px}
+.gift-svg-cavity{filter:drop-shadow(0 0 11px rgba(255,198,52,.62))}
+.gift-svg-lid{transform-box:fill-box;transform-origin:50% 88%!important}
+.gift-scene-svg.is-teaser-open .gift-svg-lid{
+  animation:giftTeaserLidFloat 3.1s ease-in-out infinite;
+}
+.gift-scene-svg.is-teaser-open .gift-svg-open-glow{
+  opacity:.54!important;
+  animation:giftTeaserGlow 2.7s ease-in-out infinite;
+}
+.gift-scene-svg.is-open .gift-svg-lid{
+  animation:giftSvgLidOpen .78s cubic-bezier(.24,1.45,.38,1) both!important;
+}
+.gift-scene-svg.is-open .gift-svg-open-glow{
+  animation:giftSvgGlowOpen .86s ease-out both!important;
+}
+@keyframes giftSvgLidOpen{
+  0%{transform:translateY(-34px) rotate(-2deg) scale(1.01)}
+  30%{transform:translateY(-47px) rotate(-6deg) scale(1.025)}
+  68%{transform:translateY(-85px) rotate(-14deg) scale(1.075)}
+  100%{transform:translateY(-72px) rotate(-10deg) scale(1.055)}
+}
+@keyframes giftSvgGlowOpen{
+  0%{opacity:.48;transform:scale(.88)}
+  38%{opacity:1;transform:scale(1.24)}
+  100%{opacity:.92;transform:scale(1.08)}
+}
+.gift-svg-bow-left,.gift-svg-bow-right{filter:drop-shadow(0 3px 3px rgba(132,75,0,.12))}
+.gift-svg-coin-c{transform-origin:center;animation:giftCoinC 2.9s ease-in-out infinite}
+.gift-svg-coin-d{transform-origin:center;animation:giftCoinD 3.2s ease-in-out infinite}
+.gift-svg-spark{transform-box:fill-box;transform-origin:center;animation:giftSparkPulse 1.9s ease-in-out infinite}
+.gift-svg-spark-b{animation-delay:-.45s}.gift-svg-spark-c{animation-delay:-.9s}.gift-svg-spark-d{animation-delay:-1.3s}
+.gift-svg-confetti{filter:drop-shadow(0 2px 2px rgba(59,42,0,.08))}
+
+.gift-title-brand{color:#EE4D2D}
+.gift-premium-inner > h2{
+  font-size:19px!important;
+  line-height:1.08!important;
+  max-width:330px!important;
+  margin-top:-3px!important;
+  margin-bottom:9px!important;
+  letter-spacing:-.02em;
+}
+.gift-premium-inner > p{
+  font-size:12px!important;
+  line-height:1.8!important;
+  max-width:328px!important;
+  margin-bottom:17px!important;
+}
+.gift-premium-inner > button{
+  width:100%!important;
+  max-width:315px!important;
+  padding-top:14px!important;
+  padding-bottom:14px!important;
+  border-radius:19px!important;
+  box-shadow:0 14px 28px rgba(238,77,45,.25)!important;
+}
+.gift-premium-inner > button + p{
+  margin-top:11px!important;
+  margin-bottom:0!important;
+  font-size:10.5px!important;
+  line-height:1.3!important;
+}
+
+@media (max-width:640px){
+  .gift-premium-card{max-width:min(410px,94vw)!important}
+  .gift-premium-inner{padding:16px 20px 24px!important}
+  .gift-box-wrap{width:min(326px,90vw)!important;height:222px!important}
+  .gift-premium-bg{width:calc(100% + 42px)!important;height:246px!important}
+  .gift-premium-inner > h2{font-size:18px!important}
+  .gift-premium-inner > button{max-width:300px!important}
+}
+@media (prefers-reduced-motion:reduce){
+  .gift-scene-svg.is-teaser-open .gift-svg-lid,.gift-scene-svg.is-teaser-open .gift-svg-open-glow,.gift-svg-coin-c,.gift-svg-coin-d,.gift-svg-spark,.gift-card-ribbon{animation:none!important}
+}
+
 `;
