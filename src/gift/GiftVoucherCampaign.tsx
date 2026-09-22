@@ -510,22 +510,15 @@ export default function GiftVoucherCampaign({ slug, onClose }: { slug: string; o
 
                     <g className="gift-svg-box">
                       <g className="gift-svg-body">
-                        <!-- One continuous rounded box silhouette: no protruding polygon sides -->
                         <rect x="128" y="154" width="168" height="84" rx="15" fill="url(#giftBlueFront)" stroke="#194BAE" strokeWidth="1.5" />
-
-                        <!-- Internal light/dark planes keep the 3D feel without changing the outer rounded shape -->
                         <path d="M128 169 Q128 154 143 154 H174 V238 H143 Q128 238 128 223 Z" fill="#6E9FF2" opacity=".38" />
                         <rect x="174" y="154" width="80" height="84" fill="#215ACB" opacity=".18" />
                         <path d="M254 154 H281 Q296 154 296 169 V223 Q296 238 281 238 H254 Z" fill="#0B2C77" opacity=".34" />
                         <rect x="128" y="154" width="168" height="84" rx="15" fill="url(#giftBlueGloss)" />
-
-                        <!-- Two gold ribbons like the target render, but narrower so the body still reads as one box -->
                         <rect x="165" y="154" width="18" height="84" rx="5" fill="url(#giftGold)" />
                         <rect x="241" y="154" width="18" height="84" rx="5" fill="url(#giftGold)" />
                         <rect x="170" y="157" width="5" height="78" rx="2.5" fill="#FFF4B7" opacity=".60" />
                         <rect x="246" y="157" width="5" height="78" rx="2.5" fill="#FFF4B7" opacity=".50" />
-
-                        <!-- Gloss and sparkles -->
                         <path className="gift-svg-body-shine" d="M139 164 V226" fill="none" stroke="#F1F7FF" strokeWidth="2.4" strokeLinecap="round" opacity=".38" />
                         <path className="gift-svg-body-shine" d="M285 164 V226" fill="none" stroke="#82AEFF" strokeWidth="1.4" strokeLinecap="round" opacity=".18" />
                         <path d="M216 184 l5 10 l10 5 l-10 5 l-5 10 l-5-10 l-10-5 l10-5Z" fill="#FFFFFF" opacity=".92" />
@@ -546,12 +539,9 @@ export default function GiftVoucherCampaign({ slug, onClose }: { slug: string; o
                       </g>
 
                       <g className="gift-svg-lid">
-                        <!-- One continuous rounded lid -->
                         <rect x="119" y="117" width="186" height="41" rx="14" fill="url(#giftBlueLid)" stroke="#1C4DB2" strokeWidth="1.4" />
                         <rect x="119" y="117" width="186" height="17" rx="14" fill="url(#giftLidTopGloss)" />
                         <path d="M121 134 H303 V149 Q303 158 294 158 H130 Q121 158 121 149 Z" fill="#0D3D9D" opacity=".10" />
-
-                        <!-- Soft right-side shading lives inside the rounded lid instead of sticking out -->
                         <path d="M279 117 H291 Q305 117 305 131 V144 Q305 158 291 158 H279 Z" fill="#092B73" opacity=".30" />
                         <path d="M119 131 Q119 117 133 117 H147 V158 H133 Q119 158 119 144 Z" fill="#7DACF7" opacity=".26" />
 
