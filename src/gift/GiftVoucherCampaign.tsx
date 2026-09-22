@@ -337,21 +337,26 @@ export default function GiftVoucherCampaign({ slug, onClose }: { slug: string; o
                   <div className="gift-box-shadow" />
                   <div className="gift-box-3d">
                     <div className="gift-box-lid">
+                      <div className="gift-box-gloss" />
                       <div className="gift-box-ribbon-v" />
                     </div>
                     <div className="gift-box-body">
+                      <div className="gift-box-gloss" />
                       <div className="gift-box-ribbon-v" />
                       <div className="gift-box-ribbon-h" />
                     </div>
+                    <div className="gift-box-base-highlight" />
                     <div className="gift-box-bow">
                       <div className="gift-box-knot" />
                     </div>
                   </div>
-                  <Sparkles size={18} className="absolute top-1 right-3 text-yellow-300" />
-                  <Sparkles size={14} className="absolute left-4 top-7 text-yellow-200" />
-                  <div className="gift-coin" style={{ left: '8px', top: '18px', animationDelay: '0ms' }} />
-                  <div className="gift-coin" style={{ right: '10px', top: '34px', animationDelay: '220ms' }} />
-                  <div className="gift-coin" style={{ left: '26px', bottom: '18px', animationDelay: '420ms' }} />
+                  <Sparkles size={20} className="absolute top-2 right-5 text-yellow-300" />
+                  <Sparkles size={16} className="absolute left-7 top-10 text-yellow-200" />
+                  <Sparkles size={12} className="absolute right-7 bottom-10 text-orange-200" />
+                  <div className="gift-coin" style={{ left: '10px', top: '24px', animationDelay: '0ms' }} />
+                  <div className="gift-coin" style={{ right: '14px', top: '42px', animationDelay: '220ms' }} />
+                  <div className="gift-coin" style={{ left: '34px', bottom: '26px', animationDelay: '420ms' }} />
+                  <div className="gift-coin" style={{ right: '28px', bottom: '32px', animationDelay: '620ms' }} />
                 </div>
               </div>
               <h2 className="text-lg font-bold text-gray-800 mb-1.5 gift-anim-fadeup">{campaign.title}</h2>
