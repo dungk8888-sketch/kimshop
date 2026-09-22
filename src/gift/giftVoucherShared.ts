@@ -1475,4 +1475,37 @@ export const GIFT_FEATURE_STYLES = `
   }
 }
 
+
+/* KIMSHOP_GIFT_PLANAR_FACETS_PASS_20260922 */
+.gift-svg-body,.gift-svg-lid{
+  filter:none!important;
+}
+.gift-svg-body{
+  filter:drop-shadow(0 16px 14px rgba(5,24,73,.23))!important;
+}
+.gift-svg-lid{
+  filter:drop-shadow(0 10px 9px rgba(5,24,73,.20))!important;
+}
+.gift-svg-body path,.gift-svg-lid path{
+  vector-effect:non-scaling-stroke;
+}
+.gift-scene-svg.is-closed .gift-svg-lid{
+  transform:none!important;
+  animation:none!important;
+}
+@keyframes giftPlanarLidOpen{
+  0%{transform:translateY(0) rotate(0deg) scale(1)}
+  24%{transform:translateY(-8px) rotate(-3deg) scale(1.01)}
+  68%{transform:translateY(-60px) rotate(-11deg) scale(1.05)}
+  100%{transform:translateY(-49px) rotate(-8deg) scale(1.035)}
+}
+.gift-scene-svg.is-open .gift-svg-lid{
+  animation:giftPlanarLidOpen .82s cubic-bezier(.2,1.45,.35,1) both!important;
+}
+.gift-svg-stage{
+  transform:scaleX(.90)!important;
+}
+.gift-svg-swoosh-back{opacity:.34!important}
+.gift-card-edge-ribbon{opacity:.38!important}
+
 `;
