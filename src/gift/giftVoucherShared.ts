@@ -1027,4 +1027,62 @@ export const GIFT_FEATURE_STYLES = `
   .gift-svg-lid{transform:rotate(-7deg)!important}
 }
 
+
+/* KIMSHOP_GIFT_LOCAL_VERIFIED_PASS_20260922 */
+.gift-card-edge-ribbon{
+  stroke-width:13px!important;
+  opacity:.72!important;
+}
+.gift-card-edge-highlight{opacity:.72!important}
+
+.gift-box-wrap{
+  width:min(384px,94vw)!important;
+  height:262px!important;
+}
+.gift-scene-svg{
+  transform:scale(1.03)!important;
+  transform-origin:50% 52%!important;
+}
+.gift-svg-body{
+  filter:drop-shadow(0 14px 15px rgba(13,39,105,.19))!important;
+}
+.gift-svg-lid{
+  transform-origin:50% 72%!important;
+  filter:drop-shadow(0 13px 12px rgba(10,36,98,.22))!important;
+}
+.gift-gap-burst{opacity:1!important}
+.gift-svg-stage{transform:scaleX(1)!important}
+.gift-svg-swoosh-back{
+  opacity:.84!important;
+  filter:drop-shadow(0 5px 9px rgba(231,144,0,.12));
+}
+
+@keyframes giftTargetLidLocalIdle{
+  0%,100%{transform:translateY(-5px) rotate(-5deg) scale(1)}
+  50%{transform:translateY(-10px) rotate(-6deg) scale(1.016)}
+}
+.gift-scene-svg.is-teaser-open .gift-svg-lid{
+  animation:giftTargetLidLocalIdle 3.1s ease-in-out infinite!important;
+}
+@keyframes giftTargetLidLocalOpen{
+  0%{transform:translateY(-5px) rotate(-5deg) scale(1)}
+  32%{transform:translateY(-16px) rotate(-9deg) scale(1.03)}
+  70%{transform:translateY(-43px) rotate(-16deg) scale(1.075)}
+  100%{transform:translateY(-34px) rotate(-12deg) scale(1.055)}
+}
+.gift-scene-svg.is-open .gift-svg-lid{
+  animation:giftTargetLidLocalOpen .8s cubic-bezier(.24,1.45,.38,1) both!important;
+}
+
+.gift-svg-spark-e{animation-delay:-.7s!important}
+.gift-svg-spark-f{animation-delay:-1.05s!important}
+
+@media (max-width:640px){
+  .gift-box-wrap{width:min(360px,92vw)!important;height:248px!important}
+  .gift-card-edge-ribbon{stroke-width:11px!important}
+}
+@media (prefers-reduced-motion:reduce){
+  .gift-scene-svg.is-teaser-open .gift-svg-lid,.gift-scene-svg.is-open .gift-svg-lid{animation:none!important}
+}
+
 `;
