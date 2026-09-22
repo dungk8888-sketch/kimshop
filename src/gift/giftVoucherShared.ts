@@ -1371,4 +1371,108 @@ export const GIFT_FEATURE_STYLES = `
   .gift-box-wrap{width:min(328px,91vw)!important;height:226px!important}
 }
 
+
+/* KIMSHOP_GIFT_HARD_EDGE_3D_PASS_20260922 */
+.gift-box-wrap{
+  width:min(356px,92vw)!important;
+  height:242px!important;
+}
+.gift-scene-svg{
+  transform:scale(1.025)!important;
+  transform-origin:50% 53%!important;
+}
+.gift-svg-body{
+  filter:drop-shadow(0 17px 17px rgba(4,23,76,.26))!important;
+}
+.gift-svg-lid{
+  transform-box:fill-box;
+  transform-origin:50% 88%!important;
+  filter:drop-shadow(0 12px 11px rgba(5,25,78,.22))!important;
+}
+.gift-svg-body path,.gift-svg-lid path{
+  shape-rendering:geometricPrecision;
+}
+.gift-svg-cavity{
+  filter:drop-shadow(0 0 16px rgba(255,191,38,.72))!important;
+}
+.gift-svg-stage{
+  transform:scaleX(.92)!important;
+  transform-origin:210px 244px!important;
+  filter:drop-shadow(0 0 10px rgba(255,176,25,.30))!important;
+}
+
+/* Closed really means closed: no glow/coins/confetti until burst. */
+.gift-scene-svg.is-closed .gift-svg-lid{
+  transform:none!important;
+  animation:none!important;
+}
+.gift-scene-svg.is-closed .gift-gap-burst,
+.gift-scene-svg.is-closed .gift-svg-cavity,
+.gift-scene-svg.is-closed .gift-svg-open-glow,
+.gift-scene-svg.is-closed .gift-svg-coins,
+.gift-scene-svg.is-closed .gift-svg-confetti,
+.gift-scene-svg.is-closed .gift-svg-sparkles{
+  opacity:0!important;
+  pointer-events:none!important;
+}
+.gift-scene-svg.is-closed .gift-svg-rays{opacity:.18!important}
+.gift-scene-svg.is-closed .gift-svg-swoosh-back{opacity:.38!important}
+.gift-scene-svg.is-closed .gift-svg-closed-glints{opacity:1!important}
+
+@keyframes giftHardEdgeLidOpen{
+  0%{transform:translateY(0) rotate(0deg) scale(1)}
+  24%{transform:translateY(-8px) rotate(-3deg) scale(1.01)}
+  68%{transform:translateY(-58px) rotate(-11deg) scale(1.05)}
+  100%{transform:translateY(-48px) rotate(-8deg) scale(1.035)}
+}
+.gift-scene-svg.is-open .gift-svg-lid{
+  animation:giftHardEdgeLidOpen .82s cubic-bezier(.2,1.45,.35,1) both!important;
+}
+.gift-scene-svg.is-open .gift-gap-burst,
+.gift-scene-svg.is-open .gift-svg-cavity{
+  transform-box:fill-box;
+  transform-origin:center;
+  animation:giftOpenDetailPop .58s .14s ease-out both!important;
+}
+.gift-scene-svg.is-open .gift-svg-open-glow{
+  animation:giftSvgGlowOpen .88s .10s ease-out both!important;
+}
+.gift-scene-svg.is-open .gift-svg-coins{
+  animation:giftOpenDetailRise .62s .20s ease-out both!important;
+}
+.gift-scene-svg.is-open .gift-svg-confetti{
+  animation:giftOpenDetailRise .56s .16s ease-out both!important;
+}
+.gift-scene-svg.is-open .gift-svg-sparkles{
+  animation:giftOpenDetailPop .54s .22s ease-out both!important;
+}
+.gift-scene-svg.is-open .gift-svg-rays{
+  animation:giftOpenRays .7s ease-out both!important;
+}
+.gift-scene-svg.is-open .gift-svg-closed-glints{opacity:0!important}
+
+.gift-svg-body-shine,.gift-svg-lid-shine{
+  filter:drop-shadow(0 0 4px rgba(255,255,255,.42));
+}
+.gift-card-edge-ribbon{
+  stroke-width:9px!important;
+  opacity:.46!important;
+}
+
+@media (max-width:640px){
+  .gift-box-wrap{width:min(338px,91vw)!important;height:230px!important}
+}
+@media (prefers-reduced-motion:reduce){
+  .gift-scene-svg.is-open .gift-svg-lid,
+  .gift-scene-svg.is-open .gift-gap-burst,
+  .gift-scene-svg.is-open .gift-svg-cavity,
+  .gift-scene-svg.is-open .gift-svg-open-glow,
+  .gift-scene-svg.is-open .gift-svg-coins,
+  .gift-scene-svg.is-open .gift-svg-confetti,
+  .gift-scene-svg.is-open .gift-svg-sparkles,
+  .gift-scene-svg.is-open .gift-svg-rays{
+    animation:none!important;
+  }
+}
+
 `;
