@@ -318,11 +318,11 @@ export default function GiftVoucherCampaign({ slug, onClose }: { slug: string; o
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-[2px] gift-anim-overlay p-4">
-      <div className="gift-premium-card relative w-full max-w-md rounded-[30px] overflow-hidden shadow-2xl max-h-[90vh] overflow-y-auto">
+      <div className="gift-premium-card relative w-full max-w-md rounded-[30px] overflow-hidden shadow-2xl max-h-[92vh]">
         <button onClick={onClose} aria-label="Đóng" className="absolute right-3 top-3 z-10 w-9 h-9 rounded-full bg-white/90 shadow flex items-center justify-center text-gray-500 hover:text-gray-800">
           <X size={18} />
         </button>
-        <div className="gift-premium-inner relative px-6 pt-8 pb-7 flex flex-col items-center text-center min-h-[420px] justify-center">
+        <div className="gift-premium-inner relative px-6 pt-6 pb-6 flex flex-col items-center text-center min-h-[400px] justify-start">
           <div className="gift-premium-orb gift-premium-orb-a" />
           <div className="gift-premium-orb gift-premium-orb-b" />
           {phase === 'loading' && <div className="flex flex-col items-center gap-3 text-gray-400"><Loader2 size={30} className="animate-spin" /><p className="text-sm">Đang tải hộp quà...</p></div>}
@@ -333,7 +333,7 @@ export default function GiftVoucherCampaign({ slug, onClose }: { slug: string; o
 
           {(phase === 'teaser' || phase === 'opening') && campaign && (
             <>
-              <div className="relative mb-8 flex flex-col items-center">
+              <div className="relative mb-4 flex flex-col items-center">
                 <div className="absolute inset-0 rounded-full bg-[#FFB020]/45 blur-3xl gift-anim-glow" />
                 <div className="gift-stage-ring" />
                 <div className={`gift-box-wrap ${phase === 'opening' ? 'gift-anim-shake gift-box-open' : 'gift-anim-float'}`}>
