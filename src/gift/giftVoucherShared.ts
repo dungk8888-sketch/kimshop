@@ -192,12 +192,12 @@ export const GIFT_FEATURE_STYLES = `
 .gift-box-wrap{position:relative;width:184px;height:170px;display:flex;align-items:center;justify-content:center}
 .gift-box-shadow{position:absolute;bottom:8px;left:50%;transform:translateX(-50%);width:124px;height:28px;background:rgba(10,18,45,.18);filter:blur(14px);border-radius:9999px}
 .gift-box-3d{position:relative;width:144px;height:132px;transform-style:preserve-3d;filter:drop-shadow(0 20px 34px rgba(238,77,45,.24))}
-.gift-box-lid{position:absolute;top:8px;left:50%;transform:translateX(-50%);width:136px;height:38px;border-radius:18px;background:linear-gradient(180deg,#2E6BFF 0%,#1D4ED8 100%);box-shadow:0 12px 18px rgba(0,0,0,.16),inset 0 2px 2px rgba(255,255,255,.28);z-index:4;overflow:hidden}
+.gift-box-lid{position:absolute;top:10px;left:50%;transform:translateX(-50%);width:126px;height:34px;border-radius:16px;background:linear-gradient(180deg,#2E6BFF 0%,#1D4ED8 100%);box-shadow:0 12px 18px rgba(0,0,0,.16),inset 0 2px 2px rgba(255,255,255,.28);z-index:4;overflow:hidden}
 .gift-box-body{position:absolute;top:38px;left:50%;transform:translateX(-50%);width:124px;height:84px;border-radius:18px;background:linear-gradient(180deg,#2B66F5 0%,#1E40AF 100%);box-shadow:0 16px 28px rgba(0,0,0,.18),inset 0 3px 2px rgba(255,255,255,.2);overflow:hidden;z-index:2}
 .gift-box-gloss{position:absolute;top:10px;left:14px;width:46px;height:18px;border-radius:9999px;background:rgba(255,255,255,.18);filter:blur(1px)}
 .gift-box-ribbon-v{position:absolute;top:0;left:50%;transform:translateX(-50%);width:22px;height:100%;background:linear-gradient(180deg,#FFD84D 0%,#F59E0B 100%);box-shadow:inset 0 1px 1px rgba(255,255,255,.4);z-index:5}
 .gift-box-ribbon-h{position:absolute;top:30px;left:0;width:100%;height:20px;background:linear-gradient(180deg,#FFD84D 0%,#F59E0B 100%);box-shadow:inset 0 1px 1px rgba(255,255,255,.35);z-index:5}
-.gift-box-bow{position:absolute;top:-2px;left:50%;transform:translateX(-50%);width:70px;height:32px;z-index:6}
+.gift-box-bow{position:absolute;top:1px;left:50%;transform:translateX(-50%);width:64px;height:30px;z-index:6}
 .gift-box-bow::before,.gift-box-bow::after{content:'';position:absolute;top:2px;width:28px;height:22px;border:7px solid #FFD84D;border-radius:9999px 9999px 10px 9999px;background:rgba(255,255,255,.08);box-shadow:inset 0 1px 1px rgba(255,255,255,.18)}
 .gift-box-bow::before{left:1px;transform:rotate(-18deg)}
 .gift-box-bow::after{right:1px;transform:scaleX(-1) rotate(-18deg)}
