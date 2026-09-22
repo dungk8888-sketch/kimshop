@@ -350,32 +350,70 @@ export default function GiftVoucherCampaign({ slug, onClose }: { slug: string; o
                 <div className="gift-stage-ring" />
                 <div className={`gift-box-wrap ${phase === 'opening' ? 'gift-anim-shake gift-box-open' : 'gift-anim-float'}`}>
                   <div className="gift-box-shadow" />
-                  {phase === 'teaser' ? (
-                    <img
-                      src="/gift-box-closed.webp"
-                      alt="Hộp quà KIMSHOP"
-                      className="gift-rendered-asset"
-                      draggable={false}
-                    />
-                  ) : (
-                    <div className="gift-box-3d gift-opening-scene">
-                      <div className="gift-box-lid">
-                        <div className="gift-box-gloss" />
-                        <div className="gift-box-ribbon-v" />
-                      </div>
-                      <div className="gift-box-body">
-                        <div className="gift-box-face gift-box-face-left" />
-                        <div className="gift-box-face gift-box-face-right" />
-                        <div className="gift-box-gloss" />
-                        <div className="gift-box-ribbon-v" />
-                        <div className="gift-box-ribbon-h" />
-                      </div>
-                      <div className="gift-box-base-highlight" />
-                      <div className="gift-box-bow">
-                        <div className="gift-box-knot" />
-                      </div>
-                    </div>
-                  )}
+                  <svg className="gift-svg-3d" viewBox="0 0 220 190" aria-label="Hộp quà KIMSHOP" role="img">
+                    <defs>
+                      <linearGradient id="giftBlueFront" x1="0" y1="0" x2="1" y2="1">
+                        <stop offset="0%" stopColor="#5D91FF" />
+                        <stop offset="38%" stopColor="#2F69EE" />
+                        <stop offset="100%" stopColor="#173A97" />
+                      </linearGradient>
+                      <linearGradient id="giftBlueSide" x1="0" y1="0" x2="1" y2="1">
+                        <stop offset="0%" stopColor="#2859CF" />
+                        <stop offset="100%" stopColor="#102B78" />
+                      </linearGradient>
+                      <linearGradient id="giftGold" x1="0" y1="0" x2="1" y2="0">
+                        <stop offset="0%" stopColor="#E99400" />
+                        <stop offset="28%" stopColor="#FFD85B" />
+                        <stop offset="52%" stopColor="#FFF0A0" />
+                        <stop offset="76%" stopColor="#FFC52C" />
+                        <stop offset="100%" stopColor="#DF8700" />
+                      </linearGradient>
+                      <radialGradient id="giftInsideGlow" cx="50%" cy="50%" r="50%">
+                        <stop offset="0%" stopColor="#FFFCE3" stopOpacity="1" />
+                        <stop offset="42%" stopColor="#FFD85A" stopOpacity=".9" />
+                        <stop offset="100%" stopColor="#FF9C1A" stopOpacity="0" />
+                      </radialGradient>
+                      <filter id="giftShadow" x="-40%" y="-40%" width="180%" height="200%">
+                        <feDropShadow dx="0" dy="14" stdDeviation="12" floodColor="#153B8F" floodOpacity=".30"/>
+                      </filter>
+                    </defs>
+
+                    <ellipse cx="110" cy="164" rx="63" ry="13" fill="rgba(27,63,145,.20)" />
+
+                    <g className="gift-svg-glow">
+                      <ellipse cx="110" cy="95" rx="75" ry="66" fill="url(#giftInsideGlow)" />
+                    </g>
+
+                    <g filter="url(#giftShadow)">
+                      <g className="gift-svg-body">
+                        <path d="M56 82 L110 71 L165 82 L165 145 Q165 158 152 161 L69 161 Q56 158 56 145 Z" fill="url(#giftBlueFront)" />
+                        <path d="M56 82 L110 71 L110 161 L69 161 Q56 158 56 145 Z" fill="rgba(255,255,255,.07)" />
+                        <path d="M165 82 L110 71 L110 161 L152 161 Q165 158 165 145 Z" fill="url(#giftBlueSide)" opacity=".42" />
+                        <rect x="98" y="75" width="25" height="86" rx="4" fill="url(#giftGold)" />
+                        <rect x="56" y="104" width="109" height="24" rx="3" fill="url(#giftGold)" />
+                        <path d="M66 88 Q96 75 126 80" stroke="rgba(255,255,255,.28)" strokeWidth="8" strokeLinecap="round" fill="none" />
+                        <path d="M72 146 Q107 156 146 145" stroke="rgba(255,255,255,.10)" strokeWidth="7" strokeLinecap="round" fill="none" />
+                      </g>
+
+                      <g className="gift-svg-lid">
+                        <path d="M47 71 Q47 57 61 54 L110 46 L161 54 Q175 57 175 71 L171 87 L51 87 Z" fill="url(#giftBlueFront)" />
+                        <path d="M98 48 L123 48 L123 87 L98 87 Z" fill="url(#giftGold)" />
+                        <path d="M60 62 Q104 48 154 61" stroke="rgba(255,255,255,.32)" strokeWidth="8" strokeLinecap="round" fill="none" />
+                        <g className="gift-svg-bow">
+                          <path d="M108 49 C87 28 70 31 74 45 C77 56 94 57 108 50 Z" fill="url(#giftGold)" />
+                          <path d="M113 49 C134 28 151 31 147 45 C144 56 127 57 113 50 Z" fill="url(#giftGold)" />
+                          <circle cx="110" cy="49" r="9" fill="#FFC62E" />
+                          <circle cx="108" cy="46" r="3.5" fill="#FFF2A1" opacity=".8" />
+                        </g>
+                      </g>
+                    </g>
+
+                    <g className="gift-svg-coins">
+                      <circle cx="54" cy="69" r="8" fill="#FFC934" stroke="#FFF2A0" strokeWidth="2" />
+                      <circle cx="173" cy="67" r="7" fill="#FFB817" stroke="#FFF2A0" strokeWidth="2" />
+                      <circle cx="153" cy="39" r="5" fill="#FFD95A" />
+                    </g>
+                  </svg>
                   <Sparkles size={20} className="absolute top-2 right-5 text-yellow-300" />
                   <Sparkles size={16} className="absolute left-7 top-10 text-yellow-200" />
                   <Sparkles size={12} className="absolute right-7 bottom-10 text-orange-200" />
