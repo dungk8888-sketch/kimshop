@@ -377,21 +377,23 @@ export default function GiftVoucherCampaign({ slug, onClose }: { slug: string; o
 
           {(phase === 'teaser' || phase === 'opening') && campaign && (
             <>
+              <svg className="gift-card-ribbons" viewBox="0 0 420 520" aria-hidden="true">
+                <defs>
+                  <linearGradient id="giftCardRibbonGold" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stopColor="#FFF1B5" stopOpacity=".88" />
+                    <stop offset="28%" stopColor="#FFC743" stopOpacity=".92" />
+                    <stop offset="70%" stopColor="#EE9A07" stopOpacity=".88" />
+                    <stop offset="100%" stopColor="#FFE69B" stopOpacity=".72" />
+                  </linearGradient>
+                </defs>
+                <path className="gift-card-ribbon gift-card-ribbon-left" d="M-20 505 C12 468 52 440 35 402 C22 374 0 359 12 328" />
+                <path className="gift-card-ribbon-highlight" d="M-20 505 C12 468 52 440 35 402 C22 374 0 359 12 328" />
+                <path className="gift-card-ribbon gift-card-ribbon-right" d="M440 505 C408 468 368 440 385 402 C398 374 420 359 408 328" />
+                <path className="gift-card-ribbon-highlight" d="M440 505 C408 468 368 440 385 402 C398 374 420 359 408 328" />
+              </svg>
               <div className="relative mb-5 flex flex-col items-center gift-premium-hero w-full">
                 <div className="gift-premium-bg" />
                 <div className="gift-premium-sheen" />
-                <svg className="gift-card-ribbons" viewBox="0 0 420 520" aria-hidden="true">
-                  <defs>
-                    <linearGradient id="giftCardRibbonGold" x1="0%" y1="0%" x2="100%" y2="100%">
-                      <stop offset="0%" stopColor="#FFE997" stopOpacity=".92" />
-                      <stop offset="34%" stopColor="#FFC43D" stopOpacity=".9" />
-                      <stop offset="70%" stopColor="#F3A20E" stopOpacity=".86" />
-                      <stop offset="100%" stopColor="#FFF1B4" stopOpacity=".72" />
-                    </linearGradient>
-                  </defs>
-                  <path className="gift-card-ribbon gift-card-ribbon-left" d="M-8 410 C35 374 56 418 35 458 C17 493 27 520 58 535" />
-                  <path className="gift-card-ribbon gift-card-ribbon-right" d="M428 398 C386 372 366 414 386 453 C404 488 397 516 368 538" />
-                </svg>
                 <div className={`gift-box-wrap ${boxWrapAnimClass}`}>
                   <svg
                     className={`gift-scene-svg ${boxStage === 'burst' ? 'is-open' : 'is-teaser-open'}`}
