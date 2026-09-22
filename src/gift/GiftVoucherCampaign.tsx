@@ -362,12 +362,16 @@ export default function GiftVoucherCampaign({ slug, onClose }: { slug: string; o
               <div className="relative mb-6 flex flex-col items-center">
                 <div className="absolute inset-0 rounded-full bg-[#FFB020]/45 blur-3xl gift-anim-glow" />
                 <div className={`gift-box-wrap ${boxWrapAnimClass}`}>
+                  <div className="gift-premium-halo" />
+                  <div className="gift-ribbon-flow gift-ribbon-flow-back" />
+                  <div className="gift-ribbon-flow gift-ribbon-flow-front" />
                   <div className="gift-box-shadow" />
                   <div className={`gift-box-burst-wrap ${boxStage === 'burst' ? 'is-active' : ''}`}>
                     <div className="gift-box-burst-rays" />
                     <div className="gift-box-burst-core" />
                   </div>
                   <div className="gift-box-3d">
+                    <div className={`gift-box-inner-light ${boxStage === 'burst' ? 'is-active' : ''}`} />
                     <div className="gift-box-ribbon-back" />
                     <div className={`gift-box-lid ${boxStage === 'burst' ? 'gift-box-lid-pop' : ''}`}>
                       <div className="gift-box-gloss" />
@@ -376,6 +380,8 @@ export default function GiftVoucherCampaign({ slug, onClose }: { slug: string; o
                       <div className="gift-box-bow"><div className="gift-box-knot" /></div>
                     </div>
                     <div className="gift-box-body">
+                      <div className="gift-box-face gift-box-face-left" />
+                      <div className="gift-box-face gift-box-face-right" />
                       <div className="gift-box-gloss" />
                       <div className="gift-box-body-edge" />
                       <div className="gift-box-ribbon-v" />
@@ -393,6 +399,10 @@ export default function GiftVoucherCampaign({ slug, onClose }: { slug: string; o
                   <div className="gift-coin" style={{ left: '32px', bottom: '24px', animationDelay: '400ms' }} />
                   <div className="gift-coin" style={{ right: '26px', bottom: '30px', animationDelay: '600ms' }} />
                   <div className="gift-coin gift-coin-deep" style={{ left: '52%', top: '0px', animationDelay: '120ms' }} />
+                  <span className="gift-mini-confetti gift-mini-confetti-a" />
+                  <span className="gift-mini-confetti gift-mini-confetti-b" />
+                  <span className="gift-mini-confetti gift-mini-confetti-c" />
+                  <span className="gift-mini-confetti gift-mini-confetti-d" />
 
                   {boxStage === 'burst' &&
                     burstConfetti.map((c, i) => (
