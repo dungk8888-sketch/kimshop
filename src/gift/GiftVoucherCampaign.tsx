@@ -398,6 +398,8 @@ export default function GiftVoucherCampaign({ slug, onClose }: { slug: string; o
                   </div>
 
                   <div className="gift-orbit gift-orbit-front" />
+                  <div className="gift-promo-card gift-promo-percent">%</div>
+                  <div className="gift-promo-card gift-promo-fs">FS</div>
 
                   <Sparkles size={20} className="absolute top-2 right-5 text-yellow-300 gift-sparkle-a z-30" />
                   <Sparkles size={16} className="absolute left-6 top-8 text-yellow-200 gift-sparkle-b z-30" />
