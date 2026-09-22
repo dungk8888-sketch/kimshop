@@ -202,7 +202,7 @@ export const GIFT_FEATURE_STYLES = `
 .gift-coin::after{content:'₫';position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:900;color:#fff}
 .gift-hero{width:100%;min-height:182px}
 .gift-premium-rays{position:absolute;left:50%;top:45%;width:305px;height:220px;transform:translate(-50%,-50%);border-radius:50%;background:repeating-conic-gradient(from 0deg,rgba(255,255,255,.72) 0deg 6deg,rgba(255,190,54,.07) 6deg 17deg);mask-image:radial-gradient(circle,#000 0 34%,rgba(0,0,0,.62) 54%,transparent 77%);opacity:.46;filter:blur(.1px);pointer-events:none}
-.gift-premium-halo{position:absolute;left:50%;top:48%;width:205px;height:145px;transform:translate(-50%,-50%);border-radius:50%;background:radial-gradient(circle,#fff7c9 0%,rgba(255,196,61,.42) 32%,rgba(255,127,0,.10) 62%,transparent 78%);filter:blur(4px);pointer-events:none}
+.gift-premium-halo{position:absolute;left:50%;top:50%;width:190px;height:132px;transform:translate(-50%,-50%);border-radius:50%;background:radial-gradient(circle,#fff8cf 0%,rgba(255,196,61,.30) 34%,rgba(255,127,0,.06) 64%,transparent 80%);filter:blur(5px);pointer-events:none}
 .gift-deco{position:absolute;z-index:6;width:10px;height:18px;border-radius:3px;box-shadow:0 6px 12px rgba(15,23,42,.10);animation:giftFloat 2.6s ease-in-out infinite}
 .gift-deco-1{left:20%;top:18%;background:#ff6b35;transform:rotate(-22deg);animation-delay:-.3s}
 .gift-deco-2{right:18%;top:20%;background:#3b82f6;transform:rotate(25deg);animation-delay:-.7s}
@@ -220,6 +220,11 @@ export const GIFT_FEATURE_STYLES = `
 .gift-silk-back{opacity:.62}
 .gift-silk-front{opacity:.88}
 .gift-silk-highlight{opacity:.74}
+.gift-silk-arc{position:absolute;left:50%;pointer-events:none;border-radius:50%;transform-origin:center;filter:drop-shadow(0 4px 8px rgba(245,158,11,.14))}
+.gift-silk-arc-back{top:72px;width:238px;height:72px;transform:translateX(-50%) rotate(-8deg);border-top:6px solid rgba(255,205,64,.52);border-left:5px solid rgba(255,229,129,.26);z-index:2}
+.gift-silk-arc-front{top:102px;width:220px;height:62px;transform:translateX(-50%) rotate(7deg);border-bottom:8px solid rgba(255,178,25,.72);border-right:6px solid rgba(255,220,104,.40);z-index:7}
+.gift-silk-arc-front::after{content:'';position:absolute;left:22px;right:18px;bottom:-5px;height:2px;border-radius:999px;background:rgba(255,255,255,.52)}
+
 .gift-box-wrap{z-index:5}
 .gift-svg-3d{width:224px;height:190px;filter:drop-shadow(0 24px 34px rgba(13,44,116,.30))}
 .gift-svg-body path:first-child{filter:drop-shadow(0 9px 9px rgba(14,43,112,.16))}
@@ -308,7 +313,7 @@ export const GIFT_FEATURE_STYLES = `
 .gift-box-burst-core{position:absolute;width:176px;height:176px;border-radius:9999px;background:radial-gradient(circle,rgba(255,247,214,.95) 0%,rgba(255,205,90,.6) 38%,rgba(255,160,50,0) 72%);animation:giftBurstPulse .95s ease-out both}
 .gift-box-burst-rays{position:absolute;width:232px;height:232px;border-radius:9999px;background:repeating-conic-gradient(rgba(255,241,181,.55) 0deg 8deg,transparent 8deg 34deg);mix-blend-mode:screen;animation:giftRaysSpin 1.05s ease-out both}
 
-.gift-box-3d{position:relative!important;width:164px!important;height:150px!important;transform-style:preserve-3d!important;filter:drop-shadow(0 24px 34px rgba(20,40,120,.24))!important;z-index:5!important}
+.gift-box-3d{position:relative!important;width:164px!important;height:150px!important;transform:translateY(12px)!important;transform-style:preserve-3d!important;filter:drop-shadow(0 22px 30px rgba(20,40,120,.22))!important;z-index:5!important}
 .gift-box-ribbon-back{position:absolute;top:22px;left:50%;transform:translateX(-50%);width:112px;height:94px;border-radius:18px;background:radial-gradient(ellipse at center,rgba(255,214,92,.32) 0%,rgba(255,178,24,.12) 48%,transparent 72%);opacity:1;filter:blur(4px);z-index:1}
 
 .gift-box-lid{position:absolute!important;top:16px!important;left:50%!important;transform:translate(-50%,0)!important;width:154px!important;height:46px!important;border-radius:17px 17px 11px 11px!important;background:linear-gradient(155deg,#5B91FF 0%,#2E64E7 52%,#143486 100%)!important;box-shadow:0 13px 21px rgba(6,14,44,.26),inset 0 3px 2px rgba(255,255,255,.35),inset 0 -6px 11px rgba(0,0,0,.16)!important;z-index:6!important;overflow:visible!important}
@@ -323,8 +328,8 @@ export const GIFT_FEATURE_STYLES = `
 .gift-box-ribbon-v::after{content:'';position:absolute;top:0;left:3px;width:5px;height:100%;background:rgba(255,255,255,.5);border-radius:9999px;filter:blur(.5px)}
 .gift-box-ribbon-h{position:absolute!important;top:32px!important;left:0!important;width:100%!important;height:20px!important;background:linear-gradient(180deg,#FFF3C4 0%,#FFD65C 32%,#F5A623 68%,#C97A12 100%)!important;box-shadow:0 0 14px 2px rgba(255,190,60,.4),inset 0 1px 1px rgba(255,255,255,.45)!important;z-index:6!important}
 
-.gift-box-bow{position:absolute!important;top:-23px!important;left:50%!important;transform:translateX(-50%)!important;width:88px!important;height:42px!important;z-index:9!important}
-.gift-box-bow::before,.gift-box-bow::after{content:'';position:absolute;top:4px;width:34px;height:27px;border:8px solid #FFD65C;border-radius:9999px 9999px 11px 9999px;background:rgba(255,255,255,.12);box-shadow:0 5px 12px rgba(245,158,11,.28),inset 0 1px 1px rgba(255,255,255,.58)}
+.gift-box-bow{position:absolute!important;top:-18px!important;left:50%!important;transform:translateX(-50%)!important;width:92px!important;height:44px!important;z-index:10!important}
+.gift-box-bow::before,.gift-box-bow::after{content:'';position:absolute;top:5px;width:35px;height:28px;border:7px solid #FFD65C;border-radius:9999px 9999px 12px 9999px;background:rgba(255,255,255,.10);box-shadow:0 4px 9px rgba(245,158,11,.22),inset 0 1px 1px rgba(255,255,255,.58)}
 .gift-box-bow::before{left:0;transform:rotate(-20deg)}
 .gift-box-bow::after{right:0;transform:scaleX(-1) rotate(-20deg)}
 .gift-box-knot{position:absolute!important;top:13px!important;left:50%!important;transform:translateX(-50%)!important;width:16px!important;height:16px!important;border-radius:9999px!important;background:linear-gradient(180deg,#FFF3B8,#F0A20F)!important;box-shadow:inset 0 1px 1px rgba(255,255,255,.62),0 3px 6px rgba(0,0,0,.20)!important}
