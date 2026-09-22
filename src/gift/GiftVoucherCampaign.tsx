@@ -333,8 +333,15 @@ export default function GiftVoucherCampaign({ slug, onClose }: { slug: string; o
 
           {(phase === 'teaser' || phase === 'opening') && campaign && (
             <>
-              <div className="relative mb-4 flex flex-col items-center">
-                <div className="absolute inset-0 rounded-full bg-[#FFB020]/45 blur-3xl gift-anim-glow" />
+              <div className="gift-hero relative mb-3 flex flex-col items-center">
+                <div className="gift-premium-rays" />
+                <div className="gift-premium-halo gift-anim-glow" />
+                <span className="gift-deco gift-deco-1" />
+                <span className="gift-deco gift-deco-2" />
+                <span className="gift-deco gift-deco-3" />
+                <span className="gift-deco gift-deco-4" />
+                <span className="gift-deco gift-deco-5" />
+                <span className="gift-deco gift-deco-6" />
                 <div className="gift-stage-ring" />
                 <div className={`gift-box-wrap ${phase === 'opening' ? 'gift-anim-shake gift-box-open' : 'gift-anim-float'}`}>
                   <div className="gift-box-shadow" />
@@ -369,7 +376,7 @@ export default function GiftVoucherCampaign({ slug, onClose }: { slug: string; o
                 <span><b>Giảm đến 50.000đ</b></span>
                 <span><b>Freeship</b></span>
               </div>
-              <h2 className="text-[21px] leading-tight font-extrabold text-slate-800 mb-2 gift-anim-fadeup">{campaign.title}</h2>
+              <h2 className="gift-premium-title text-[21px] leading-tight font-extrabold text-slate-800 mb-2 gift-anim-fadeup">{campaign.title}</h2>
               {campaign.description && <p className="text-[13px] leading-relaxed text-slate-500 mb-5 max-w-[330px] gift-anim-fadeup">{campaign.description}</p>}
               <button onClick={handleOpenClick} disabled={phase === 'opening'} className="gift-premium-cta w-full max-w-[310px] text-white font-extrabold py-4 rounded-[22px] transition-all disabled:opacity-80 flex items-center justify-center gap-2 text-[15px]">
                 {phase === 'opening' ? <><Loader2 size={18} className="animate-spin" /> Đang mở quà...</> : <><Gift size={18} /> {isLoggedIn ? 'Mở quà ngay' : 'Mở quà — Đăng nhập để nhận'}</>}
