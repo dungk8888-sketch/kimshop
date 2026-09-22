@@ -48,6 +48,7 @@ class AppErrorBoundary extends React.Component<
 }
 
 const AccountSettings = lazy(() => import('./AccountSettings'));
+const AdminUserManagerEnhancer = lazy(() => import('./AdminUserManagerEnhancer'));
 
 function DeferredAccountSettings() {
   const [ready, setReady] = useState(false);
@@ -87,6 +88,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
     <AppErrorBoundary>
       <App />
       <DeferredAccountSettings />
+      <Suspense fallback={null}><AdminUserManagerEnhancer /></Suspense>
     </AppErrorBoundary>
   </React.StrictMode>
 );
