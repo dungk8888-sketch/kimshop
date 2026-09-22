@@ -386,17 +386,17 @@ export default function GiftVoucherCampaign({ slug, onClose }: { slug: string; o
 
                     <g filter="url(#giftShadow)">
                       <g className="gift-svg-body">
-                        <path d="M56 82 L110 71 L165 82 L165 145 Q165 158 152 161 L69 161 Q56 158 56 145 Z" fill="url(#giftBlueFront)" />
-                        <path d="M56 82 L110 71 L110 161 L69 161 Q56 158 56 145 Z" fill="rgba(255,255,255,.07)" />
-                        <path d="M165 82 L110 71 L110 161 L152 161 Q165 158 165 145 Z" fill="url(#giftBlueSide)" opacity=".42" />
+                        <path d="M54 80 L110 70 L166 80 L166 148 Q166 158 156 160 L64 160 Q54 158 54 148 Z" fill="url(#giftBlueFront)" />
+                        <path d="M54 80 L110 70 L110 160 L64 160 Q54 158 54 148 Z" fill="rgba(255,255,255,.08)" />
+                        <path d="M166 80 L110 70 L110 160 L156 160 Q166 158 166 148 Z" fill="url(#giftBlueSide)" opacity=".46" />
                         <rect x="98" y="75" width="25" height="86" rx="4" fill="url(#giftGold)" />
-                        <rect x="56" y="104" width="109" height="24" rx="3" fill="url(#giftGold)" />
+                        <rect x="54" y="104" width="112" height="24" rx="2" fill="url(#giftGold)" />
                         <path d="M66 88 Q96 75 126 80" stroke="rgba(255,255,255,.28)" strokeWidth="8" strokeLinecap="round" fill="none" />
                         <path d="M72 146 Q107 156 146 145" stroke="rgba(255,255,255,.10)" strokeWidth="7" strokeLinecap="round" fill="none" />
                       </g>
 
                       <g className="gift-svg-lid">
-                        <path d="M47 71 Q47 57 61 54 L110 46 L161 54 Q175 57 175 71 L171 87 L51 87 Z" fill="url(#giftBlueFront)" />
+                        <path d="M46 71 Q46 59 59 55 L110 45 L163 55 Q176 59 176 71 L172 86 L50 86 Z" fill="url(#giftBlueFront)" />
                         <path d="M98 48 L123 48 L123 87 L98 87 Z" fill="url(#giftGold)" />
                         <path d="M60 62 Q104 48 154 61" stroke="rgba(255,255,255,.32)" strokeWidth="8" strokeLinecap="round" fill="none" />
                         <g className="gift-svg-bow">
