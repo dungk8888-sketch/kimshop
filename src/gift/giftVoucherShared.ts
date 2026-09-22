@@ -172,21 +172,36 @@ export function friendlyRpcError(message: string | undefined | null): string {
 }
 
 export const GIFT_FEATURE_STYLES = `
-@keyframes giftFloat{0%,100%{transform:translateY(0) rotate(-1.5deg)}50%{transform:translateY(-10px) rotate(1.5deg)}}
-@keyframes giftGlowPulse{0%,100%{opacity:.55;transform:scale(1)}50%{opacity:.9;transform:scale(1.08)}}
-@keyframes giftShake{0%,100%{transform:translateX(0) rotate(0)}15%{transform:translateX(-6px) rotate(-6deg)}30%{transform:translateX(6px) rotate(6deg)}45%{transform:translateX(-6px) rotate(-5deg)}60%{transform:translateX(6px) rotate(5deg)}75%{transform:translateX(-3px) rotate(-2deg)}}
+@keyframes giftFloat{0%,100%{transform:translateY(0) rotate(-2deg) scale(1)}50%{transform:translateY(-12px) rotate(2deg) scale(1.02)}}
+@keyframes giftGlowPulse{0%,100%{opacity:.5;transform:scale(1)}50%{opacity:.95;transform:scale(1.12)}}
+@keyframes giftShakeStrong{0%,100%{transform:translateX(0) rotate(0deg) scale(1)}10%{transform:translateX(-10px) rotate(-10deg) scale(1.02)}20%{transform:translateX(10px) rotate(10deg) scale(1.03)}30%{transform:translateX(-12px) rotate(-9deg) scale(1.03)}40%{transform:translateX(12px) rotate(9deg) scale(1.04)}50%{transform:translateX(-10px) rotate(-7deg) scale(1.04)}60%{transform:translateX(10px) rotate(7deg) scale(1.03)}70%{transform:translateX(-6px) rotate(-4deg) scale(1.02)}80%{transform:translateX(6px) rotate(4deg) scale(1.02)}}
 @keyframes giftPopIn{0%{opacity:0;transform:scale(.6) translateY(16px)}70%{opacity:1;transform:scale(1.05) translateY(-2px)}100%{opacity:1;transform:scale(1) translateY(0)}}
 @keyframes giftFadeUp{0%{opacity:0;transform:translateY(10px)}100%{opacity:1;transform:translateY(0)}}
 @keyframes giftOverlayIn{0%{opacity:0}100%{opacity:1}}
 @keyframes giftConfettiFall{0%{opacity:0;transform:translateY(-24px) rotate(0)}10%{opacity:1}100%{opacity:0;transform:translateY(160px) rotate(360deg)}}
-.gift-anim-float{animation:giftFloat 3.2s ease-in-out infinite}
-.gift-anim-glow{animation:giftGlowPulse 2.4s ease-in-out infinite}
-.gift-anim-shake{animation:giftShake .5s ease-in-out infinite}
+@keyframes giftCoinFloat{0%{opacity:0;transform:translateY(0) scale(.6) rotate(0deg)}20%{opacity:1}100%{opacity:0;transform:translateY(-70px) scale(1) rotate(20deg)}}
+.gift-anim-float{animation:giftFloat 2.4s ease-in-out infinite}
+.gift-anim-glow{animation:giftGlowPulse 2s ease-in-out infinite}
+.gift-anim-shake{animation:giftShakeStrong .6s ease-in-out infinite}
 .gift-anim-pop{animation:giftPopIn .55s cubic-bezier(.22,1,.36,1) both}
 .gift-anim-fadeup{animation:giftFadeUp .45s cubic-bezier(.22,1,.36,1) both}
 .gift-anim-overlay{animation:giftOverlayIn .25s ease-out both}
 .gift-confetti-piece{position:absolute;top:0;width:7px;height:12px;border-radius:2px;animation:giftConfettiFall 1.1s ease-in forwards}
+.gift-coin{position:absolute;width:18px;height:18px;border-radius:9999px;background:linear-gradient(180deg,#FFD54F 0%,#F59E0B 100%);box-shadow:0 4px 10px rgba(245,158,11,.35);animation:giftCoinFloat 1.2s ease-out infinite}
+.gift-coin::after{content:'₫';position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;color:#fff}
+.gift-box-wrap{position:relative;width:150px;height:150px;display:flex;align-items:center;justify-content:center}
+.gift-box-shadow{position:absolute;bottom:4px;width:110px;height:24px;background:rgba(0,0,0,.18);filter:blur(12px);border-radius:9999px}
+.gift-box-3d{position:relative;width:108px;height:108px;transform-style:preserve-3d;filter:drop-shadow(0 18px 30px rgba(238,77,45,.24))}
+.gift-box-lid{position:absolute;top:0;left:8px;width:92px;height:28px;border-radius:14px;background:linear-gradient(180deg,#2563EB 0%,#1D4ED8 100%);box-shadow:0 10px 16px rgba(0,0,0,.18), inset 0 2px 2px rgba(255,255,255,.25);z-index:3}
+.gift-box-body{position:absolute;top:22px;left:0;width:108px;height:74px;border-radius:16px;background:linear-gradient(180deg,#2563EB 0%,#1E40AF 100%);box-shadow:0 14px 24px rgba(0,0,0,.18), inset 0 3px 2px rgba(255,255,255,.22);overflow:hidden}
+.gift-box-ribbon-v{position:absolute;top:0;left:44px;width:20px;height:100%;background:linear-gradient(180deg,#FACC15 0%,#F59E0B 100%);box-shadow:inset 0 1px 1px rgba(255,255,255,.35);z-index:4}
+.gift-box-ribbon-h{position:absolute;top:34px;left:0;width:100%;height:18px;background:linear-gradient(180deg,#FACC15 0%,#F59E0B 100%);box-shadow:inset 0 1px 1px rgba(255,255,255,.35);z-index:4}
+.gift-box-bow{position:absolute;top:-8px;left:28px;width:52px;height:24px;z-index:5}
+.gift-box-bow::before,.gift-box-bow::after{content:'';position:absolute;top:0;width:24px;height:20px;border:6px solid #FACC15;border-radius:9999px 9999px 8px 9999px;background:rgba(255,255,255,.08)}
+.gift-box-bow::before{left:0;transform:rotate(-18deg)}
+.gift-box-bow::after{right:0;transform:scaleX(-1) rotate(-18deg)}
+.gift-box-knot{position:absolute;top:7px;left:21px;width:10px;height:10px;border-radius:9999px;background:#F59E0B}
 @media (prefers-reduced-motion:reduce){
-  .gift-anim-float,.gift-anim-glow,.gift-anim-shake,.gift-anim-pop,.gift-anim-fadeup,.gift-anim-overlay,.gift-confetti-piece{animation:none!important}
+  .gift-anim-float,.gift-anim-glow,.gift-anim-shake,.gift-anim-pop,.gift-anim-fadeup,.gift-anim-overlay,.gift-confetti-piece,.gift-coin{animation:none!important}
 }
 `;
