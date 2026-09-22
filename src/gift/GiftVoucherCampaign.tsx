@@ -552,6 +552,9 @@ export default function GiftVoucherCampaign({ slug, onClose }: { slug: string; o
                         <rect className="gift-svg-body-inner-bevel" x="128" y="160" width="168" height="72" rx="6" fill="none" stroke="#EAF3FF" strokeOpacity=".10" strokeWidth="1.2" />
                         <path className="gift-svg-body-inner-dark" d="M294 166 V225 Q294 231 288 232 H136" fill="none" stroke="#061A50" strokeOpacity=".18" strokeWidth="1.8" strokeLinecap="round" />
                         <path className="gift-svg-body-top-soft" d="M136 161 H288" fill="none" stroke="#FFFFFF" strokeOpacity=".15" strokeWidth="1.2" strokeLinecap="round" />
+                        <path className="gift-svg-body-soft-spec" d="M136 165 C151 160 169 160 184 164 V226 C167 230 151 229 136 223 Z" fill="#FFFFFF" opacity=".055" />
+                        <path className="gift-svg-body-right-depth" d="M270 160 H290 Q296 160 296 167 V226 Q296 232 289 232 H270 Z" fill="#041B55" opacity=".13" />
+                        <path className="gift-svg-body-lower-bevel" d="M132 224 Q133 234 143 234 H282 Q292 234 293 224" fill="none" stroke="#06194A" strokeOpacity=".22" strokeWidth="2.1" strokeLinecap="round" />
 
                         <rect x="158" y="156" width="18" height="80" rx="4" fill="url(#giftGoldMetal)" />
                         <rect x="248" y="156" width="18" height="80" rx="4" fill="url(#giftGoldMetal)" />
@@ -563,6 +566,8 @@ export default function GiftVoucherCampaign({ slug, onClose }: { slug: string; o
                         <rect className="gift-svg-ribbon-shadow" x="264" y="158" width="3.5" height="76" rx="1.75" fill="#713A00" opacity=".16" />
                         <path className="gift-svg-ribbon-curve" d="M161 164 C165 184 164 208 162 228" fill="none" stroke="#FFF7D5" strokeOpacity=".30" strokeWidth="1.3" strokeLinecap="round" />
                         <path className="gift-svg-ribbon-curve" d="M251 164 C255 184 254 208 252 228" fill="none" stroke="#FFF7D5" strokeOpacity=".26" strokeWidth="1.3" strokeLinecap="round" />
+                        <path className="gift-svg-ribbon-edge-dark" d="M176 160 V232" fill="none" stroke="#744000" strokeOpacity=".16" strokeWidth="1.2" />
+                        <path className="gift-svg-ribbon-edge-dark" d="M266 160 V232" fill="none" stroke="#744000" strokeOpacity=".14" strokeWidth="1.2" />
 
                         <path className="gift-svg-body-shine" d="M134 165 V226" fill="none" stroke="#F1F7FF" strokeWidth="2.1" strokeLinecap="round" opacity=".28" />
                         <path className="gift-svg-body-shine" d="M290 165 V226" fill="none" stroke="#82AEFF" strokeWidth="1.2" strokeLinecap="round" opacity=".12" />
@@ -588,6 +593,9 @@ export default function GiftVoucherCampaign({ slug, onClose }: { slug: string; o
                       <path className="gift-svg-body-bottom-rim" d="M134 233 C170 236 256 236 290 233" fill="none" stroke="#061A4D" strokeOpacity=".20" strokeWidth="1.5" strokeLinecap="round" />
 
                       <g className="gift-svg-lid">
+                        <path className="gift-svg-lid-top-plane" d="M126 120 L138 114 H286 L300 120 H116 Q116 118 119 117 Z" fill="#73A7F4" opacity=".96" />
+                        <path className="gift-svg-lid-top-plane-light" d="M138 115 H286 L297 120 H129 Z" fill="url(#giftLidTopGloss)" opacity=".72" />
+                        <path className="gift-svg-lid-top-plane-rim" d="M129 120 L139 115 H286 L297 120" fill="none" stroke="#D9EAFF" strokeOpacity=".55" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                         <rect x="116" y="120" width="192" height="38" rx="7" fill="url(#giftBlueLid)" stroke="#1C4DB2" strokeWidth="1.4" />
                         <path d="M124 120 H300 Q308 120 308 128 V132 H116 V128 Q116 120 124 120 Z" fill="url(#giftLidTopGloss)" opacity=".86" />
                         <path d="M116 132 H308 V151 Q308 158 301 158 H123 Q116 158 116 151 Z" fill="#0D3D9D" opacity=".11" />
@@ -611,6 +619,8 @@ export default function GiftVoucherCampaign({ slug, onClose }: { slug: string; o
                         <path className="gift-svg-lid-ribbon-curve" d="M253 124 C257 132 257 142 255 151" fill="none" stroke="#FFF7D5" strokeOpacity=".24" strokeWidth="1.2" strokeLinecap="round" />
 
                         <path className="gift-svg-lid-shine" d="M128 125 H296" fill="none" stroke="#F3F9FF" strokeWidth="2" strokeLinecap="round" opacity=".32" />
+                        <path className="gift-svg-lid-front-spec" d="M126 126 C153 121 180 122 200 125" fill="none" stroke="#FFFFFF" strokeOpacity=".22" strokeWidth="2.1" strokeLinecap="round" />
+                        <path className="gift-svg-lid-bottom-depth" d="M124 153 H300" fill="none" stroke="#06194A" strokeOpacity=".18" strokeWidth="1.8" strokeLinecap="round" />
 
                         <g className="gift-svg-bow" filter="url(#giftTinyShadow)">
                           <path className="gift-svg-bow-under-left" d="M208 116 C183 101 150 101 143 112 C137 123 166 132 203 124 C176 121 166 114 175 106 C184 99 199 104 214 118 Z" fill="#8D5200" opacity=".16" transform="translate(0 3)" />
@@ -623,6 +633,8 @@ export default function GiftVoucherCampaign({ slug, onClose }: { slug: string; o
                           <path d="M208 111 H214 V124 H208 Z" fill="#FFF8CF" opacity=".52" />
                           <path className="gift-svg-bow-highlight" d="M155 110 C168 104 188 107 199 115" fill="none" stroke="#FFF4B8" strokeOpacity=".55" strokeWidth="1.6" strokeLinecap="round" />
                           <path className="gift-svg-bow-highlight" d="M229 114 C241 106 261 104 274 110" fill="none" stroke="#FFF4B8" strokeOpacity=".48" strokeWidth="1.6" strokeLinecap="round" />
+                          <ellipse className="gift-svg-knot-spec" cx="211" cy="112" rx="5.6" ry="3.2" fill="#FFF8CF" opacity=".58" />
+                          <path className="gift-svg-tail-dark" d="M200 145 L211 137 L216 157" fill="none" stroke="#8A5000" strokeOpacity=".18" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />
                         </g>
                       </g>
 
