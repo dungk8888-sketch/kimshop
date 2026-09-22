@@ -677,4 +677,69 @@ export const GIFT_FEATURE_STYLES = `
   .gift-scene-svg.is-teaser-open .gift-svg-lid,.gift-scene-svg.is-teaser-open .gift-svg-open-glow,.gift-svg-coin-c,.gift-svg-coin-d,.gift-svg-spark,.gift-card-ribbon{animation:none!important}
 }
 
+
+/* KIMSHOP_GIFT_TARGET_SAMPLE_PASS_20260922 */
+@keyframes giftTargetLidFloat{
+  0%,100%{transform:translateY(-47px) rotate(-4deg) scale(1.035)}
+  50%{transform:translateY(-54px) rotate(-6deg) scale(1.055)}
+}
+@keyframes giftTargetBodyFloat{
+  0%,100%{transform:translateY(1px)}
+  50%{transform:translateY(-3px)}
+}
+@keyframes giftTargetGlow{
+  0%,100%{opacity:.72;transform:scale(1.02)}
+  50%{opacity:.94;transform:scale(1.16)}
+}
+
+.gift-premium-card{max-width:420px!important;border-radius:29px!important}
+.gift-premium-inner{padding:18px 24px 28px!important}
+.gift-premium-hero{margin-bottom:5px!important}
+.gift-box-wrap{width:min(366px,92vw)!important;height:258px!important}
+.gift-scene-svg{transform:scale(1.025);transform-origin:50% 54%}
+.gift-svg-body{animation:giftTargetBodyFloat 3.5s ease-in-out infinite;transform-origin:210px 190px}
+.gift-svg-cavity{filter:drop-shadow(0 0 15px rgba(255,193,43,.82))}
+.gift-scene-svg.is-teaser-open .gift-svg-lid{animation:giftTargetLidFloat 3.15s ease-in-out infinite!important}
+.gift-scene-svg.is-teaser-open .gift-svg-open-glow{animation:giftTargetGlow 2.6s ease-in-out infinite!important}
+.gift-scene-svg.is-open .gift-svg-lid{animation:giftSvgLidOpen .78s cubic-bezier(.24,1.45,.38,1) both!important}
+.gift-svg-stage{filter:drop-shadow(0 0 11px rgba(255,175,26,.42))}
+.gift-svg-swoosh-back{opacity:.74}
+.gift-svg-coin-a{animation:giftSvgCoinA 2.7s ease-in-out infinite!important}
+.gift-svg-coin-b{animation:giftSvgCoinB 3.05s ease-in-out infinite!important}
+@keyframes giftSvgCoinA{0%,100%{transform:translate(96px,126px) translateY(0) rotate(-5deg)}50%{transform:translate(96px,126px) translateY(-9px) rotate(14deg)}}
+@keyframes giftSvgCoinB{0%,100%{transform:translate(330px,129px) translateY(0) rotate(6deg)}50%{transform:translate(330px,129px) translateY(-8px) rotate(-14deg)}}
+
+.gift-card-ribbon{stroke-width:10!important;opacity:.82}
+.gift-card-ribbon-left{d:path("M-20 490 C18 455 47 427 24 394 C7 370 -1 349 10 326")}
+.gift-card-ribbon-right{d:path("M440 490 C402 455 373 427 396 394 C413 370 421 349 410 326")}
+
+.gift-premium-inner > h2{
+  font-size:22px!important;
+  line-height:1.06!important;
+  max-width:345px!important;
+  margin-top:-2px!important;
+  margin-bottom:12px!important;
+  font-weight:900!important;
+}
+.gift-premium-inner > p{
+  font-size:12.3px!important;
+  line-height:1.7!important;
+  max-width:340px!important;
+  margin-bottom:20px!important;
+}
+.gift-premium-inner > button{
+  max-width:320px!important;
+  min-height:54px!important;
+  font-size:15px!important;
+  border-radius:21px!important;
+}
+.gift-premium-inner > button + p{margin-top:13px!important}
+
+@media (max-width:640px){
+  .gift-premium-card{max-width:min(420px,94vw)!important}
+  .gift-box-wrap{width:min(346px,91vw)!important;height:244px!important}
+  .gift-premium-inner > h2{font-size:20px!important}
+  .gift-premium-inner > button{max-width:305px!important;min-height:52px!important}
+}
+
 `;
