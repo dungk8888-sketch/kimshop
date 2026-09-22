@@ -362,6 +362,30 @@ export default function GiftVoucherCampaign({ slug, onClose }: { slug: string; o
               <div className="relative mb-6 flex flex-col items-center">
                 <div className="absolute inset-0 rounded-full bg-[#FFB020]/45 blur-3xl gift-anim-glow" />
                 <div className={`gift-box-wrap ${boxWrapAnimClass}`}>
+                  <div className="gift-premium-halo gift-anim-glow" />
+                  <svg className="gift-silk-svg" viewBox="0 0 360 220" aria-hidden="true">
+                    <defs>
+                      <linearGradient id="claudeSilkGoldA" x1="0" y1="0" x2="1" y2="0">
+                        <stop offset="0%" stopColor="#F59E0B" stopOpacity=".05" />
+                        <stop offset="18%" stopColor="#FFD95A" stopOpacity=".82" />
+                        <stop offset="50%" stopColor="#FFF3A8" stopOpacity=".98" />
+                        <stop offset="80%" stopColor="#FFB31A" stopOpacity=".88" />
+                        <stop offset="100%" stopColor="#F97316" stopOpacity=".08" />
+                      </linearGradient>
+                      <linearGradient id="claudeSilkGoldB" x1="1" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor="#FFF4B5" stopOpacity=".88" />
+                        <stop offset="46%" stopColor="#FFC94B" stopOpacity=".78" />
+                        <stop offset="100%" stopColor="#F59E0B" stopOpacity=".04" />
+                      </linearGradient>
+                      <filter id="claudeSilkGlow" x="-20%" y="-80%" width="140%" height="260%">
+                        <feGaussianBlur stdDeviation="2.1" result="blur"/>
+                        <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+                      </filter>
+                    </defs>
+                    <path className="gift-silk-path gift-silk-back" d="M18 132 C88 58 248 48 338 120" fill="none" stroke="url(#claudeSilkGoldB)" strokeWidth="12" strokeLinecap="round" filter="url(#claudeSilkGlow)"/>
+                    <path className="gift-silk-path gift-silk-front" d="M26 148 C112 207 266 205 336 130" fill="none" stroke="url(#claudeSilkGoldA)" strokeWidth="15" strokeLinecap="round" filter="url(#claudeSilkGlow)"/>
+                    <path className="gift-silk-highlight" d="M38 145 C120 192 256 190 326 132" fill="none" stroke="rgba(255,255,255,.62)" strokeWidth="2.5" strokeLinecap="round"/>
+                  </svg>
                   <div className="gift-box-shadow" />
                   <div className={`gift-box-burst-wrap ${boxStage === 'burst' ? 'is-active' : ''}`}>
                     <div className="gift-box-burst-rays" />
