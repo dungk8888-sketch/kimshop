@@ -1312,4 +1312,63 @@ export const GIFT_FEATURE_STYLES = `
   }
 }
 
+
+/* KIMSHOP_GIFT_SQUARE_BOX_FIX_20260922 */
+.gift-box-wrap{
+  width:min(346px,92vw)!important;
+  height:238px!important;
+}
+.gift-scene-svg{
+  transform:scale(1.01)!important;
+  transform-origin:50% 54%!important;
+}
+.gift-svg-body{
+  filter:drop-shadow(0 15px 16px rgba(6,26,79,.23))!important;
+}
+.gift-svg-lid{
+  transform-box:fill-box;
+  transform-origin:50% 82%!important;
+  filter:drop-shadow(0 10px 10px rgba(7,27,80,.19))!important;
+}
+.gift-scene-svg.is-closed .gift-svg-lid{
+  transform:none!important;
+  animation:none!important;
+}
+.gift-scene-svg.is-closed .gift-gap-burst,
+.gift-scene-svg.is-closed .gift-svg-cavity,
+.gift-scene-svg.is-closed .gift-svg-open-glow,
+.gift-scene-svg.is-closed .gift-svg-coins,
+.gift-scene-svg.is-closed .gift-svg-confetti,
+.gift-scene-svg.is-closed .gift-svg-sparkles{
+  opacity:0!important;
+}
+@keyframes giftSquareLidOpen{
+  0%{transform:translateY(0) rotate(0deg) scale(1)}
+  28%{transform:translateY(-8px) rotate(-3deg) scale(1.01)}
+  70%{transform:translateY(-48px) rotate(-9deg) scale(1.035)}
+  100%{transform:translateY(-40px) rotate(-6deg) scale(1.02)}
+}
+.gift-scene-svg.is-open .gift-svg-lid{
+  animation:giftSquareLidOpen .8s cubic-bezier(.2,1.45,.35,1) both!important;
+}
+.gift-svg-body-shine,.gift-svg-lid-shine{
+  filter:drop-shadow(0 0 3px rgba(255,255,255,.34));
+}
+.gift-svg-cavity{
+  filter:drop-shadow(0 0 13px rgba(255,191,40,.68))!important;
+}
+.gift-svg-stage{
+  transform:scaleX(.90)!important;
+  transform-origin:210px 244px!important;
+  filter:drop-shadow(0 0 9px rgba(255,176,25,.26))!important;
+}
+.gift-card-edge-ribbon{
+  stroke-width:10px!important;
+  opacity:.52!important;
+}
+
+@media (max-width:640px){
+  .gift-box-wrap{width:min(328px,91vw)!important;height:226px!important}
+}
+
 `;
