@@ -184,7 +184,7 @@ export default function MyVouchersWidget() {
               })}
               {rows.length > 0 && (
                 <p className="text-[11px] text-gray-400 text-center pt-1 pb-2">
-                  Gửi mã voucher cho KIMSHOP qua Facebook/Zalo để được áp dụng.
+                  Voucher hộp quà dùng trực tiếp ở bước Thanh Toán cho sản phẩm chân sạc của chương trình.
                 </p>
               )}
             </div>
