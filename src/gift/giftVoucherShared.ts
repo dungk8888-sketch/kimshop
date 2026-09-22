@@ -400,4 +400,76 @@ export const GIFT_FEATURE_STYLES = `
   .gift-anim-shake-once,.gift-anim-burst-settle,.gift-confetti-burst,.gift-box-lid-pop,.gift-box-burst-core,.gift-box-burst-rays,.gift-box-inner-glow.is-active,.gift-orbit-back,.gift-orbit-front,.gift-promo-card,.gift-float-piece,.gift-coin,.gift-sparkle-a,.gift-sparkle-b,.gift-sparkle-c{animation:none!important}
 }
 
+
+/* KIMSHOP_GIFT_MOTION_PASS_20260922 */
+@keyframes giftPremiumIdleFloat{
+  0%,100%{transform:translateY(0) rotate(-.35deg) scale(1)}
+  28%{transform:translateY(-6px) rotate(.65deg) scale(1.012)}
+  58%{transform:translateY(-2px) rotate(-.45deg) scale(1.006)}
+  78%{transform:translateY(-8px) rotate(.35deg) scale(1.014)}
+}
+@keyframes giftPremiumHaloBreath{
+  0%,100%{opacity:.78;transform:translate(-50%,-50%) scale(.97)}
+  50%{opacity:1;transform:translate(-50%,-50%) scale(1.055)}
+}
+@keyframes giftPremiumBowLeft{
+  0%,100%{transform:rotate(-12deg) scale(1)}
+  50%{transform:rotate(-8deg) scale(1.035)}
+}
+@keyframes giftPremiumBowRight{
+  0%,100%{transform:scaleX(-1) rotate(-12deg) scale(1)}
+  50%{transform:scaleX(-1) rotate(-8deg) scale(1.035)}
+}
+@keyframes giftPremiumRibbonShine{
+  0%{background-position:0% 50%}
+  50%{background-position:100% 50%}
+  100%{background-position:0% 50%}
+}
+@keyframes giftPremiumSparkDrift{
+  0%,100%{transform:translateY(0) scale(.9) rotate(0deg);opacity:.38}
+  50%{transform:translateY(-8px) scale(1.18) rotate(14deg);opacity:1}
+}
+
+.gift-anim-float{
+  transform-origin:50% 72%;
+  animation:giftPremiumIdleFloat 3.4s cubic-bezier(.45,.05,.55,.95) infinite!important;
+  will-change:transform;
+}
+.gift-anim-shake-once{
+  transform-origin:50% 72%;
+  animation:giftPremiumShake .46s cubic-bezier(.36,.07,.19,.97) both!important;
+}
+.gift-anim-burst-settle{
+  transform-origin:50% 72%;
+  animation:giftPremiumSettle .56s cubic-bezier(.2,.8,.25,1) both!important;
+}
+
+.gift-premium-halo{
+  animation:giftPremiumHaloBreath 2.8s ease-in-out infinite;
+}
+.gift-box-bow::before{
+  animation:giftPremiumBowLeft 2.5s ease-in-out infinite;
+  transform-origin:100% 55%;
+}
+.gift-box-bow::after{
+  animation:giftPremiumBowRight 2.5s ease-in-out infinite;
+  animation-delay:-1.25s;
+  transform-origin:0% 55%;
+}
+.gift-box-ribbon-v,.gift-box-ribbon-h{
+  background-size:190% 100%!important;
+  animation:giftPremiumRibbonShine 3.6s ease-in-out infinite;
+}
+.gift-sparkle-a,.gift-sparkle-b,.gift-sparkle-c{
+  animation:giftPremiumSparkDrift 1.9s ease-in-out infinite!important;
+}
+.gift-sparkle-b{animation-delay:-.55s!important}
+.gift-sparkle-c{animation-delay:-1.05s!important}
+
+@media (prefers-reduced-motion:reduce){
+  .gift-anim-float,.gift-premium-halo,.gift-box-bow::before,.gift-box-bow::after,.gift-box-ribbon-v,.gift-box-ribbon-h,.gift-sparkle-a,.gift-sparkle-b,.gift-sparkle-c{
+    animation:none!important;
+  }
+}
+
 `;
