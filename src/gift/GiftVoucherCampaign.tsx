@@ -344,11 +344,11 @@ export default function GiftVoucherCampaign({ slug, onClose }: { slug: string; o
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-[2px] gift-anim-overlay p-4">
-      <div className="gift-premium-card relative w-full max-w-md rounded-[30px] overflow-hidden shadow-2xl max-h-[92vh]">
+      <div className="gift-premium-card relative w-full max-w-[480px] rounded-[34px] overflow-hidden shadow-2xl max-h-[92vh] border border-white/60">
         <button onClick={onClose} aria-label="Đóng" className="absolute right-3 top-3 z-10 w-9 h-9 rounded-full bg-white/90 shadow flex items-center justify-center text-gray-500 hover:text-gray-800">
           <X size={18} />
         </button>
-        <div className="gift-premium-inner relative px-6 pt-6 pb-6 flex flex-col items-center text-center min-h-[400px] justify-start">
+        <div className="gift-premium-inner relative px-6 pt-7 pb-8 flex flex-col items-center text-center min-h-[430px] justify-start">
           <div className="gift-premium-orb gift-premium-orb-a" />
           <div className="gift-premium-orb gift-premium-orb-b" />
           {phase === 'loading' && <div className="flex flex-col items-center gap-3 text-gray-400"><Loader2 size={30} className="animate-spin" /><p className="text-sm">Đang tải hộp quà...</p></div>}
@@ -359,26 +359,33 @@ export default function GiftVoucherCampaign({ slug, onClose }: { slug: string; o
 
           {(phase === 'teaser' || phase === 'opening') && campaign && (
             <>
-              <div className="relative mb-6 flex flex-col items-center">
-                <div className="absolute inset-0 rounded-full bg-[#FFB020]/45 blur-3xl gift-anim-glow" />
+              <div className="relative mb-5 flex flex-col items-center gift-premium-hero w-full">
+                <div className="gift-premium-bg" />
+                <div className="gift-premium-sheen" />
                 <div className={`gift-box-wrap ${boxWrapAnimClass}`}>
                   <div className="gift-premium-halo" />
-                  <div className="gift-ribbon-flow gift-ribbon-flow-back" />
-                  <div className="gift-ribbon-flow gift-ribbon-flow-front" />
+                  <div className="gift-orbit gift-orbit-back" />
                   <div className="gift-box-shadow" />
+
                   <div className={`gift-box-burst-wrap ${boxStage === 'burst' ? 'is-active' : ''}`}>
                     <div className="gift-box-burst-rays" />
                     <div className="gift-box-burst-core" />
                   </div>
+
+                  <div className={`gift-box-inner-glow ${boxStage === 'burst' ? 'is-active' : ''}`} />
+
                   <div className="gift-box-3d">
-                    <div className={`gift-box-inner-light ${boxStage === 'burst' ? 'is-active' : ''}`} />
                     <div className="gift-box-ribbon-back" />
+
                     <div className={`gift-box-lid ${boxStage === 'burst' ? 'gift-box-lid-pop' : ''}`}>
                       <div className="gift-box-gloss" />
                       <div className="gift-box-lid-edge" />
                       <div className="gift-box-ribbon-v" />
                       <div className="gift-box-bow"><div className="gift-box-knot" /></div>
                     </div>
+
+                    <div className="gift-box-seam" />
+
                     <div className="gift-box-body">
                       <div className="gift-box-face gift-box-face-left" />
                       <div className="gift-box-face gift-box-face-right" />
@@ -390,40 +397,43 @@ export default function GiftVoucherCampaign({ slug, onClose }: { slug: string; o
                     <div className="gift-box-base-highlight" />
                   </div>
 
-                  <Sparkles size={20} className="absolute top-1 right-4 text-yellow-300 gift-sparkle-a" />
-                  <Sparkles size={16} className="absolute left-5 top-9 text-yellow-200 gift-sparkle-b" />
-                  <Sparkles size={12} className="absolute right-6 bottom-9 text-orange-200 gift-sparkle-c" />
+                  <div className="gift-orbit gift-orbit-front" />
 
-                  <div className="gift-coin" style={{ left: '8px', top: '22px', animationDelay: '0ms' }} />
-                  <div className="gift-coin" style={{ right: '12px', top: '40px', animationDelay: '200ms' }} />
-                  <div className="gift-coin" style={{ left: '32px', bottom: '24px', animationDelay: '400ms' }} />
-                  <div className="gift-coin" style={{ right: '26px', bottom: '30px', animationDelay: '600ms' }} />
-                  <div className="gift-coin gift-coin-deep" style={{ left: '52%', top: '0px', animationDelay: '120ms' }} />
-                  <span className="gift-mini-confetti gift-mini-confetti-a" />
-                  <span className="gift-mini-confetti gift-mini-confetti-b" />
-                  <span className="gift-mini-confetti gift-mini-confetti-c" />
-                  <span className="gift-mini-confetti gift-mini-confetti-d" />
+                  <Sparkles size={20} className="absolute top-2 right-5 text-yellow-300 gift-sparkle-a z-30" />
+                  <Sparkles size={16} className="absolute left-6 top-8 text-yellow-200 gift-sparkle-b z-30" />
+                  <Sparkles size={12} className="absolute right-10 bottom-14 text-orange-200 gift-sparkle-c z-30" />
+
+                  <div className="gift-coin z-30" style={{ left: '6px', top: '28px', animationDelay: '0ms' }} />
+                  <div className="gift-coin z-30" style={{ right: '16px', top: '34px', animationDelay: '180ms' }} />
+                  <div className="gift-coin z-30" style={{ left: '32px', bottom: '34px', animationDelay: '380ms' }} />
+                  <div className="gift-coin z-30" style={{ right: '30px', bottom: '40px', animationDelay: '580ms' }} />
+                  <div className="gift-coin gift-coin-deep" style={{ left: '51%', top: '4px', animationDelay: '120ms' }} />
 
                   {boxStage === 'burst' &&
-                    burstConfetti.map((c, i) => (
+                    burstConfetti.map((item, i) => (
                       <span
                         key={i}
                         className="gift-confetti-piece gift-confetti-burst"
                         style={{
-                          left: `${c.left}%`,
-                          top: `${c.top}%`,
-                          backgroundColor: c.color,
-                          animationDelay: `${c.delay}ms`,
-                          transform: `rotate(${c.rotate}deg)`,
-                          '--gx': `${c.dx}px`,
+                          left: `${item.left}%`,
+                          top: `${item.top}%`,
+                          backgroundColor: item.color,
+                          animationDelay: `${item.delay}ms`,
+                          transform: `rotate(${item.rotate}deg)`,
+                          '--gx': `${item.dx}px`,
                         } as React.CSSProperties}
                       />
                     ))}
                 </div>
+
+                <div className="mt-1 flex items-center gap-2 gift-anim-fadeup">
+                  <span className="gift-badge">Giảm đến 50.000đ</span>
+                  <span className="gift-badge">Freeship</span>
+                </div>
               </div>
-              <h2 className="text-lg font-bold text-gray-800 mb-1.5 gift-anim-fadeup">{campaign.title}</h2>
+              <h2 className="text-[18px] leading-[1.15] font-extrabold text-gray-800 mb-2 gift-anim-fadeup max-w-[320px]">{campaign.title}</h2>
               {campaign.description && (
-                <p className="text-[13px] text-gray-500 mb-5 max-w-xs gift-anim-fadeup">{campaign.description}</p>
+                <p className="text-[13px] leading-6 text-gray-500 mb-5 max-w-[315px] gift-anim-fadeup">{campaign.description}</p>
               )}
               <button
                 onClick={handleOpenClick}
