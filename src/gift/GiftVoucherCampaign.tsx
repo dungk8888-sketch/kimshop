@@ -499,60 +499,60 @@ export default function GiftVoucherCampaign({ slug, onClose }: { slug: string; o
 
                     <g className="gift-svg-box">
                       <g className="gift-svg-body">
-                        <rect x="139" y="148" width="142" height="91" rx="10" fill="url(#giftBlueFront)" stroke="#1C4FB2" strokeWidth="1.4" />
-                        <path d="M281 152 L292 156 Q295 157 295 161 V227 Q295 232 291 234 L281 239 Z" fill="url(#giftBlueSide)" stroke="#123D91" strokeWidth="1.2" />
-                        <path d="M139 151 Q139 147 143 145 L154 139 Q157 138 161 138 H279 Q282 138 285 141 L292 147 Q295 150 291 152 L282 157 Q279 158 275 158 H145 Q139 158 139 151 Z" fill="#84B3FB" opacity=".95" stroke="#B7D5FF" strokeWidth="1.2" />
+                        <rect x="132" y="155" width="156" height="80" rx="14" fill="url(#giftBlueFront)" stroke="#1C4FB2" strokeWidth="1.4" />
+                        <path d="M288 160 L297 163 Q300 164 300 168 V224 Q300 229 296 231 L288 235 Z" fill="url(#giftBlueSide)" stroke="#123D91" strokeWidth="1.1" />
+                        <path d="M134 157 Q134 151 140 148 L153 141 Q157 139 162 139 H278 Q283 139 287 142 L297 150 Q301 154 297 157 L287 162 Q283 164 278 164 H145 Q134 164 134 157 Z" fill="#82B1F8" opacity=".95" stroke="#B7D5FF" strokeWidth="1.2" />
 
-                        <rect x="168" y="148" width="21" height="91" rx="4" fill="url(#giftGold)" />
-                        <rect x="236" y="148" width="21" height="91" rx="4" fill="url(#giftGold)" />
-                        <rect x="174" y="151" width="6" height="85" rx="3" fill="#FFF5BF" opacity=".60" />
-                        <rect x="242" y="151" width="6" height="85" rx="3" fill="#FFF5BF" opacity=".52" />
+                        <rect x="166" y="155" width="18" height="80" rx="5" fill="url(#giftGold)" />
+                        <rect x="246" y="155" width="18" height="80" rx="5" fill="url(#giftGold)" />
+                        <rect x="171" y="158" width="5" height="74" rx="2.5" fill="#FFF5BF" opacity=".58" />
+                        <rect x="251" y="158" width="5" height="74" rx="2.5" fill="#FFF5BF" opacity=".50" />
 
-                        <path className="gift-svg-body-shine" d="M147 156 V229" fill="none" stroke="#EEF5FF" strokeWidth="2.2" strokeLinecap="round" opacity=".40" />
-                        <path className="gift-svg-body-shine" d="M272 156 V229" fill="none" stroke="#82AEFF" strokeWidth="1.5" strokeLinecap="round" opacity=".24" />
-                        <path className="gift-svg-body-shine" d="M219 156 V229" fill="none" stroke="#CFE2FF" strokeWidth="1.5" strokeLinecap="round" opacity=".18" />
+                        <rect x="202" y="158" width="13" height="72" rx="6" fill="#FFFFFF" opacity=".065" />
+                        <path className="gift-svg-body-shine" d="M141 163 V226" fill="none" stroke="#EEF5FF" strokeWidth="2.3" strokeLinecap="round" opacity=".38" />
+                        <path className="gift-svg-body-shine" d="M279 163 V226" fill="none" stroke="#82AEFF" strokeWidth="1.4" strokeLinecap="round" opacity=".20" />
 
-                        <path d="M218 184 l5 10 l10 5 l-10 5 l-5 10 l-5-10 l-10-5 l10-5Z" fill="#FFFFFF" opacity=".90" />
-                        <path d="M151 169 l3 6 l6 3 l-6 3 l-3 6 l-3-6 l-6-3 l6-3Z" fill="#FFECA5" opacity=".80" />
+                        <path d="M219 182 l5 10 l10 5 l-10 5 l-5 10 l-5-10 l-10-5 l10-5Z" fill="#FFFFFF" opacity=".90" />
+                        <path d="M149 174 l3 6 l6 3 l-6 3 l-3 6 l-3-6 l-6-3 l6-3Z" fill="#FFECA5" opacity=".82" />
                       </g>
 
                       <g className="gift-gap-burst">
-                        <path d="M160 149 L211 88 L263 149 Z" fill="url(#giftInnerBurst)" opacity=".84" />
-                        <ellipse cx="211" cy="146" rx="72" ry="21" fill="url(#giftInnerBurst)" opacity=".98" />
-                        <ellipse cx="211" cy="145" rx="41" ry="9" fill="#FFFBE2" opacity=".62" filter="url(#giftGlowBlur)" />
+                        <path d="M157 156 L211 91 L266 156 Z" fill="url(#giftInnerBurst)" opacity=".86" />
+                        <ellipse cx="211" cy="153" rx="76" ry="22" fill="url(#giftInnerBurst)" opacity=".98" />
+                        <ellipse cx="211" cy="151" rx="43" ry="10" fill="#FFFBE2" opacity=".66" filter="url(#giftGlowBlur)" />
                       </g>
 
                       <g className="gift-svg-cavity">
-                        <path d="M143 147 Q143 144 147 142 L157 138 H278 L290 147 Q293 150 289 152 L278 159 H157 Z" fill="url(#giftGoldSoft)" opacity=".98" />
-                        <path d="M158 147 L176 141 H260 L278 149 L260 155 H176 Z" fill="#23437F" opacity=".92" />
-                        <ellipse cx="211" cy="148" rx="53" ry="10" fill="url(#giftInnerBurst)" opacity=".98" />
-                        <ellipse cx="211" cy="147" rx="30" ry="6" fill="#FFF8C6" opacity=".62" />
+                        <path d="M139 155 Q139 150 144 147 L157 140 H278 Q283 140 287 143 L297 151 Q301 154 297 157 L287 162 H157 Q151 162 147 160 Z" fill="url(#giftGoldSoft)" opacity=".98" />
+                        <path d="M158 153 L176 146 H259 L278 154 L259 160 H176 Z" fill="#23437F" opacity=".92" />
+                        <ellipse cx="211" cy="154" rx="54" ry="10" fill="url(#giftInnerBurst)" opacity=".98" />
+                        <ellipse cx="211" cy="153" rx="31" ry="6" fill="#FFF8C6" opacity=".64" />
                       </g>
 
                       <g className="gift-svg-lid">
-                        <path d="M126 114 Q126 109 132 106 L142 101 H288 Q292 101 296 104 L304 111 Q307 114 304 117 L294 122 H138 Q132 122 129 119 Z" fill="#B9D9FF" />
-                        <rect x="129" y="118" width="166" height="36" rx="10" fill="url(#giftBlueLid)" stroke="#1E50B7" strokeWidth="1.3" />
-                        <path d="M295 121 L304 125 Q307 127 307 131 V145 Q307 149 303 151 L295 154 Z" fill="#14377E" opacity=".74" />
+                        <path d="M120 115 Q120 109 126 106 L139 100 H290 Q295 100 299 103 L309 111 Q313 114 309 117 L298 122 H134 Q127 122 123 119 Z" fill="#BCDFFF" />
+                        <rect x="123" y="120" width="180" height="38" rx="13" fill="url(#giftBlueLid)" stroke="#1E50B7" strokeWidth="1.3" />
+                        <path d="M303 123 L312 127 Q315 129 315 133 V146 Q315 151 311 153 L303 158 Z" fill="#14377E" opacity=".72" />
 
-                        <rect x="158" y="118" width="24" height="36" rx="4" fill="url(#giftGold)" />
-                        <rect x="239" y="118" width="24" height="36" rx="4" fill="url(#giftGold)" />
-                        <rect x="165" y="121" width="7" height="30" rx="3.5" fill="#FFF5BF" opacity=".60" />
-                        <rect x="246" y="121" width="7" height="30" rx="3.5" fill="#FFF5BF" opacity=".52" />
+                        <rect x="158" y="120" width="21" height="38" rx="5" fill="url(#giftGold)" />
+                        <rect x="247" y="120" width="21" height="38" rx="5" fill="url(#giftGold)" />
+                        <rect x="164" y="123" width="6" height="32" rx="3" fill="#FFF5BF" opacity=".60" />
+                        <rect x="253" y="123" width="6" height="32" rx="3" fill="#FFF5BF" opacity=".52" />
 
-                        <path className="gift-svg-lid-shine" d="M139 123 H287" fill="none" stroke="#F0F7FF" strokeWidth="2.1" strokeLinecap="round" opacity=".40" />
+                        <path className="gift-svg-lid-shine" d="M135 126 H291" fill="none" stroke="#F2F8FF" strokeWidth="2.2" strokeLinecap="round" opacity=".42" />
 
                         <g className="gift-svg-bow" filter="url(#giftTinyShadow)">
-                          <path className="gift-svg-bow-left" d="M207 114 C186 96 154 93 146 106 C139 120 170 130 203 123 C179 120 170 112 178 103 C186 95 200 102 214 117 Z" fill="url(#giftGoldSoft)" />
-                          <path className="gift-svg-bow-right" d="M219 114 C240 96 272 93 280 106 C287 120 256 130 223 123 C247 120 256 112 248 103 C240 95 226 102 212 117 Z" fill="url(#giftGoldSoft)" />
-                          <path d="M209 114 C199 102 198 84 206 79 C215 74 218 93 214 109 C220 92 227 74 237 80 C246 86 238 104 220 115 Z" fill="url(#giftGold)" />
-                          <rect x="203" y="107" width="21" height="20" rx="8" fill="url(#giftGoldSoft)" />
-                          <path d="M206 123 L198 148 L211 139 L216 158 L226 125 Z" fill="url(#giftGold)" />
-                          <path d="M208 109 H214 V123 H208 Z" fill="#FFF8CF" opacity=".52" />
+                          <path className="gift-svg-bow-left" d="M207 115 C182 96 147 94 139 108 C131 123 164 134 202 125 C175 122 165 113 174 102 C183 93 199 101 214 118 Z" fill="url(#giftGoldSoft)" />
+                          <path className="gift-svg-bow-right" d="M220 115 C245 96 280 94 288 108 C296 123 263 134 225 125 C252 122 262 113 253 102 C244 93 228 101 213 118 Z" fill="url(#giftGoldSoft)" />
+                          <path d="M209 115 C198 101 198 81 207 76 C217 70 220 92 215 110 C222 90 230 70 241 77 C251 84 242 105 221 116 Z" fill="url(#giftGold)" />
+                          <rect x="203" y="107" width="22" height="21" rx="8" fill="url(#giftGoldSoft)" />
+                          <path d="M206 124 L197 151 L211 141 L216 161 L227 126 Z" fill="url(#giftGold)" />
+                          <path d="M208 110 H214 V124 H208 Z" fill="#FFF8CF" opacity=".52" />
                         </g>
                       </g>
 
                       <g className="gift-svg-closed-glints">
-                        <path d="M240 180 l4 8 l8 4 l-8 4 l-4 8 l-4-8 l-8-4 l8-4Z" fill="#FFFFFF" opacity=".90" />
+                        <path d="M242 179 l4 8 l8 4 l-8 4 l-4 8 l-4-8 l-8-4 l8-4Z" fill="#FFFFFF" opacity=".90" />
                       </g>
                     </g>
 
