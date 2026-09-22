@@ -742,4 +742,20 @@ export const GIFT_FEATURE_STYLES = `
   .gift-premium-inner > button{max-width:305px!important;min-height:52px!important}
 }
 
+
+/* KIMSHOP_CARD_RIBBON_FINAL_20260922 */
+.gift-card-ribbons{z-index:-1!important}
+.gift-card-ribbon{
+  stroke-width:11!important;
+  opacity:.84!important;
+  filter:drop-shadow(0 5px 8px rgba(217,128,0,.10));
+}
+.gift-card-ribbon-highlight{
+  fill:none;
+  stroke:rgba(255,246,201,.68);
+  stroke-width:2.2;
+  stroke-linecap:round;
+  pointer-events:none;
+}
+
 `;
