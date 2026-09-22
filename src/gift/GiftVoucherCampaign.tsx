@@ -363,8 +363,29 @@ export default function GiftVoucherCampaign({ slug, onClose }: { slug: string; o
                 <div className="absolute inset-0 rounded-full bg-[#FFB020]/45 blur-3xl gift-anim-glow" />
                 <div className={`gift-box-wrap ${boxWrapAnimClass}`}>
                   <div className="gift-premium-halo gift-anim-glow" />
-                  <div className="gift-silk-arc gift-silk-arc-back" />
-                  <div className="gift-silk-arc gift-silk-arc-front" />
+                  <svg className="gift-sample-ribbons" viewBox="0 0 340 210" aria-hidden="true">
+                    <defs>
+                      <linearGradient id="giftRibbonWarmA" x1="0" y1="0" x2="1" y2="0">
+                        <stop offset="0%" stopColor="#F59E0B" stopOpacity=".08" />
+                        <stop offset="24%" stopColor="#FFD765" stopOpacity=".9" />
+                        <stop offset="52%" stopColor="#FFF0A3" stopOpacity=".98" />
+                        <stop offset="78%" stopColor="#FFB423" stopOpacity=".9" />
+                        <stop offset="100%" stopColor="#F97316" stopOpacity=".06" />
+                      </linearGradient>
+                      <linearGradient id="giftRibbonWarmB" x1="1" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor="#FFF5C3" stopOpacity=".9" />
+                        <stop offset="48%" stopColor="#FFC84C" stopOpacity=".82" />
+                        <stop offset="100%" stopColor="#FF8A1F" stopOpacity=".1" />
+                      </linearGradient>
+                      <filter id="giftRibbonSoftGlow" x="-20%" y="-80%" width="140%" height="260%">
+                        <feGaussianBlur stdDeviation="2.4" result="blur"/>
+                        <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+                      </filter>
+                    </defs>
+                    <path className="gift-sample-ribbon gift-sample-ribbon-back" d="M8 139 C80 91 153 75 216 86 C269 94 304 121 333 145" fill="none" stroke="url(#giftRibbonWarmB)" strokeWidth="13" strokeLinecap="round" filter="url(#giftRibbonSoftGlow)"/>
+                    <path className="gift-sample-ribbon gift-sample-ribbon-front" d="M18 168 C93 208 226 196 318 128" fill="none" stroke="url(#giftRibbonWarmA)" strokeWidth="16" strokeLinecap="round" filter="url(#giftRibbonSoftGlow)"/>
+                    <path className="gift-sample-ribbon-highlight" d="M29 165 C104 194 221 185 303 132" fill="none" stroke="rgba(255,255,255,.62)" strokeWidth="2.5" strokeLinecap="round"/>
+                  </svg>
                   <div className="gift-box-shadow" />
                   <div className={`gift-box-burst-wrap ${boxStage === 'burst' ? 'is-active' : ''}`}>
                     <div className="gift-box-burst-rays" />
@@ -372,7 +393,8 @@ export default function GiftVoucherCampaign({ slug, onClose }: { slug: string; o
                   </div>
                   <div className="gift-box-3d">
                     <div className="gift-box-ribbon-back" />
-                    <div className={`gift-box-lid ${boxStage === 'burst' ? 'gift-box-lid-pop' : ''}`}>
+                    <div className="gift-box-inner-light" />
+                    <div className={`gift-box-lid gift-box-lid-preview ${boxStage === 'burst' ? 'gift-box-lid-pop' : ''}`}>
                       <div className="gift-box-gloss" />
                       <div className="gift-box-lid-edge" />
                       <div className="gift-box-ribbon-v" />
@@ -396,6 +418,12 @@ export default function GiftVoucherCampaign({ slug, onClose }: { slug: string; o
                   <div className="gift-coin" style={{ left: '32px', bottom: '24px', animationDelay: '400ms' }} />
                   <div className="gift-coin" style={{ right: '26px', bottom: '30px', animationDelay: '600ms' }} />
                   <div className="gift-coin gift-coin-deep" style={{ left: '52%', top: '0px', animationDelay: '120ms' }} />
+                  <div className="gift-coin gift-coin-far" style={{ left: '18%', top: '18px', animationDelay: '280ms' }} />
+                  <div className="gift-coin gift-coin-far" style={{ right: '17%', top: '12px', animationDelay: '520ms' }} />
+                  <span className="gift-mini-confetti gift-mini-confetti-a" />
+                  <span className="gift-mini-confetti gift-mini-confetti-b" />
+                  <span className="gift-mini-confetti gift-mini-confetti-c" />
+                  <span className="gift-mini-confetti gift-mini-confetti-d" />
 
                   {boxStage === 'burst' &&
                     burstConfetti.map((c, i) => (
