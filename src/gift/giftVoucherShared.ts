@@ -1748,4 +1748,55 @@ export const GIFT_FEATURE_STYLES = `
     drop-shadow(0 6px 7px rgba(125,70,0,.10))!important;
 }
 
+
+/* KIMSHOP_GIFT_REALISM_EDGE_PASS_20260922 */
+.gift-svg-closed-seam{
+  opacity:.92;
+  transition:opacity .18s ease;
+}
+.gift-scene-svg.is-open .gift-svg-closed-seam{
+  opacity:0;
+}
+.gift-svg-body-top-glint{
+  filter:drop-shadow(0 0 2px rgba(255,255,255,.24));
+}
+.gift-svg-body-bottom-rim{
+  filter:blur(.1px);
+}
+.gift-svg-contact-shadow{
+  opacity:.82!important;
+}
+.gift-svg-contact-warm{
+  opacity:.70!important;
+}
+.gift-svg-body-edge-light,.gift-svg-lid-edge-light{
+  opacity:.72!important;
+}
+.gift-svg-body-edge-dark,.gift-svg-lid-edge-dark{
+  opacity:.66!important;
+}
+.gift-svg-body-contact,.gift-svg-lid-contact{
+  opacity:.78;
+}
+.gift-svg-gold-spec,.gift-svg-lid-gold-spec{
+  opacity:.58!important;
+  mix-blend-mode:screen;
+}
+.gift-svg-body{
+  filter:
+    drop-shadow(0 1px 1px rgba(6,18,52,.34))
+    drop-shadow(0 7px 7px rgba(7,20,58,.18))
+    drop-shadow(0 14px 17px rgba(7,20,58,.12))!important;
+}
+.gift-svg-lid{
+  filter:
+    drop-shadow(0 1px 1px rgba(6,18,52,.30))
+    drop-shadow(0 6px 8px rgba(7,20,58,.17))!important;
+}
+.gift-svg-bow{
+  filter:
+    drop-shadow(0 2px 1px rgba(122,70,0,.18))
+    drop-shadow(0 5px 5px rgba(122,70,0,.11))!important;
+}
+
 `;

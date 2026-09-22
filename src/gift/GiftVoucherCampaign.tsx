@@ -441,6 +441,16 @@ export default function GiftVoucherCampaign({ slug, onClose }: { slug: string; o
                         <stop offset="62%" stopColor="#FFFFFF" stopOpacity=".96" />
                         <stop offset="100%" stopColor="#FFF8D2" stopOpacity="0" />
                       </linearGradient>
+                      <linearGradient id="giftGoldMetal" x1="0%" y1="0%" x2="100%" y2="0%">
+                        <stop offset="0%" stopColor="#9A5600" />
+                        <stop offset="10%" stopColor="#CE8508" />
+                        <stop offset="28%" stopColor="#F1B72E" />
+                        <stop offset="47%" stopColor="#FFE58D" />
+                        <stop offset="55%" stopColor="#FFF8C8" />
+                        <stop offset="68%" stopColor="#F6C43D" />
+                        <stop offset="84%" stopColor="#D68A09" />
+                        <stop offset="100%" stopColor="#8B4B00" />
+                      </linearGradient>
                       <filter id="giftMaterialDepth" x="-40%" y="-40%" width="180%" height="200%">
                         <feDropShadow dx="0" dy="2" stdDeviation="1.4" floodColor="#0A1B4D" floodOpacity=".28" />
                         <feDropShadow dx="0" dy="9" stdDeviation="7" floodColor="#08163D" floodOpacity=".18" />
@@ -540,8 +550,8 @@ export default function GiftVoucherCampaign({ slug, onClose }: { slug: string; o
                         <path className="gift-svg-body-edge-dark" d="M299 166 V226 Q299 235 290 235 H134" fill="none" stroke="url(#giftEdgeDark)" strokeWidth="2.2" strokeLinecap="round" />
                         <path className="gift-svg-body-contact" d="M140 235 H284" fill="none" stroke="#07173E" strokeOpacity=".22" strokeWidth="3.2" strokeLinecap="round" />
 
-                        <rect x="158" y="156" width="18" height="80" rx="4" fill="url(#giftGold)" />
-                        <rect x="248" y="156" width="18" height="80" rx="4" fill="url(#giftGold)" />
+                        <rect x="158" y="156" width="18" height="80" rx="4" fill="url(#giftGoldMetal)" />
+                        <rect x="248" y="156" width="18" height="80" rx="4" fill="url(#giftGoldMetal)" />
                         <rect x="163" y="159" width="5" height="74" rx="2.5" fill="#FFF4B7" opacity=".56" />
                         <rect x="253" y="159" width="5" height="74" rx="2.5" fill="#FFF4B7" opacity=".48" />
                         <rect className="gift-svg-gold-spec" x="166" y="156" width="8" height="80" rx="4" fill="url(#giftGoldSpecular)" opacity=".52" />
@@ -566,6 +576,10 @@ export default function GiftVoucherCampaign({ slug, onClose }: { slug: string; o
                         <ellipse cx="212" cy="153" rx="31" ry="6" fill="#FFF8C6" opacity=".66" />
                       </g>
 
+                      <path className="gift-svg-closed-seam" d="M128 158 C161 162 263 162 301 158" fill="none" stroke="#071C55" strokeOpacity=".34" strokeWidth="4.2" strokeLinecap="round" filter="url(#giftSoftShadow)" />
+                      <path className="gift-svg-body-top-glint" d="M134 159 C166 157 259 157 293 159" fill="none" stroke="#DCEAFF" strokeOpacity=".42" strokeWidth="1.4" strokeLinecap="round" />
+                      <path className="gift-svg-body-bottom-rim" d="M134 233 C170 236 256 236 290 233" fill="none" stroke="#061A4D" strokeOpacity=".20" strokeWidth="1.5" strokeLinecap="round" />
+
                       <g className="gift-svg-lid">
                         <rect x="116" y="120" width="192" height="38" rx="7" fill="url(#giftBlueLid)" stroke="#1C4DB2" strokeWidth="1.4" />
                         <path d="M124 120 H300 Q308 120 308 128 V132 H116 V128 Q116 120 124 120 Z" fill="url(#giftLidTopGloss)" opacity=".86" />
@@ -576,8 +590,8 @@ export default function GiftVoucherCampaign({ slug, onClose }: { slug: string; o
                         <path className="gift-svg-lid-edge-dark" d="M307 130 V149 Q307 157 299 157 H125" fill="none" stroke="url(#giftEdgeDark)" strokeWidth="2.2" strokeLinecap="round" />
                         <path className="gift-svg-lid-contact" d="M128 157 H296" fill="none" stroke="#07173E" strokeOpacity=".20" strokeWidth="2.8" strokeLinecap="round" />
 
-                        <rect x="153" y="120" width="21" height="38" rx="4" fill="url(#giftGold)" />
-                        <rect x="250" y="120" width="21" height="38" rx="4" fill="url(#giftGold)" />
+                        <rect x="153" y="120" width="21" height="38" rx="4" fill="url(#giftGoldMetal)" />
+                        <rect x="250" y="120" width="21" height="38" rx="4" fill="url(#giftGoldMetal)" />
                         <rect x="159" y="123" width="6" height="32" rx="3" fill="#FFF5BF" opacity=".56" />
                         <rect x="256" y="123" width="6" height="32" rx="3" fill="#FFF5BF" opacity=".50" />
                         <rect className="gift-svg-lid-gold-spec" x="156" y="120" width="8" height="38" rx="4" fill="url(#giftGoldSpecular)" opacity=".50" />
@@ -600,6 +614,8 @@ export default function GiftVoucherCampaign({ slug, onClose }: { slug: string; o
                       </g>
                     </g>
 
+                    <ellipse className="gift-svg-contact-shadow" cx="212" cy="242" rx="88" ry="11" fill="#071838" opacity=".17" filter="url(#giftSoftShadow)" />
+                    <ellipse className="gift-svg-contact-warm" cx="212" cy="238" rx="72" ry="7" fill="#F8B938" opacity=".18" filter="url(#giftGlowBlur)" />
                     <g className="gift-svg-stage">
                       <ellipse cx="210" cy="251" rx="132" ry="31" fill="#FFD46A" opacity=".14" />
                       <ellipse cx="210" cy="249" rx="132" ry="31" fill="none" stroke="rgba(217,133,0,.14)" strokeWidth="16" />
