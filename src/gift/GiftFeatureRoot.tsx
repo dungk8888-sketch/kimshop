@@ -46,6 +46,7 @@ export default function GiftFeatureRoot() {
   // tham số này) sẽ không mount GiftVoucherCampaign -> không phát sinh RPC
   // get_campaign_open_status/gói JS nào cho phần lớn người dùng.
   const [slug] = useState<string | null>(() => getCampaignSlugFromUrl());
+  const [activeSlug, setActiveSlug] = useState<string | null>(() => slug);
   const [closed, setClosed] = useState(false);
   const idle = useIdle(1200);
   // Chỉ tải chunk "Voucher của tôi" nếu trình duyệt này có khả năng đã đăng
@@ -65,6 +66,19 @@ export default function GiftFeatureRoot() {
   // client dùng chung với App (cùng storageKey). Không có cơ chế auth thứ hai,
   // không gọi mạng (đọc session local), và dùng import động nên khách vãng lai
   // chưa đăng nhập không kéo thêm gì vào lúc vẽ trang đầu tiên.
+  // Cho khách đã ở trong app mở campaign mà không cần đi qua link Facebook.
+  // Event chỉ được phát khi khách bấm nút trong "Voucher của tôi", nên không
+  // phát sinh RPC campaign trên homepage bình thường.
+  useEffect(() => {
+    const handler = (event: Event) => {
+      const custom = event as CustomEvent<{ slug?: string }>;
+      setActiveSlug(custom.detail?.slug || 'hop-chan-sac');
+      setClosed(false);
+    };
+    window.addEventListener('kimshop:open-gift-campaign', handler as EventListener);
+    return () => window.removeEventListener('kimshop:open-gift-campaign', handler as EventListener);
+  }, []);
+
   useEffect(() => {
     if (!idle || wantMyVouchers) return;
     let cancelled = false;
@@ -87,9 +101,9 @@ export default function GiftFeatureRoot() {
   return (
     <GiftErrorBoundary>
       <style>{GIFT_FEATURE_STYLES}</style>
-      {slug && !closed && (
+      {activeSlug && !closed && (
         <Suspense fallback={null}>
-          <GiftVoucherCampaign slug={slug} onClose={() => setClosed(true)} />
+          <GiftVoucherCampaign slug={activeSlug} onClose={() => setClosed(true)} />
         </Suspense>
       )}
       {idle && wantMyVouchers && (
