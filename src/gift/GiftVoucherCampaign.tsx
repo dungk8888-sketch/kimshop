@@ -331,7 +331,7 @@ export default function GiftVoucherCampaign({ slug, onClose }: { slug: string; o
 
           {(phase === 'teaser' || phase === 'opening') && campaign && (
             <>
-              <div className="relative mb-6 flex flex-col items-center">
+              <div className="relative mb-8 flex flex-col items-center">
                 <div className="absolute inset-0 rounded-full bg-[#FFB020]/45 blur-3xl gift-anim-glow" />
                 <div className={`gift-box-wrap ${phase === 'opening' ? 'gift-anim-shake' : 'gift-anim-float'}`}>
                   <div className="gift-box-shadow" />
