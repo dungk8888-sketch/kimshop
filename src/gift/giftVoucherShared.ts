@@ -872,4 +872,67 @@ export const GIFT_FEATURE_STYLES = `
   .gift-scene-svg.is-teaser-open .gift-svg-lid,.gift-scene-svg.is-open .gift-svg-lid{animation:none!important}
 }
 
+
+/* KIMSHOP_GIFT_PROPORTION_PASS_20260922 */
+.gift-premium-card::before,.gift-premium-card::after{
+  border-color:rgba(247,177,45,.28)!important;
+  border-width:8px!important;
+  bottom:-82px!important;
+  width:138px!important;
+  height:118px!important;
+}
+.gift-premium-card::before{left:-92px!important}
+.gift-premium-card::after{right:-92px!important}
+
+.gift-box-wrap{
+  width:min(362px,92vw)!important;
+  height:248px!important;
+}
+.gift-scene-svg{
+  transform:scale(1.02)!important;
+}
+.gift-svg-body{
+  filter:drop-shadow(0 12px 13px rgba(13,39,105,.18))!important;
+}
+.gift-svg-lid{
+  filter:drop-shadow(0 11px 10px rgba(10,36,98,.20))!important;
+}
+.gift-gap-burst{
+  opacity:.86!important;
+}
+
+@keyframes giftTargetLidFloatCloser{
+  0%,100%{transform:translateY(-32px) rotate(-4deg) scale(1.025)}
+  50%{transform:translateY(-37px) rotate(-5deg) scale(1.038)}
+}
+.gift-scene-svg.is-teaser-open .gift-svg-lid{
+  animation:giftTargetLidFloatCloser 3.15s ease-in-out infinite!important;
+}
+@keyframes giftSvgLidOpenCloser{
+  0%{transform:translateY(-33px) rotate(-4deg) scale(1.025)}
+  34%{transform:translateY(-43px) rotate(-7deg) scale(1.045)}
+  72%{transform:translateY(-77px) rotate(-13deg) scale(1.075)}
+  100%{transform:translateY(-66px) rotate(-9deg) scale(1.055)}
+}
+.gift-scene-svg.is-open .gift-svg-lid{
+  animation:giftSvgLidOpenCloser .78s cubic-bezier(.24,1.45,.38,1) both!important;
+}
+
+.gift-svg-bow-left,.gift-svg-bow-right{
+  filter:drop-shadow(0 3px 3px rgba(137,76,0,.10));
+}
+.gift-svg-stage{
+  transform:translateY(-1px) scaleX(.94);
+  transform-origin:210px 240px;
+}
+.gift-svg-swoosh-back{opacity:.70!important}
+
+@media (max-width:640px){
+  .gift-box-wrap{width:min(340px,91vw)!important;height:236px!important}
+  .gift-premium-card::before,.gift-premium-card::after{bottom:-86px!important;width:128px!important;height:112px!important}
+}
+@media (prefers-reduced-motion:reduce){
+  .gift-scene-svg.is-teaser-open .gift-svg-lid,.gift-scene-svg.is-open .gift-svg-lid{animation:none!important}
+}
+
 `;
