@@ -137,6 +137,20 @@ export default function MyVouchersWidget() {
               </button>
             </div>
             <div className="overflow-y-auto px-5 py-4 space-y-3">
+              <button
+                type="button"
+                onClick={() => {
+                  setOpen(false);
+                  window.dispatchEvent(new CustomEvent('kimshop:open-gift-campaign', { detail: { slug: 'hop-chan-sac' } }));
+                }}
+                className="w-full rounded-2xl bg-gradient-to-r from-[#FF6A3D] to-[#EE4D2D] text-white px-4 py-3.5 flex items-center justify-center gap-2 font-bold text-sm shadow-md shadow-orange-200/60 hover:opacity-95"
+              >
+                <Gift size={18} /> Mở hộp quà
+              </button>
+              <p className="text-[11px] text-gray-400 text-center -mt-1">
+                Mỗi tài khoản mở tối đa theo số lượt của chương trình.
+              </p>
+
               {loading && rows.length === 0 && (
                 <div className="flex items-center justify-center gap-2 text-gray-400 py-10 text-sm">
                   <Loader2 size={16} className="animate-spin" /> Đang tải voucher...
