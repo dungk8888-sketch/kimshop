@@ -1799,4 +1799,28 @@ export const GIFT_FEATURE_STYLES = `
     drop-shadow(0 5px 5px rgba(122,70,0,.11))!important;
 }
 
+
+/* KIMSHOP_GIFT_MICRO_DEPTH_PASS_20260922 */
+.gift-svg-body-inner-bevel,.gift-svg-lid-inner-bevel{
+  filter:drop-shadow(0 0 1px rgba(255,255,255,.16));
+}
+.gift-svg-body-inner-dark,.gift-svg-lid-underlip{
+  filter:blur(.12px);
+}
+.gift-svg-body-top-soft{
+  filter:drop-shadow(0 0 1.5px rgba(255,255,255,.18));
+}
+.gift-svg-ribbon-shadow,.gift-svg-lid-ribbon-shadow{
+  filter:blur(.35px);
+}
+.gift-svg-ribbon-curve,.gift-svg-lid-ribbon-curve{
+  filter:drop-shadow(0 0 2px rgba(255,246,210,.18));
+}
+.gift-svg-bow-under-left,.gift-svg-bow-under-right{
+  filter:blur(.25px);
+}
+.gift-svg-bow-highlight{
+  filter:drop-shadow(0 0 2px rgba(255,247,205,.24));
+}
+
 `;
