@@ -510,17 +510,17 @@ export default function GiftVoucherCampaign({ slug, onClose }: { slug: string; o
 
                     <g className="gift-svg-box">
                       <g className="gift-svg-body">
-                        <rect x="128" y="154" width="168" height="84" rx="15" fill="url(#giftBlueFront)" stroke="#194BAE" strokeWidth="1.5" />
-                        <path d="M128 169 Q128 154 143 154 H174 V238 H143 Q128 238 128 223 Z" fill="#6E9FF2" opacity=".38" />
-                        <rect x="174" y="154" width="80" height="84" fill="#215ACB" opacity=".18" />
-                        <path d="M254 154 H281 Q296 154 296 169 V223 Q296 238 281 238 H254 Z" fill="#0B2C77" opacity=".34" />
-                        <rect x="128" y="154" width="168" height="84" rx="15" fill="url(#giftBlueGloss)" />
-                        <rect x="165" y="154" width="18" height="84" rx="5" fill="url(#giftGold)" />
-                        <rect x="241" y="154" width="18" height="84" rx="5" fill="url(#giftGold)" />
-                        <rect x="170" y="157" width="5" height="78" rx="2.5" fill="#FFF4B7" opacity=".60" />
-                        <rect x="246" y="157" width="5" height="78" rx="2.5" fill="#FFF4B7" opacity=".50" />
-                        <path className="gift-svg-body-shine" d="M139 164 V226" fill="none" stroke="#F1F7FF" strokeWidth="2.4" strokeLinecap="round" opacity=".38" />
-                        <path className="gift-svg-body-shine" d="M285 164 V226" fill="none" stroke="#82AEFF" strokeWidth="1.4" strokeLinecap="round" opacity=".18" />
+                        <rect x="132" y="154" width="160" height="84" rx="9" fill="url(#giftBlueFront)" stroke="#194BAE" strokeWidth="1.5" />
+                        <path d="M132 163 Q132 154 141 154 H166 V238 H141 Q132 238 132 229 Z" fill="#6E9FF2" opacity=".22" />
+                        <rect x="166" y="154" width="88" height="84" fill="#215ACB" opacity=".10" />
+                        <path d="M254 154 H283 Q292 154 292 163 V229 Q292 238 283 238 H254 Z" fill="#0B2C77" opacity=".22" />
+                        <rect x="132" y="154" width="160" height="84" rx="9" fill="url(#giftBlueGloss)" opacity=".88" />
+                        <rect x="166" y="154" width="17" height="84" rx="4" fill="url(#giftGold)" />
+                        <rect x="241" y="154" width="17" height="84" rx="4" fill="url(#giftGold)" />
+                        <rect x="171" y="157" width="5" height="78" rx="2.5" fill="#FFF4B7" opacity=".56" />
+                        <rect x="246" y="157" width="5" height="78" rx="2.5" fill="#FFF4B7" opacity=".48" />
+                        <path className="gift-svg-body-shine" d="M141 164 V226" fill="none" stroke="#F1F7FF" strokeWidth="2.2" strokeLinecap="round" opacity=".30" />
+                        <path className="gift-svg-body-shine" d="M283 164 V226" fill="none" stroke="#82AEFF" strokeWidth="1.3" strokeLinecap="round" opacity=".14" />
                         <path d="M216 184 l5 10 l10 5 l-10 5 l-5 10 l-5-10 l-10-5 l10-5Z" fill="#FFFFFF" opacity=".92" />
                         <path d="M145 176 l3 6 l6 3 l-6 3 l-3 6 l-3-6 l-6-3 l6-3Z" fill="#FFECA5" opacity=".82" />
                       </g>
@@ -539,18 +539,18 @@ export default function GiftVoucherCampaign({ slug, onClose }: { slug: string; o
                       </g>
 
                       <g className="gift-svg-lid">
-                        <rect x="119" y="117" width="186" height="41" rx="14" fill="url(#giftBlueLid)" stroke="#1C4DB2" strokeWidth="1.4" />
-                        <rect x="119" y="117" width="186" height="17" rx="14" fill="url(#giftLidTopGloss)" />
-                        <path d="M121 134 H303 V149 Q303 158 294 158 H130 Q121 158 121 149 Z" fill="#0D3D9D" opacity=".10" />
-                        <path d="M279 117 H291 Q305 117 305 131 V144 Q305 158 291 158 H279 Z" fill="#092B73" opacity=".30" />
-                        <path d="M119 131 Q119 117 133 117 H147 V158 H133 Q119 158 119 144 Z" fill="#7DACF7" opacity=".26" />
+                        <rect x="124" y="118" width="176" height="40" rx="9" fill="url(#giftBlueLid)" stroke="#1C4DB2" strokeWidth="1.4" />
+                        <path d="M133 118 H291 Q300 118 300 127 V132 H124 V127 Q124 118 133 118 Z" fill="url(#giftLidTopGloss)" />
+                        <path d="M124 132 H300 V150 Q300 158 292 158 H132 Q124 158 124 150 Z" fill="#0D3D9D" opacity=".11" />
+                        <path d="M278 118 H291 Q300 118 300 127 V149 Q300 158 291 158 H278 Z" fill="#092B73" opacity=".22" />
+                        <path d="M124 127 Q124 118 133 118 H146 V158 H133 Q124 158 124 149 Z" fill="#7DACF7" opacity=".18" />
 
-                        <rect x="156" y="117" width="21" height="41" rx="5" fill="url(#giftGold)" />
-                        <rect x="246" y="117" width="21" height="41" rx="5" fill="url(#giftGold)" />
-                        <rect x="162" y="120" width="6" height="35" rx="3" fill="#FFF5BF" opacity=".60" />
-                        <rect x="252" y="120" width="6" height="35" rx="3" fill="#FFF5BF" opacity=".52" />
+                        <rect x="158" y="118" width="20" height="40" rx="4" fill="url(#giftGold)" />
+                        <rect x="246" y="118" width="20" height="40" rx="4" fill="url(#giftGold)" />
+                        <rect x="164" y="121" width="6" height="34" rx="3" fill="#FFF5BF" opacity=".56" />
+                        <rect x="252" y="121" width="6" height="34" rx="3" fill="#FFF5BF" opacity=".50" />
 
-                        <path className="gift-svg-lid-shine" d="M133 123 H291" fill="none" stroke="#F3F9FF" strokeWidth="2.2" strokeLinecap="round" opacity=".42" />
+                        <path className="gift-svg-lid-shine" d="M136 124 H288" fill="none" stroke="#F3F9FF" strokeWidth="2" strokeLinecap="round" opacity=".34" />
 
                         <g className="gift-svg-bow" filter="url(#giftTinyShadow)">
                           <path className="gift-svg-bow-left" d="M207 114 C181 94 145 92 137 106 C129 121 163 133 202 124 C174 121 164 111 173 101 C182 92 199 101 214 118 Z" fill="url(#giftGoldSoft)" />
