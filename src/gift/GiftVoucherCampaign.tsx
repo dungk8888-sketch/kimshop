@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { Gift, X, Sparkles, Copy, Check, Loader2, Lock, ShieldAlert, PartyPopper } from 'lucide-react';
+import { Gift, X, Copy, Check, Loader2, Lock, ShieldAlert, PartyPopper } from 'lucide-react';
 import { supabase, usernameToEmail, usernameToLegacyEmail, isValidUsername } from '../supabaseClient';
 import {
   cacheGiftVoucher,
@@ -10,6 +10,7 @@ import {
   type OpenCampaignStatus,
   type OpenVoucherGiftResult,
 } from './giftVoucherShared';
+import { GIFT_HERO_OPEN_DATA_URI } from './giftHeroData';
 
 type Phase =
   | 'loading'
@@ -362,166 +363,17 @@ export default function GiftVoucherCampaign({ slug, onClose }: { slug: string; o
               <div className="relative mb-5 flex flex-col items-center gift-premium-hero w-full">
                 <div className="gift-premium-bg" />
                 <div className="gift-premium-sheen" />
-                <div className={`gift-box-wrap ${boxWrapAnimClass}`}>
-                  <svg
-                    className={`gift-scene-svg ${boxStage === 'burst' ? 'is-open' : ''}`}
-                    viewBox="0 0 420 280"
-                    role="img"
-                    aria-label="Hộp quà KIMSHOP"
-                  >
-                    <defs>
-                      <radialGradient id="giftSceneBg" cx="50%" cy="43%" r="68%">
-                        <stop offset="0%" stopColor="#fffdf4" />
-                        <stop offset="38%" stopColor="#fff2c8" />
-                        <stop offset="72%" stopColor="#ffd884" stopOpacity=".62" />
-                        <stop offset="100%" stopColor="#ffca68" stopOpacity="0" />
-                      </radialGradient>
-                      <linearGradient id="giftBlueFront" x1="0%" y1="0%" x2="100%" y2="100%">
-                        <stop offset="0%" stopColor="#7fb3ff" />
-                        <stop offset="25%" stopColor="#3f7cf2" />
-                        <stop offset="62%" stopColor="#2054c9" />
-                        <stop offset="100%" stopColor="#102e80" />
-                      </linearGradient>
-                      <linearGradient id="giftBlueSide" x1="0%" y1="0%" x2="100%" y2="100%">
-                        <stop offset="0%" stopColor="#315fc7" />
-                        <stop offset="100%" stopColor="#0b2369" />
-                      </linearGradient>
-                      <linearGradient id="giftBlueLid" x1="0%" y1="0%" x2="100%" y2="100%">
-                        <stop offset="0%" stopColor="#9ac6ff" />
-                        <stop offset="24%" stopColor="#5e94fb" />
-                        <stop offset="62%" stopColor="#2c63db" />
-                        <stop offset="100%" stopColor="#15388d" />
-                      </linearGradient>
-                      <linearGradient id="giftGold" x1="0%" y1="0%" x2="100%" y2="0%">
-                        <stop offset="0%" stopColor="#b96800" />
-                        <stop offset="18%" stopColor="#ef9e08" />
-                        <stop offset="38%" stopColor="#ffd858" />
-                        <stop offset="52%" stopColor="#fff2ad" />
-                        <stop offset="70%" stopColor="#ffc62f" />
-                        <stop offset="100%" stopColor="#b86a00" />
-                      </linearGradient>
-                      <linearGradient id="giftGoldSoft" x1="0%" y1="0%" x2="100%" y2="100%">
-                        <stop offset="0%" stopColor="#fff1a8" />
-                        <stop offset="36%" stopColor="#ffd248" />
-                        <stop offset="72%" stopColor="#e99a08" />
-                        <stop offset="100%" stopColor="#a85c00" />
-                      </linearGradient>
-                      <linearGradient id="giftSwoosh" x1="0%" y1="0%" x2="100%" y2="0%">
-                        <stop offset="0%" stopColor="#f5a315" stopOpacity="0" />
-                        <stop offset="18%" stopColor="#ffc84b" stopOpacity=".68" />
-                        <stop offset="48%" stopColor="#fff1b0" stopOpacity=".96" />
-                        <stop offset="76%" stopColor="#f6a814" stopOpacity=".72" />
-                        <stop offset="100%" stopColor="#f6a814" stopOpacity="0" />
-                      </linearGradient>
-                      <radialGradient id="giftInnerBurst" cx="50%" cy="50%" r="50%">
-                        <stop offset="0%" stopColor="#ffffff" stopOpacity="1" />
-                        <stop offset="28%" stopColor="#fff6bb" stopOpacity=".98" />
-                        <stop offset="56%" stopColor="#ffc94c" stopOpacity=".68" />
-                        <stop offset="100%" stopColor="#ff9b1a" stopOpacity="0" />
-                      </radialGradient>
-                      <filter id="giftSoftShadow" x="-50%" y="-50%" width="200%" height="220%">
-                        <feGaussianBlur stdDeviation="8" />
-                      </filter>
-                      <filter id="giftTinyShadow" x="-40%" y="-40%" width="180%" height="200%">
-                        <feDropShadow dx="0" dy="5" stdDeviation="4" floodColor="#6d3b00" floodOpacity=".23" />
-                      </filter>
-                    </defs>
-
-                    <ellipse cx="210" cy="147" rx="183" ry="126" fill="url(#giftSceneBg)" />
-                    <g className="gift-svg-rays" opacity=".42">
-                      <path d="M210 137 L175 7 L198 7 Z" fill="#fff" opacity=".55" />
-                      <path d="M210 137 L225 5 L246 10 Z" fill="#fff" opacity=".42" />
-                      <path d="M210 137 L79 37 L95 24 Z" fill="#fff" opacity=".38" />
-                      <path d="M210 137 L337 31 L350 47 Z" fill="#fff" opacity=".38" />
-                      <path d="M210 137 L54 117 L58 96 Z" fill="#fff" opacity=".28" />
-                      <path d="M210 137 L360 103 L364 124 Z" fill="#fff" opacity=".28" />
-                    </g>
-
-                    <g className="gift-svg-swoosh-back">
-                      <path d="M27 167 C83 91 148 74 197 98 M244 94 C307 71 365 97 397 142" fill="none" stroke="rgba(177,101,0,.12)" strokeWidth="18" strokeLinecap="round" />
-                      <path d="M27 167 C83 91 148 74 197 98 M244 94 C307 71 365 97 397 142" fill="none" stroke="url(#giftSwoosh)" strokeWidth="10" strokeLinecap="round" />
-                      <path d="M42 159 C96 104 150 89 194 103 M248 100 C303 83 350 100 383 137" fill="none" stroke="#fff3c1" strokeOpacity=".78" strokeWidth="2.2" strokeLinecap="round" />
-                    </g>
-
-                    <ellipse className="gift-svg-floor-shadow" cx="210" cy="228" rx="92" ry="20" fill="#112354" opacity=".2" filter="url(#giftSoftShadow)" />
-
-                    <g className="gift-svg-open-glow">
-                      <circle cx="210" cy="150" r="96" fill="url(#giftInnerBurst)" />
-                      <path d="M210 145 L160 35 L190 37 Z" fill="#fff5b5" opacity=".55" />
-                      <path d="M210 145 L250 31 L270 45 Z" fill="#fff2a3" opacity=".45" />
-                    </g>
-
-                    <g className="gift-svg-box">
-                      <g className="gift-svg-body">
-                        <path d="M137 138 H283 V224 Q283 238 269 241 H151 Q137 238 137 224 Z" fill="url(#giftBlueFront)" />
-                        <path d="M137 138 L153 128 H267 L283 138 H137 Z" fill="#6d9dff" opacity=".92" />
-                        <path d="M258 140 H283 V224 Q283 237 270 240 H258 Z" fill="url(#giftBlueSide)" opacity=".88" />
-                        <path d="M147 146 H198 V224 Q198 233 190 236 H151 Q144 234 144 225 V151 Q144 147 147 146Z" fill="#ffffff" opacity=".08" />
-                        <rect x="198" y="138" width="25" height="102" fill="url(#giftGold)" />
-                        <rect x="137" y="172" width="146" height="22" fill="url(#giftGoldSoft)" />
-                        <path d="M205 141 H212 V236 H205 Z" fill="#fff7c9" opacity=".58" />
-                        <path d="M139 173 H282 V179 H139 Z" fill="#fff2a0" opacity=".52" />
-                      </g>
-
-                      <g className="gift-svg-lid">
-                        <rect x="127" y="111" width="166" height="48" rx="10" fill="url(#giftBlueLid)" />
-                        <path d="M136 105 H284 Q292 105 294 112 H126 Q128 105 136 105Z" fill="#a8cfff" opacity=".86" />
-                        <path d="M278 112 H293 V150 Q292 158 285 159 H278 Z" fill="#14367e" opacity=".46" />
-                        <rect x="198" y="105" width="25" height="54" fill="url(#giftGold)" />
-                        <path d="M205 106 H212 V158 H205 Z" fill="#fff7cf" opacity=".55" />
-
-                        <g className="gift-svg-bow" filter="url(#giftTinyShadow)">
-                          <path className="gift-svg-bow-left" d="M205 103 C185 81 156 73 149 87 C143 99 168 110 202 111 C178 102 169 94 174 88 C180 81 195 89 210 105 Z" fill="url(#giftGoldSoft)" />
-                          <path className="gift-svg-bow-right" d="M216 103 C235 80 266 73 272 88 C278 101 251 111 219 111 C243 102 252 94 247 88 C241 81 226 89 211 105 Z" fill="url(#giftGoldSoft)" />
-                          <path d="M205 106 C190 92 182 72 191 67 C200 62 211 82 212 102 C213 82 225 62 234 67 C243 72 234 94 219 107 Z" fill="url(#giftGold)" />
-                          <rect x="202" y="97" width="20" height="20" rx="7" fill="url(#giftGoldSoft)" />
-                          <path d="M205 114 L195 141 L211 131 L213 153 L225 116 Z" fill="url(#giftGold)" />
-                        </g>
-                      </g>
-                    </g>
-
-                    <g className="gift-svg-swoosh-front">
-                      <path d="M18 184 C77 240 145 245 192 216 M238 219 C298 248 364 221 404 176" fill="none" stroke="rgba(158,88,0,.13)" strokeWidth="17" strokeLinecap="round" />
-                      <path d="M18 184 C77 240 145 245 192 216 M238 219 C298 248 364 221 404 176" fill="none" stroke="url(#giftSwoosh)" strokeWidth="9" strokeLinecap="round" />
-                      <path d="M34 188 C88 226 145 232 190 211 M241 214 C297 235 352 215 389 181" fill="none" stroke="#fff4c8" strokeOpacity=".84" strokeWidth="2" strokeLinecap="round" />
-                    </g>
-
-                    <g className="gift-svg-badges" filter="url(#giftTinyShadow)">
-                      <g className="gift-svg-badge-percent">
-                        <rect x="70" y="75" width="48" height="42" rx="10" fill="#ff5138" />
-                        <rect x="74" y="79" width="40" height="34" rx="8" fill="#ff644c" opacity=".64" />
-                        <text x="94" y="103" textAnchor="middle" fill="#fff" fontWeight="900" fontSize="22">%</text>
-                      </g>
-                      <g className="gift-svg-badge-fs">
-                        <rect x="302" y="78" width="49" height="42" rx="10" fill="#2766e7" />
-                        <rect x="306" y="82" width="41" height="34" rx="8" fill="#4b84f6" opacity=".7" />
-                        <text x="326.5" y="104" textAnchor="middle" fill="#fff" fontWeight="900" fontSize="18">FS</text>
-                      </g>
-                    </g>
-
-                    <g className="gift-svg-coins" filter="url(#giftTinyShadow)">
-                      <g className="gift-svg-coin gift-svg-coin-a" transform="translate(91 155)">
-                        <circle r="15" fill="url(#giftGoldSoft)" />
-                        <circle r="10" fill="none" stroke="#fff0a5" strokeWidth="2" opacity=".8" />
-                        <text y="5" textAnchor="middle" fill="#945000" fontSize="12" fontWeight="900">₫</text>
-                      </g>
-                      <g className="gift-svg-coin gift-svg-coin-b" transform="translate(330 157)">
-                        <circle r="14" fill="url(#giftGoldSoft)" />
-                        <circle r="9" fill="none" stroke="#fff0a5" strokeWidth="2" opacity=".8" />
-                        <text y="5" textAnchor="middle" fill="#945000" fontSize="11" fontWeight="900">₫</text>
-                      </g>
-                    </g>
-
-                    <g className="gift-svg-confetti">
-                      <rect x="117" y="46" width="7" height="17" rx="2" fill="#ff8a24" transform="rotate(-24 117 46)" />
-                      <rect x="293" y="48" width="7" height="17" rx="2" fill="#2c73ed" transform="rotate(24 293 48)" />
-                      <rect x="75" y="135" width="8" height="20" rx="2" fill="#ffd132" transform="rotate(18 75 135)" />
-                      <rect x="343" y="132" width="8" height="20" rx="2" fill="#ff7d22" transform="rotate(-8 343 132)" />
-                      <rect x="256" y="32" width="6" height="15" rx="2" fill="#ffd22e" transform="rotate(14 256 32)" />
-                      <path d="M330 53 l5 9 l10 1 l-8 7 l2 10 l-9-5 l-9 5 l2-10 l-8-7 l10-1Z" fill="#ffd62c" opacity=".92" />
-                      <path d="M112 61 l3 6 l7 1 l-5 5 l1 7 l-6-3 l-6 3 l1-7 l-5-5 l7-1Z" fill="#fff2a3" />
-                    </g>
-                  </svg>
+                <div className={`gift-box-wrap gift-render-wrap ${boxWrapAnimClass}`}>
+                  <div className={`gift-render-frame ${boxStage === 'burst' ? 'is-open' : ''}`}>
+                    <img
+                      src={GIFT_HERO_OPEN_DATA_URI}
+                      alt="Hộp quà KIMSHOP xanh vàng đang mở"
+                      className="gift-render-image"
+                      draggable={false}
+                    />
+                    <div className="gift-render-sheen" />
+                    <div className="gift-render-glow" />
+                  </div>
 
                   {boxStage === 'burst' &&
                     burstConfetti.map((item, i) => (
@@ -539,8 +391,6 @@ export default function GiftVoucherCampaign({ slug, onClose }: { slug: string; o
                       />
                     ))}
                 </div>
-
-              </div>
               <h2 className="text-[18px] leading-[1.15] font-extrabold text-gray-800 mb-2 gift-anim-fadeup max-w-[320px]">{campaign.title}</h2>
               {campaign.description && (
                 <p className="text-[13px] leading-6 text-gray-500 mb-5 max-w-[315px] gift-anim-fadeup">{campaign.description}</p>
