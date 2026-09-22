@@ -52,11 +52,14 @@ s=s.replace(
 );
 
 // Add checkbox directly above "Kích hoạt ngay".
-const activeLabel=/<label className="[^"]*">\s*<input[^>]*checked=\{voucherDraft\.isActive\}[^>]*onChange=\{\(e\) => setVoucherDraft\(\{ \.\.\.voucherDraft, isActive: e\.target\.checked \}\)\}[^>]*\/?>\s*<span[^>]*>Kích hoạt ngay<\/span>\s*<\/label>/m;
-const m=s.match(activeLabel);
-if(!m) throw new Error('[voucher-auto-apply] active checkbox anchor missing');
-const autoUi=`
-                        {(voucherDraft.discountType === 'shipping' || voucherDraft.discountType === 'freeship') && (
+const activeBlock=`                        <label className="flex items-center gap-2 text-gray-600 text-[12px]">
+                          <input type="checkbox" checked={voucherDraft.isActive} onChange={(e) => setVoucherDraft({ ...voucherDraft, isActive: e.target.checked })} className="accent-[#EE4D2D] w-3.5 h-3.5" />
+                          Kích hoạt ngay
+                        </label>`;
+
+if(!s.includes(activeBlock)) throw new Error('[voucher-auto-apply] active checkbox anchor missing');
+
+const autoUi=`                        {(voucherDraft.discountType === 'shipping' || voucherDraft.discountType === 'freeship') && (
                           <label className="flex items-start gap-2 text-[11px] text-gray-600 cursor-pointer">
                             <input
                               type="checkbox"
@@ -70,8 +73,10 @@ const autoUi=`
                             </span>
                           </label>
                         )}
+
 `;
-s=s.replace(m[0],autoUi+m[0]);
+
+s=s.replace(activeBlock,autoUi+activeBlock);
 
 writeFileSync(path,s,'utf8');
 console.log('[voucher-auto-apply] applied');
