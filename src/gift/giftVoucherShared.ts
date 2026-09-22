@@ -570,7 +570,7 @@ export const GIFT_FEATURE_STYLES = `
 .gift-box-wrap.gift-render-wrap{
   position:relative!important;
   width:100%!important;
-  height:265px!important;
+  height:252px!important;
   overflow:visible!important;
   display:block!important;
   transform-origin:50% 60%;
@@ -647,6 +647,7 @@ export const GIFT_FEATURE_STYLES = `
 }
 .gift-premium-inner > button{
   margin-top:3px;
+  max-width:320px!important;
 }
 @media (max-width:640px){
   .gift-premium-card{max-width:min(432px,94vw)!important}
