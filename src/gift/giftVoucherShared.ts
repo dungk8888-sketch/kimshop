@@ -1823,4 +1823,37 @@ export const GIFT_FEATURE_STYLES = `
   filter:drop-shadow(0 0 2px rgba(255,247,205,.24));
 }
 
+
+/* KIMSHOP_GIFT_SURFACE_REALISM_PASS_20260922 */
+.gift-svg-lid-top-plane{
+  filter:drop-shadow(0 1px 1px rgba(7,20,58,.16));
+}
+.gift-svg-lid-top-plane-light{
+  mix-blend-mode:screen;
+}
+.gift-svg-lid-top-plane-rim{
+  filter:drop-shadow(0 0 1.5px rgba(255,255,255,.20));
+}
+.gift-svg-body-soft-spec{
+  filter:blur(.2px);
+}
+.gift-svg-body-right-depth{
+  filter:blur(.15px);
+}
+.gift-svg-body-lower-bevel,.gift-svg-lid-bottom-depth{
+  filter:blur(.1px);
+}
+.gift-svg-ribbon-edge-dark{
+  filter:blur(.18px);
+}
+.gift-svg-lid-front-spec{
+  filter:drop-shadow(0 0 2px rgba(255,255,255,.20));
+}
+.gift-svg-knot-spec{
+  filter:drop-shadow(0 0 2px rgba(255,248,207,.24));
+}
+.gift-svg-tail-dark{
+  filter:blur(.12px);
+}
+
 `;
