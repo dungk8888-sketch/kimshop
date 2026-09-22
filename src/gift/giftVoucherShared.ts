@@ -1704,155 +1704,107 @@ export const GIFT_FEATURE_STYLES = `
 }
 
 
-/* KIMSHOP_GIFT_REAL_MATERIAL_PASS_20260922 */
+/* KIMSHOP_GIFT_FINAL_MATERIAL_CONSOLIDATED_20260922 */
 .gift-svg-body{
   filter:
-    drop-shadow(0 2px 2px rgba(5,18,56,.30))
-    drop-shadow(0 10px 10px rgba(5,18,56,.17))
-    drop-shadow(0 18px 18px rgba(5,18,56,.11))!important;
+    drop-shadow(0 1px 1px rgba(5,18,54,.34))
+    drop-shadow(0 7px 8px rgba(6,20,59,.20))
+    drop-shadow(0 15px 18px rgba(6,20,59,.12))!important;
 }
 .gift-svg-lid{
   filter:
-    drop-shadow(0 2px 2px rgba(5,18,56,.26))
-    drop-shadow(0 8px 9px rgba(5,18,56,.16))!important;
+    drop-shadow(0 1px 1px rgba(5,18,54,.30))
+    drop-shadow(0 7px 9px rgba(6,20,59,.18))!important;
 }
-.gift-svg-body-edge-light,.gift-svg-lid-edge-light{
-  opacity:.82;
-  filter:drop-shadow(0 0 2px rgba(255,255,255,.42));
+.gift-svg-lid-top-plane{
+  filter:drop-shadow(0 1.5px 1.5px rgba(6,20,59,.18));
 }
-.gift-svg-body-edge-dark,.gift-svg-lid-edge-dark{
+.gift-svg-lid-top-plane-light{
+  mix-blend-mode:screen;
   opacity:.78;
 }
+.gift-svg-lid-top-plane-rim,.gift-svg-lid-left-spec{
+  filter:drop-shadow(0 0 2px rgba(255,255,255,.24));
+}
+.gift-svg-lid-lip-face{
+  filter:drop-shadow(0 2px 2px rgba(5,18,54,.16));
+}
+.gift-svg-body-edge-light,.gift-svg-lid-edge-light{
+  opacity:.72!important;
+  filter:drop-shadow(0 0 2px rgba(255,255,255,.34));
+}
+.gift-svg-body-edge-dark,.gift-svg-lid-edge-dark{
+  opacity:.67!important;
+}
 .gift-svg-body-contact,.gift-svg-lid-contact{
-  filter:blur(.25px);
+  opacity:.76;
+  filter:blur(.18px);
+}
+.gift-svg-body-inner-bevel,.gift-svg-lid-inner-bevel{
+  filter:drop-shadow(0 0 1px rgba(255,255,255,.16));
+}
+.gift-svg-body-inner-dark,.gift-svg-lid-underlip,.gift-svg-body-lower-bevel,.gift-svg-lid-bottom-depth{
+  filter:blur(.10px);
+}
+.gift-svg-body-soft-spec{
+  filter:blur(.28px);
+}
+.gift-svg-body-right-depth,.gift-svg-body-bottom-shade{
+  filter:blur(.12px);
+}
+.gift-svg-corner-light-left,.gift-svg-body-top-soft,.gift-svg-body-top-glint{
+  filter:drop-shadow(0 0 1.5px rgba(255,255,255,.18));
+}
+.gift-svg-corner-dark-right,.gift-svg-body-bottom-rim{
+  filter:blur(.08px);
 }
 .gift-svg-gold-spec,.gift-svg-lid-gold-spec{
+  opacity:.56!important;
   mix-blend-mode:screen;
-  filter:drop-shadow(0 0 3px rgba(255,231,150,.20));
+  filter:drop-shadow(0 0 3px rgba(255,231,150,.18));
 }
-.gift-svg-body-shine,.gift-svg-lid-shine{
-  opacity:.78!important;
-  filter:drop-shadow(0 0 3px rgba(255,255,255,.34))!important;
+.gift-svg-ribbon-shadow,.gift-svg-lid-ribbon-shadow,.gift-svg-ribbon-edge-dark,.gift-svg-ribbon-ao{
+  filter:blur(.24px);
 }
-.gift-svg-stage{
-  filter:
-    drop-shadow(0 1px 1px rgba(129,78,0,.14))
-    drop-shadow(0 0 10px rgba(255,176,25,.23))!important;
+.gift-svg-ribbon-curve,.gift-svg-lid-ribbon-curve{
+  filter:drop-shadow(0 0 2px rgba(255,246,210,.16));
 }
-.gift-svg-closed-glints{
-  filter:drop-shadow(0 0 5px rgba(255,255,255,.35));
+.gift-svg-body-shine,.gift-svg-lid-shine,.gift-svg-lid-front-spec{
+  filter:drop-shadow(0 0 3px rgba(255,255,255,.30))!important;
 }
-.gift-svg-bow{
-  filter:
-    drop-shadow(0 3px 2px rgba(125,70,0,.16))
-    drop-shadow(0 6px 7px rgba(125,70,0,.10))!important;
-}
-
-
-/* KIMSHOP_GIFT_REALISM_EDGE_PASS_20260922 */
 .gift-svg-closed-seam{
-  opacity:.92;
+  opacity:.88;
   transition:opacity .18s ease;
 }
 .gift-scene-svg.is-open .gift-svg-closed-seam{
   opacity:0;
 }
-.gift-svg-body-top-glint{
-  filter:drop-shadow(0 0 2px rgba(255,255,255,.24));
-}
-.gift-svg-body-bottom-rim{
-  filter:blur(.1px);
-}
 .gift-svg-contact-shadow{
-  opacity:.82!important;
+  opacity:.80!important;
 }
 .gift-svg-contact-warm{
-  opacity:.70!important;
+  opacity:.62!important;
 }
-.gift-svg-body-edge-light,.gift-svg-lid-edge-light{
-  opacity:.72!important;
-}
-.gift-svg-body-edge-dark,.gift-svg-lid-edge-dark{
-  opacity:.66!important;
-}
-.gift-svg-body-contact,.gift-svg-lid-contact{
-  opacity:.78;
-}
-.gift-svg-gold-spec,.gift-svg-lid-gold-spec{
-  opacity:.58!important;
-  mix-blend-mode:screen;
-}
-.gift-svg-body{
+.gift-svg-stage{
   filter:
-    drop-shadow(0 1px 1px rgba(6,18,52,.34))
-    drop-shadow(0 7px 7px rgba(7,20,58,.18))
-    drop-shadow(0 14px 17px rgba(7,20,58,.12))!important;
+    drop-shadow(0 1px 1px rgba(129,78,0,.12))
+    drop-shadow(0 0 9px rgba(255,176,25,.22))!important;
 }
-.gift-svg-lid{
-  filter:
-    drop-shadow(0 1px 1px rgba(6,18,52,.30))
-    drop-shadow(0 6px 8px rgba(7,20,58,.17))!important;
+.gift-svg-closed-glints{
+  filter:drop-shadow(0 0 5px rgba(255,255,255,.32));
 }
 .gift-svg-bow{
   filter:
-    drop-shadow(0 2px 1px rgba(122,70,0,.18))
-    drop-shadow(0 5px 5px rgba(122,70,0,.11))!important;
-}
-
-
-/* KIMSHOP_GIFT_MICRO_DEPTH_PASS_20260922 */
-.gift-svg-body-inner-bevel,.gift-svg-lid-inner-bevel{
-  filter:drop-shadow(0 0 1px rgba(255,255,255,.16));
-}
-.gift-svg-body-inner-dark,.gift-svg-lid-underlip{
-  filter:blur(.12px);
-}
-.gift-svg-body-top-soft{
-  filter:drop-shadow(0 0 1.5px rgba(255,255,255,.18));
-}
-.gift-svg-ribbon-shadow,.gift-svg-lid-ribbon-shadow{
-  filter:blur(.35px);
-}
-.gift-svg-ribbon-curve,.gift-svg-lid-ribbon-curve{
-  filter:drop-shadow(0 0 2px rgba(255,246,210,.18));
+    drop-shadow(0 2px 1px rgba(122,70,0,.20))
+    drop-shadow(0 5px 6px rgba(122,70,0,.12))!important;
 }
 .gift-svg-bow-under-left,.gift-svg-bow-under-right{
-  filter:blur(.25px);
+  filter:blur(.20px);
 }
-.gift-svg-bow-highlight{
-  filter:drop-shadow(0 0 2px rgba(255,247,205,.24));
+.gift-svg-bow-highlight,.gift-svg-bow-rim-light,.gift-svg-knot-spec{
+  filter:drop-shadow(0 0 2px rgba(255,247,205,.23));
 }
-
-
-/* KIMSHOP_GIFT_SURFACE_REALISM_PASS_20260922 */
-.gift-svg-lid-top-plane{
-  filter:drop-shadow(0 1px 1px rgba(7,20,58,.16));
-}
-.gift-svg-lid-top-plane-light{
-  mix-blend-mode:screen;
-}
-.gift-svg-lid-top-plane-rim{
-  filter:drop-shadow(0 0 1.5px rgba(255,255,255,.20));
-}
-.gift-svg-body-soft-spec{
-  filter:blur(.2px);
-}
-.gift-svg-body-right-depth{
-  filter:blur(.15px);
-}
-.gift-svg-body-lower-bevel,.gift-svg-lid-bottom-depth{
-  filter:blur(.1px);
-}
-.gift-svg-ribbon-edge-dark{
-  filter:blur(.18px);
-}
-.gift-svg-lid-front-spec{
-  filter:drop-shadow(0 0 2px rgba(255,255,255,.20));
-}
-.gift-svg-knot-spec{
-  filter:drop-shadow(0 0 2px rgba(255,248,207,.24));
-}
-.gift-svg-tail-dark{
+.gift-svg-bow-core-shadow,.gift-svg-tail-dark{
   filter:blur(.12px);
 }
 

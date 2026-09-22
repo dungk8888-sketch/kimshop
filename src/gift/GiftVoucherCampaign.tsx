@@ -486,6 +486,18 @@ export default function GiftVoucherCampaign({ slug, onClose }: { slug: string; o
                         <stop offset="72%" stopColor="#e99a08" />
                         <stop offset="100%" stopColor="#a85c00" />
                       </linearGradient>
+                      <linearGradient id="giftBowMetal" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" stopColor="#FFF4BE" />
+                        <stop offset="16%" stopColor="#FFD85E" />
+                        <stop offset="38%" stopColor="#F2A51A" />
+                        <stop offset="56%" stopColor="#FFE88D" />
+                        <stop offset="72%" stopColor="#C87906" />
+                        <stop offset="100%" stopColor="#F6BB2D" />
+                      </linearGradient>
+                      <linearGradient id="giftBodyBottomShade" x1="0%" y1="0%" x2="0%" y2="100%">
+                        <stop offset="0%" stopColor="#071B52" stopOpacity="0" />
+                        <stop offset="100%" stopColor="#071B52" stopOpacity=".30" />
+                      </linearGradient>
                       <linearGradient id="giftSwoosh" x1="0%" y1="0%" x2="100%" y2="0%">
                         <stop offset="0%" stopColor="#f5a315" stopOpacity="0" />
                         <stop offset="18%" stopColor="#ffc84b" stopOpacity=".68" />
@@ -554,6 +566,9 @@ export default function GiftVoucherCampaign({ slug, onClose }: { slug: string; o
                         <path className="gift-svg-body-top-soft" d="M136 161 H288" fill="none" stroke="#FFFFFF" strokeOpacity=".15" strokeWidth="1.2" strokeLinecap="round" />
                         <path className="gift-svg-body-soft-spec" d="M136 165 C151 160 169 160 184 164 V226 C167 230 151 229 136 223 Z" fill="#FFFFFF" opacity=".055" />
                         <path className="gift-svg-body-right-depth" d="M270 160 H290 Q296 160 296 167 V226 Q296 232 289 232 H270 Z" fill="#041B55" opacity=".13" />
+                        <path className="gift-svg-body-bottom-shade" d="M128 211 H296 V226 Q296 234 288 234 H136 Q128 234 128 226 Z" fill="url(#giftBodyBottomShade)" />
+                        <path className="gift-svg-corner-light-left" d="M129 168 Q129 160 137 160" fill="none" stroke="#FFFFFF" strokeOpacity=".36" strokeWidth="1.6" strokeLinecap="round" />
+                        <path className="gift-svg-corner-dark-right" d="M295 168 V226 Q295 233 288 233" fill="none" stroke="#061947" strokeOpacity=".30" strokeWidth="1.6" strokeLinecap="round" />
                         <path className="gift-svg-body-lower-bevel" d="M132 224 Q133 234 143 234 H282 Q292 234 293 224" fill="none" stroke="#06194A" strokeOpacity=".22" strokeWidth="2.1" strokeLinecap="round" />
 
                         <rect x="158" y="156" width="18" height="80" rx="4" fill="url(#giftGoldMetal)" />
@@ -568,6 +583,10 @@ export default function GiftVoucherCampaign({ slug, onClose }: { slug: string; o
                         <path className="gift-svg-ribbon-curve" d="M251 164 C255 184 254 208 252 228" fill="none" stroke="#FFF7D5" strokeOpacity=".26" strokeWidth="1.3" strokeLinecap="round" />
                         <path className="gift-svg-ribbon-edge-dark" d="M176 160 V232" fill="none" stroke="#744000" strokeOpacity=".16" strokeWidth="1.2" />
                         <path className="gift-svg-ribbon-edge-dark" d="M266 160 V232" fill="none" stroke="#744000" strokeOpacity=".14" strokeWidth="1.2" />
+                        <path className="gift-svg-ribbon-ao" d="M157 160 V232" fill="none" stroke="#071947" strokeOpacity=".16" strokeWidth="1.4" />
+                        <path className="gift-svg-ribbon-ao" d="M177 160 V232" fill="none" stroke="#071947" strokeOpacity=".15" strokeWidth="1.2" />
+                        <path className="gift-svg-ribbon-ao" d="M247 160 V232" fill="none" stroke="#071947" strokeOpacity=".14" strokeWidth="1.2" />
+                        <path className="gift-svg-ribbon-ao" d="M267 160 V232" fill="none" stroke="#071947" strokeOpacity=".16" strokeWidth="1.4" />
 
                         <path className="gift-svg-body-shine" d="M134 165 V226" fill="none" stroke="#F1F7FF" strokeWidth="2.1" strokeLinecap="round" opacity=".28" />
                         <path className="gift-svg-body-shine" d="M290 165 V226" fill="none" stroke="#82AEFF" strokeWidth="1.2" strokeLinecap="round" opacity=".12" />
@@ -605,6 +624,8 @@ export default function GiftVoucherCampaign({ slug, onClose }: { slug: string; o
                         <path className="gift-svg-lid-edge-dark" d="M307 130 V149 Q307 157 299 157 H125" fill="none" stroke="url(#giftEdgeDark)" strokeWidth="2.2" strokeLinecap="round" />
                         <path className="gift-svg-lid-contact" d="M128 157 H296" fill="none" stroke="#07173E" strokeOpacity=".20" strokeWidth="2.8" strokeLinecap="round" />
                         <path className="gift-svg-lid-underlip" d="M122 151 Q122 157 129 157 H295 Q302 157 302 151 Z" fill="#071A52" opacity=".16" />
+                        <path className="gift-svg-lid-lip-face" d="M121 149 H303 V153 Q303 159 296 159 H128 Q121 159 121 153 Z" fill="#082A79" opacity=".24" />
+                        <path className="gift-svg-lid-left-spec" d="M124 124 Q124 121 129 121 H178" fill="none" stroke="#FFFFFF" strokeOpacity=".42" strokeWidth="1.8" strokeLinecap="round" />
                         <rect className="gift-svg-lid-inner-bevel" x="120" y="123" width="184" height="31" rx="5" fill="none" stroke="#EDF6FF" strokeOpacity=".10" strokeWidth="1.1" />
 
                         <rect x="153" y="120" width="21" height="38" rx="4" fill="url(#giftGoldMetal)" />
@@ -625,15 +646,18 @@ export default function GiftVoucherCampaign({ slug, onClose }: { slug: string; o
                         <g className="gift-svg-bow" filter="url(#giftTinyShadow)">
                           <path className="gift-svg-bow-under-left" d="M208 116 C183 101 150 101 143 112 C137 123 166 132 203 124 C176 121 166 114 175 106 C184 99 199 104 214 118 Z" fill="#8D5200" opacity=".16" transform="translate(0 3)" />
                           <path className="gift-svg-bow-under-right" d="M220 116 C245 101 278 101 285 112 C291 123 262 132 225 124 C252 121 262 114 253 106 C244 99 229 104 214 118 Z" fill="#8D5200" opacity=".15" transform="translate(0 3)" />
-                          <path className="gift-svg-bow-left" d="M208 116 C183 101 150 101 143 112 C137 123 166 132 203 124 C176 121 166 114 175 106 C184 99 199 104 214 118 Z" fill="url(#giftGoldSoft)" />
-                          <path className="gift-svg-bow-right" d="M220 116 C245 101 278 101 285 112 C291 123 262 132 225 124 C252 121 262 114 253 106 C244 99 229 104 214 118 Z" fill="url(#giftGoldSoft)" />
+                          <path className="gift-svg-bow-left" d="M208 116 C183 101 150 101 143 112 C137 123 166 132 203 124 C176 121 166 114 175 106 C184 99 199 104 214 118 Z" fill="url(#giftBowMetal)" />
+                          <path className="gift-svg-bow-right" d="M220 116 C245 101 278 101 285 112 C291 123 262 132 225 124 C252 121 262 114 253 106 C244 99 229 104 214 118 Z" fill="url(#giftBowMetal)" />
                           <path d="M209 116 C200 104 200 88 207 84 C216 79 218 95 215 111 C220 95 227 79 236 84 C245 89 238 106 220 117 Z" fill="url(#giftGold)" />
-                          <rect x="204" y="108" width="21" height="20" rx="7" fill="url(#giftGoldSoft)" />
+                          <rect x="204" y="108" width="21" height="20" rx="7" fill="url(#giftBowMetal)" />
                           <path d="M206 124 L198 149 L211 140 L216 158 L226 126 Z" fill="url(#giftGold)" />
                           <path d="M208 111 H214 V124 H208 Z" fill="#FFF8CF" opacity=".52" />
                           <path className="gift-svg-bow-highlight" d="M155 110 C168 104 188 107 199 115" fill="none" stroke="#FFF4B8" strokeOpacity=".55" strokeWidth="1.6" strokeLinecap="round" />
                           <path className="gift-svg-bow-highlight" d="M229 114 C241 106 261 104 274 110" fill="none" stroke="#FFF4B8" strokeOpacity=".48" strokeWidth="1.6" strokeLinecap="round" />
                           <ellipse className="gift-svg-knot-spec" cx="211" cy="112" rx="5.6" ry="3.2" fill="#FFF8CF" opacity=".58" />
+                          <ellipse className="gift-svg-bow-core-shadow" cx="211" cy="121" rx="8" ry="3.4" fill="#7D4300" opacity=".14" />
+                          <path className="gift-svg-bow-rim-light" d="M177 105 C187 101 198 106 205 113" fill="none" stroke="#FFF6C7" strokeOpacity=".42" strokeWidth="1.2" strokeLinecap="round" />
+                          <path className="gift-svg-bow-rim-light" d="M220 113 C228 106 239 101 250 105" fill="none" stroke="#FFF6C7" strokeOpacity=".38" strokeWidth="1.2" strokeLinecap="round" />
                           <path className="gift-svg-tail-dark" d="M200 145 L211 137 L216 157" fill="none" stroke="#8A5000" strokeOpacity=".18" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />
                         </g>
                       </g>
