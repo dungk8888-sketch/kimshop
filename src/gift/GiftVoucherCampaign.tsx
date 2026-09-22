@@ -350,23 +350,32 @@ export default function GiftVoucherCampaign({ slug, onClose }: { slug: string; o
                 <div className="gift-stage-ring" />
                 <div className={`gift-box-wrap ${phase === 'opening' ? 'gift-anim-shake gift-box-open' : 'gift-anim-float'}`}>
                   <div className="gift-box-shadow" />
-                  <div className="gift-box-3d">
-                    <div className="gift-box-lid">
-                      <div className="gift-box-gloss" />
-                      <div className="gift-box-ribbon-v" />
+                  {phase === 'teaser' ? (
+                    <img
+                      src="/gift-box-closed.webp"
+                      alt="Hộp quà KIMSHOP"
+                      className="gift-rendered-asset"
+                      draggable={false}
+                    />
+                  ) : (
+                    <div className="gift-box-3d gift-opening-scene">
+                      <div className="gift-box-lid">
+                        <div className="gift-box-gloss" />
+                        <div className="gift-box-ribbon-v" />
+                      </div>
+                      <div className="gift-box-body">
+                        <div className="gift-box-face gift-box-face-left" />
+                        <div className="gift-box-face gift-box-face-right" />
+                        <div className="gift-box-gloss" />
+                        <div className="gift-box-ribbon-v" />
+                        <div className="gift-box-ribbon-h" />
+                      </div>
+                      <div className="gift-box-base-highlight" />
+                      <div className="gift-box-bow">
+                        <div className="gift-box-knot" />
+                      </div>
                     </div>
-                    <div className="gift-box-body">
-                      <div className="gift-box-face gift-box-face-left" />
-                      <div className="gift-box-face gift-box-face-right" />
-                      <div className="gift-box-gloss" />
-                      <div className="gift-box-ribbon-v" />
-                      <div className="gift-box-ribbon-h" />
-                    </div>
-                    <div className="gift-box-base-highlight" />
-                    <div className="gift-box-bow">
-                      <div className="gift-box-knot" />
-                    </div>
-                  </div>
+                  )}
                   <Sparkles size={20} className="absolute top-2 right-5 text-yellow-300" />
                   <Sparkles size={16} className="absolute left-7 top-10 text-yellow-200" />
                   <Sparkles size={12} className="absolute right-7 bottom-10 text-orange-200" />
