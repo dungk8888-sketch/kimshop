@@ -758,4 +758,41 @@ export const GIFT_FEATURE_STYLES = `
   pointer-events:none;
 }
 
+
+/* KIMSHOP_GIFT_FINAL_DETAIL_PASS_20260922 */
+@keyframes giftTargetLidFloatFinal{
+  0%,100%{transform:translateY(-48px) rotate(-5deg) skewX(-3deg) scale(1.045)}
+  50%{transform:translateY(-55px) rotate(-6deg) skewX(-3deg) scale(1.06)}
+}
+@keyframes giftTargetGapGlow{
+  0%,100%{opacity:.76;transform:scale(.96)}
+  50%{opacity:1;transform:scale(1.09)}
+}
+.gift-svg-body{filter:drop-shadow(0 10px 10px rgba(13,39,105,.17))}
+.gift-svg-lid{filter:drop-shadow(0 11px 10px rgba(10,36,98,.20))}
+.gift-gap-burst{transform-box:fill-box;transform-origin:center;animation:giftTargetGapGlow 2.4s ease-in-out infinite}
+.gift-scene-svg.is-teaser-open .gift-svg-lid{animation:giftTargetLidFloatFinal 3.15s ease-in-out infinite!important}
+.gift-scene-svg.is-open .gift-svg-lid{animation:giftSvgLidOpenFinal .78s cubic-bezier(.24,1.45,.38,1) both!important}
+@keyframes giftSvgLidOpenFinal{
+  0%{transform:translateY(-49px) rotate(-5deg) skewX(-3deg) scale(1.045)}
+  34%{transform:translateY(-58px) rotate(-8deg) skewX(-3deg) scale(1.065)}
+  72%{transform:translateY(-92px) rotate(-15deg) skewX(-4deg) scale(1.095)}
+  100%{transform:translateY(-78px) rotate(-11deg) skewX(-3deg) scale(1.075)}
+}
+.gift-svg-rays{opacity:.64!important}
+.gift-svg-swoosh-back{opacity:.9!important}
+.gift-card-ribbon-fill{
+  opacity:.88;
+  filter:drop-shadow(0 5px 8px rgba(217,128,0,.10));
+}
+.gift-card-ribbon-highlight{
+  fill:none;
+  stroke:rgba(255,246,205,.74);
+  stroke-width:2.2;
+  stroke-linecap:round;
+}
+@media (prefers-reduced-motion:reduce){
+  .gift-gap-burst,.gift-scene-svg.is-teaser-open .gift-svg-lid,.gift-scene-svg.is-open .gift-svg-lid{animation:none!important}
+}
+
 `;
