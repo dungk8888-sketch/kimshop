@@ -524,4 +524,138 @@ export const GIFT_FEATURE_STYLES = `
   .gift-svg-swoosh-back,.gift-svg-swoosh-front,.gift-svg-badge-percent,.gift-svg-badge-fs,.gift-svg-coin-a,.gift-svg-coin-b,.gift-svg-bow-left,.gift-svg-bow-right,.gift-scene-svg.is-open .gift-svg-lid,.gift-scene-svg.is-open .gift-svg-open-glow{animation:none!important}
 }
 
+
+/* KIMSHOP_RENDERED_HERO_PASS_20260922 */
+@keyframes giftRenderedIdle{
+  0%,100%{transform:translateY(0) scale(1)}
+  45%{transform:translateY(-5px) scale(1.012)}
+  75%{transform:translateY(-2px) scale(1.006)}
+}
+@keyframes giftRenderedOpen{
+  0%{transform:scale(1) rotate(0deg);filter:saturate(1) brightness(1)}
+  18%{transform:scale(.985) rotate(-.8deg);filter:saturate(1.05) brightness(1.02)}
+  46%{transform:scale(1.045) rotate(.7deg);filter:saturate(1.15) brightness(1.10)}
+  72%{transform:scale(1.02) rotate(-.25deg);filter:saturate(1.1) brightness(1.06)}
+  100%{transform:scale(1.025) rotate(0deg);filter:saturate(1.08) brightness(1.04)}
+}
+@keyframes giftRenderedGlow{
+  0%{opacity:0;transform:translate(-50%,-50%) scale(.45)}
+  38%{opacity:.9;transform:translate(-50%,-50%) scale(1.2)}
+  100%{opacity:.18;transform:translate(-50%,-50%) scale(1.38)}
+}
+@keyframes giftRenderedSheen{
+  0%{transform:translateX(-150%) skewX(-18deg);opacity:0}
+  24%{opacity:.35}
+  55%{opacity:.12}
+  100%{transform:translateX(220%) skewX(-18deg);opacity:0}
+}
+
+.gift-premium-card{
+  max-width:432px!important;
+  border-radius:28px!important;
+}
+.gift-premium-inner{
+  padding:0 24px 26px!important;
+  min-height:0!important;
+}
+.gift-premium-hero{
+  width:calc(100% + 48px)!important;
+  margin-left:-24px!important;
+  margin-right:-24px!important;
+  margin-bottom:2px!important;
+  padding-top:0!important;
+}
+.gift-premium-bg,.gift-premium-sheen{display:none!important}
+
+.gift-box-wrap.gift-render-wrap{
+  position:relative!important;
+  width:100%!important;
+  height:265px!important;
+  overflow:visible!important;
+  display:block!important;
+  transform-origin:50% 60%;
+  z-index:2!important;
+}
+.gift-render-wrap.gift-anim-float{
+  animation:giftRenderedIdle 3.3s ease-in-out infinite!important;
+}
+.gift-render-frame{
+  position:absolute;
+  inset:0;
+  overflow:hidden;
+  border-radius:27px 27px 0 0;
+  background:#fff4d5;
+  -webkit-mask-image:linear-gradient(to bottom,#000 0%,#000 78%,rgba(0,0,0,.9) 86%,transparent 100%);
+  mask-image:linear-gradient(to bottom,#000 0%,#000 78%,rgba(0,0,0,.9) 86%,transparent 100%);
+  transform-origin:50% 55%;
+  will-change:transform,filter;
+}
+.gift-render-frame.is-open{
+  animation:giftRenderedOpen .9s cubic-bezier(.25,.9,.3,1) both;
+}
+.gift-render-image{
+  width:100%;
+  height:100%;
+  display:block;
+  object-fit:cover;
+  object-position:center 48%;
+  transform:scale(1.035);
+  user-select:none;
+  pointer-events:none;
+}
+.gift-render-sheen{
+  position:absolute;
+  top:-22%;
+  bottom:-10%;
+  left:-35%;
+  width:24%;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.68),transparent);
+  transform:translateX(-150%) skewX(-18deg);
+  pointer-events:none;
+}
+.gift-render-frame.is-open .gift-render-sheen{
+  animation:giftRenderedSheen .78s ease-out both;
+}
+.gift-render-glow{
+  position:absolute;
+  left:50%;
+  top:53%;
+  width:170px;
+  height:150px;
+  border-radius:50%;
+  background:radial-gradient(circle,rgba(255,255,255,.95) 0%,rgba(255,241,139,.66) 30%,rgba(255,170,38,.22) 62%,transparent 76%);
+  mix-blend-mode:screen;
+  opacity:0;
+  transform:translate(-50%,-50%) scale(.45);
+  pointer-events:none;
+}
+.gift-render-frame.is-open .gift-render-glow{
+  animation:giftRenderedGlow .92s ease-out both;
+}
+
+.gift-premium-hero + h2{
+  margin-top:-7px!important;
+}
+.gift-premium-inner > h2{
+  font-size:18px!important;
+  line-height:1.15!important;
+  max-width:330px!important;
+  margin-bottom:8px!important;
+}
+.gift-premium-inner > p{
+  max-width:330px!important;
+}
+.gift-premium-inner > button{
+  margin-top:3px;
+}
+@media (max-width:640px){
+  .gift-premium-card{max-width:min(432px,94vw)!important}
+  .gift-box-wrap.gift-render-wrap{height:246px!important}
+  .gift-premium-inner{padding:0 20px 24px!important}
+  .gift-premium-hero{width:calc(100% + 40px)!important;margin-left:-20px!important;margin-right:-20px!important}
+}
+@media (prefers-reduced-motion:reduce){
+  .gift-render-wrap.gift-anim-float,.gift-render-frame.is-open,.gift-render-frame.is-open .gift-render-sheen,.gift-render-frame.is-open .gift-render-glow{animation:none!important}
+}
+
 `;
