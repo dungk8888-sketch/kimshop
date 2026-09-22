@@ -374,9 +374,9 @@ export default function GiftVoucherCampaign({ slug, onClose }: { slug: string; o
                         <stop offset="100%" stopColor="#F7A81C" stopOpacity="0" />
                       </linearGradient>
                     </defs>
-                    <path className="gift-orbit-shadow" d="M14 91 C86 26 242 8 347 70" />
-                    <path className="gift-orbit-ribbon" d="M14 91 C86 26 242 8 347 70" stroke="url(#giftRibbonGoldBack)" />
-                    <path className="gift-orbit-shine" d="M28 84 C103 33 236 20 332 66" />
+                    <path className="gift-orbit-shadow" d="M10 100 C52 61 103 46 151 52 M211 51 C265 39 316 54 351 86" />
+                    <path className="gift-orbit-ribbon" d="M10 100 C52 61 103 46 151 52 M211 51 C265 39 316 54 351 86" stroke="url(#giftRibbonGoldBack)" />
+                    <path className="gift-orbit-shine" d="M22 94 C66 63 108 53 147 57 M216 56 C263 47 304 57 338 82" />
                   </svg>
                   <div className="gift-box-shadow" />
 
@@ -420,9 +420,9 @@ export default function GiftVoucherCampaign({ slug, onClose }: { slug: string; o
                         <stop offset="100%" stopColor="#F59A0A" stopOpacity="0" />
                       </linearGradient>
                     </defs>
-                    <path className="gift-orbit-shadow" d="M15 65 C104 137 258 148 348 67" />
-                    <path className="gift-orbit-ribbon" d="M15 65 C104 137 258 148 348 67" stroke="url(#giftRibbonGoldFront)" />
-                    <path className="gift-orbit-shine" d="M31 70 C116 127 251 135 333 69" />
+                    <path className="gift-orbit-shadow" d="M9 74 C47 111 94 128 147 116 M214 120 C267 136 317 119 351 78" />
+                    <path className="gift-orbit-ribbon" d="M9 74 C47 111 94 128 147 116 M214 120 C267 136 317 119 351 78" stroke="url(#giftRibbonGoldFront)" />
+                    <path className="gift-orbit-shine" d="M23 78 C60 106 101 119 145 111 M218 115 C266 127 304 115 337 82" />
                   </svg>
                   <div className="gift-promo-card gift-promo-percent">%</div>
                   <div className="gift-promo-card gift-promo-fs">FS</div>
@@ -459,10 +459,6 @@ export default function GiftVoucherCampaign({ slug, onClose }: { slug: string; o
                     ))}
                 </div>
 
-                <div className="mt-1 flex items-center gap-2 gift-anim-fadeup">
-                  <span className="gift-badge">Giảm đến 50.000đ</span>
-                  <span className="gift-badge">Freeship</span>
-                </div>
               </div>
               <h2 className="text-[18px] leading-[1.15] font-extrabold text-gray-800 mb-2 gift-anim-fadeup max-w-[320px]">{campaign.title}</h2>
               {campaign.description && (
