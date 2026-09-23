@@ -556,8 +556,8 @@ export default function GiftVoucherCampaign({ slug, onClose }: { slug: string; o
                     <ellipse className="gift-svg-floor-shadow" cx="210" cy="228" rx="92" ry="20" fill="#112354" opacity=".2" filter="url(#giftSoftShadow)" />
                     {/* Rear half of the orbit sits behind the box. */}
                     <g className="gift-svg-orbit-back" fill="none" strokeLinecap="round">
-                      <path d="M80 201 C93 160 159 139 211 139 C275 139 333 160 341 199" stroke="#FFB832" strokeOpacity=".24" strokeWidth="12" filter="url(#giftGlowBlur)" />
-                      <path d="M80 201 C93 160 159 139 211 139 C275 139 333 160 341 199" stroke="url(#giftOrbitFront)" strokeOpacity=".75" strokeWidth="3.5" />
+                      <path d="M76 184 C94 130 161 116 211 116 C276 116 332 137 345 184" stroke="#FFB832" strokeOpacity=".24" strokeWidth="11" filter="url(#giftGlowBlur)" />
+                      <path d="M76 184 C94 130 161 116 211 116 C276 116 332 137 345 184" stroke="url(#giftOrbitFront)" strokeOpacity=".68" strokeWidth="3" />
                     </g>
 
                     <g className="gift-svg-open-glow">
@@ -651,6 +651,9 @@ export default function GiftVoucherCampaign({ slug, onClose }: { slug: string; o
                         <rect x="160" y="156" width="104" height="80" fill="#215ACB" opacity=".08" />
                         <path d="M264 156 H292 Q300 156 300 164 V228 Q300 236 292 236 H264 Z" fill="#0B2C77" opacity=".18" />
                         <rect x="124" y="156" width="176" height="80" rx="8" fill="url(#giftBlueGloss)" opacity=".76" />
+                        <path d="M126 165 Q126 157 134 157 H149 L143 233 H134 Q126 233 126 225 Z" fill="#D8ECFF" opacity=".18" />
+                        <path d="M277 157 H291 Q300 157 300 166 V226 Q300 235 291 235 H277 L284 225 V168 Z" fill="#06194F" opacity=".34" />
+                        <path d="M280 162 V226" fill="none" stroke="#9CBFFF" strokeOpacity=".19" strokeWidth="1.5" />
                         <path className="gift-svg-body-edge-light" d="M133 157 H291 Q298 157 299 165" fill="none" stroke="url(#giftEdgeSpecular)" strokeWidth="2.4" strokeLinecap="round" />
                         <path className="gift-svg-body-edge-dark" d="M299 166 V226 Q299 235 290 235 H134" fill="none" stroke="url(#giftEdgeDark)" strokeWidth="2.2" strokeLinecap="round" />
                         <path className="gift-svg-body-contact" d="M140 235 H284" fill="none" stroke="#07173E" strokeOpacity=".22" strokeWidth="3.2" strokeLinecap="round" />
@@ -705,9 +708,9 @@ export default function GiftVoucherCampaign({ slug, onClose }: { slug: string; o
                       <path className="gift-svg-body-bottom-rim" d="M134 233 C170 236 256 236 290 233" fill="none" stroke="#061A4D" strokeOpacity=".20" strokeWidth="1.5" strokeLinecap="round" />
 
                       <g className="gift-svg-lid">
-                        <path className="gift-svg-lid-top-plane" d="M126 120 L138 114 H286 L300 120 H116 Q116 118 119 117 Z" fill="#73A7F4" opacity=".96" />
-                        <path className="gift-svg-lid-top-plane-light" d="M138 115 H286 L297 120 H129 Z" fill="url(#giftLidTopGloss)" opacity=".72" />
-                        <path className="gift-svg-lid-top-plane-rim" d="M129 120 L139 115 H286 L297 120" fill="none" stroke="#D9EAFF" strokeOpacity=".55" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                        <path className="gift-svg-lid-top-plane" d="M116 120 L138 108 Q141 107 146 107 H279 Q285 107 289 110 L308 120 Z" fill="#467ED9" />
+                        <path className="gift-svg-lid-top-plane-light" d="M139 110 H285 L301 119 H124 Z" fill="url(#giftLidTopGloss)" opacity=".80" />
+                        <path className="gift-svg-lid-top-plane-rim" d="M123 118 L140 109 H281 L300 119" fill="none" stroke="#E6F2FF" strokeOpacity=".7" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                         <rect x="116" y="120" width="192" height="38" rx="7" fill="url(#giftBlueLid)" stroke="#1C4DB2" strokeWidth="1.4" />
                         <path d="M124 120 H300 Q308 120 308 128 V132 H116 V128 Q116 120 124 120 Z" fill="url(#giftLidTopGloss)" opacity=".86" />
                         <path d="M116 132 H308 V151 Q308 158 301 158 H123 Q116 158 116 151 Z" fill="#0D3D9D" opacity=".11" />
@@ -764,9 +767,9 @@ export default function GiftVoucherCampaign({ slug, onClose }: { slug: string; o
                     <ellipse className="gift-svg-contact-warm" cx="212" cy="238" rx="72" ry="7" fill="#F8B938" opacity=".18" filter="url(#giftGlowBlur)" />
                     {/* Front arc covers the lower face, completing the orbit in depth. */}
                     <g className="gift-svg-orbit-front" fill="none" strokeLinecap="round">
-                      <path d="M78 201 C91 235 147 254 210 255 C274 254 329 237 342 199" stroke="#E6960D" strokeOpacity=".27" strokeWidth="15" filter="url(#giftGlowBlur)" />
-                      <path d="M78 201 C91 235 147 254 210 255 C274 254 329 237 342 199" stroke="url(#giftOrbitFront)" strokeWidth="5" />
-                      <path d="M112 223 C156 254 268 260 315 224" stroke="#FFF9D9" strokeOpacity=".85" strokeWidth="1.6" />
+                      <path d="M76 184 C91 212 149 230 210 230 C276 230 331 211 345 184" stroke="#E6960D" strokeOpacity=".25" strokeWidth="12" filter="url(#giftGlowBlur)" />
+                      <path d="M76 184 C91 212 149 230 210 230 C276 230 331 211 345 184" stroke="url(#giftOrbitFront)" strokeWidth="3.8" />
+                      <path d="M113 209 C160 234 263 235 308 209" stroke="#FFF9D9" strokeOpacity=".78" strokeWidth="1.2" />
                     </g>
                     <g className="gift-svg-stage">
                       <ellipse cx="210" cy="251" rx="132" ry="31" fill="#FFD46A" opacity=".14" />

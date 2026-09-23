@@ -2125,12 +2125,12 @@ export const GIFT_FEATURE_STYLES = `
 .gift-svg-cavity{
   filter:drop-shadow(0 0 16px rgba(255,194,48,.78))!important;
 }
-.gift-svg-orbit-back{opacity:.72}
+.gift-svg-orbit-back{opacity:.62}
 .gift-svg-orbit-front{
-  opacity:.9;
-  filter:drop-shadow(0 0 6px rgba(255,188,55,.6));
+  opacity:.76;
+  filter:drop-shadow(0 0 4px rgba(255,188,55,.5));
 }
-.gift-svg-stage{opacity:.52}
+.gift-svg-stage{opacity:.09}
 @media (prefers-reduced-motion:reduce){
   .gift-svg-orbit-front,.gift-svg-orbit-back{animation:none!important}
 }
