@@ -393,9 +393,9 @@ export default function GiftVoucherCampaign({ slug, onClose }: { slug: string; o
                 <div className="gift-premium-sheen" />
                 <div className="gift-box-wrap">
                   <div className={`gift-art-window ${boxStage === 'burst' ? 'is-open' : boxStage === 'shake' ? 'is-shaking' : 'is-closed'}`} role="img" aria-label="Hộp quà KIMSHOP màu xanh, nơ vàng và ánh sáng 3D">
-                    <img className="gift-art-image gift-art-backdrop" src="/gift-premium-closed.webp" alt="" decoding="async" />
-                    <img className="gift-art-image gift-art-closed" src="/gift-premium-closed.webp" alt="" decoding="async" fetchPriority="high" />
-                    <img className="gift-art-image gift-art-open" src="/gift-premium-open.webp" alt="" decoding="async" />
+                    <img className="gift-art-image gift-art-backdrop" src="/gift-scene-background.webp" alt="" decoding="async" fetchPriority="high" />
+                    <img className="gift-art-image gift-art-closed" src="/gift-layer-closed.webp" alt="" decoding="async" fetchPriority="high" />
+                    <img className="gift-art-image gift-art-open" src="/gift-layer-open.webp" alt="" decoding="async" />
                   </div>
 
 
