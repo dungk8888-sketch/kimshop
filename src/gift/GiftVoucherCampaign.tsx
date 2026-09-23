@@ -194,7 +194,7 @@ export default function GiftVoucherCampaign({ slug, onClose }: { slug: string; o
     window.setTimeout(() => {
       setResult(row);
       setPhase('result');
-    }, 900);
+    }, 1900);
   };
 
   const doOpenGift = async () => {
