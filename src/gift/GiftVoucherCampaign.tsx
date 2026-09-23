@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { Gift, X, Sparkles, Copy, Check, Loader2, Lock, ShieldAlert, PartyPopper } from 'lucide-react';
+import { Gift, X, Sparkles, Copy, Check, Loader2, Lock, ShieldAlert, PartyPopper, Flower2, Leaf } from 'lucide-react';
 import { supabase, usernameToEmail, usernameToLegacyEmail, isValidUsername } from '../supabaseClient';
 import {
   cacheGiftVoucher,
@@ -51,6 +51,19 @@ async function readEdgeFunctionError(error: any, data: any): Promise<string> {
 }
 
 const CONFETTI_COLORS = ['#EE4D2D', '#FFB020', '#22C55E', '#3B82F6', '#EC4899', '#F97316'];
+const GIFT_BURST_ITEMS = [
+  { kind: 'voucher', x: -112, y: -96, angle: -21, delay: 100 },
+  { kind: 'voucher', x: 112, y: -108, angle: 19, delay: 170 },
+  { kind: 'voucher', x: 4, y: -142, angle: 7, delay: 260 },
+  { kind: 'flower', x: -154, y: -92, angle: -30, delay: 25 },
+  { kind: 'flower', x: 152, y: -72, angle: 28, delay: 75 },
+  { kind: 'flower', x: -52, y: -147, angle: 24, delay: 215 },
+  { kind: 'flower', x: 64, y: -151, angle: -18, delay: 145 },
+  { kind: 'leaf', x: -134, y: -44, angle: -38, delay: 105 },
+  { kind: 'leaf', x: 144, y: -132, angle: 32, delay: 195 },
+  { kind: 'leaf', x: -78, y: -123, angle: 28, delay: 285 },
+  { kind: 'leaf', x: 93, y: -50, angle: -30, delay: 50 },
+] as const;
 
 export default function GiftVoucherCampaign({ slug, onClose }: { slug: string; onClose: () => void }) {
   const [phase, setPhase] = useState<Phase>('loading');
@@ -64,6 +77,7 @@ export default function GiftVoucherCampaign({ slug, onClose }: { slug: string; o
   const pendingOpenRef = useRef(false);
   const openingRef = useRef(false);
   const authLockRef = useRef(false);
+  const openingStartedAtRef = useRef(0);
 
   const [authMode, setAuthMode] = useState<'login' | 'register'>('login');
   const [uname, setUname] = useState('');
@@ -135,13 +149,12 @@ export default function GiftVoucherCampaign({ slug, onClose }: { slug: string; o
   useEffect(() => {
     if (phase === 'opening') {
       setBoxStage('shake');
-      const t = window.setTimeout(() => setBoxStage('burst'), 420);
-      return () => window.clearTimeout(t);
     }
     if (phase === 'teaser') setBoxStage('idle');
   }, [phase]);
 
   const doOpenGiftInner = async () => {
+    openingStartedAtRef.current = Date.now();
     setPhase('opening');
     const { data, error } = await supabase.rpc('open_voucher_gift', { p_campaign_slug: slug });
     if (error) {
@@ -191,10 +204,12 @@ export default function GiftVoucherCampaign({ slug, onClose }: { slug: string; o
         campaignTitle: row.campaign_title,
       });
     }
+    const revealDelay = Math.max(0, 420 - (Date.now() - openingStartedAtRef.current));
+    window.setTimeout(() => setBoxStage('burst'), revealDelay);
     window.setTimeout(() => {
       setResult(row);
       setPhase('result');
-    }, 1900);
+    }, revealDelay + 2300);
   };
 
   const doOpenGift = async () => {
@@ -326,19 +341,6 @@ export default function GiftVoucherCampaign({ slug, onClose }: { slug: string; o
     []
   );
 
-  const burstConfetti = useMemo(
-    () =>
-      Array.from({ length: 18 }).map((_, i) => ({
-        left: Math.round(10 + Math.random() * 80),
-        top: Math.round(18 + Math.random() * 42),
-        delay: Math.round(Math.random() * 240),
-        rotate: Math.round(Math.random() * 360),
-        dx: Math.round((Math.random() - 0.5) * 92),
-        color: CONFETTI_COLORS[i % CONFETTI_COLORS.length],
-      })),
-    []
-  );
-
   const campaignTitleNode = (() => {
     const title = campaign?.title || '';
     const match = title.match(/^(.*?)(?:\s+)?KIMSHOP$/i);
@@ -394,26 +396,30 @@ export default function GiftVoucherCampaign({ slug, onClose }: { slug: string; o
                 <div className="gift-box-wrap">
                   <div className={`gift-art-window ${boxStage === 'burst' ? 'is-open' : boxStage === 'shake' ? 'is-shaking' : 'is-closed'}`} role="img" aria-label="Hộp quà KIMSHOP màu xanh, nơ vàng và ánh sáng 3D">
                     <img className="gift-art-image gift-art-backdrop" src="/gift-scene-background.webp" alt="" decoding="async" fetchPriority="high" />
+                    <span className="gift-art-flare" />
                     <img className="gift-art-image gift-art-closed" src="/gift-layer-closed.webp" alt="" decoding="async" fetchPriority="high" />
-                    <img className="gift-art-image gift-art-open" src="/gift-layer-open.webp" alt="" decoding="async" />
+                    <img className="gift-art-image gift-art-open gift-art-open-body" src="/gift-layer-open.webp" alt="" decoding="async" />
+                    <img className="gift-art-image gift-art-open gift-art-open-lid" src="/gift-layer-open.webp" alt="" decoding="async" />
                   </div>
 
-
-                  {boxStage === 'burst' &&
-                    burstConfetti.map((item, i) => (
+                  {boxStage === 'burst' && (
+                    <div className="gift-burst-spray" aria-hidden="true">
+                      {GIFT_BURST_ITEMS.map((item, i) => (
                       <span
                         key={i}
-                        className="gift-confetti-piece gift-confetti-burst"
+                        className={`gift-burst-object gift-burst-${item.kind}`}
                         style={{
-                          left: `${item.left}%`,
-                          top: `${item.top}%`,
-                          backgroundColor: item.color,
-                          animationDelay: `${item.delay}ms`,
-                          transform: `rotate(${item.rotate}deg)`,
-                          '--gx': `${item.dx}px`,
+                          '--burst-x': `${item.x}px`,
+                          '--burst-y': `${item.y}px`,
+                          '--burst-angle': `${item.angle}deg`,
+                          '--burst-delay': `${item.delay}ms`,
                         } as React.CSSProperties}
-                      />
-                    ))}
+                      >
+                        {item.kind === 'voucher' ? <span className="gift-burst-ticket"><Gift size={12} /><b>VOUCHER</b></span> : item.kind === 'flower' ? <Flower2 size={22} strokeWidth={2.3} /> : <Leaf size={21} strokeWidth={2.5} />}
+                      </span>
+                      ))}
+                    </div>
+                  )}
                 </div>
 
               </div>

@@ -2174,7 +2174,58 @@ export const GIFT_FEATURE_STYLES = `
   84%{transform:scale(.89) translateX(-5px) rotate(-2deg)}
 }
 .gift-art-window.is-shaking .gift-art-closed{animation:giftArtBoxTap .42s ease-out both}
+
+/* The opened illustration is split along the gap between the lid and body. */
+.gift-art-open-lid{
+  clip-path:polygon(0 0,100% 0,100% 57.2%,76.7% 57.2%,69.1% 55%,64.2% 53%,58.7% 50.8%,53.2% 48.7%,0 48.7%);
+  transform-origin:51% 46%;
+}
+.gift-art-open-body{
+  clip-path:polygon(0 48.7%,53.2% 48.7%,58.7% 50.8%,64.2% 53%,69.1% 55%,76.7% 57.2%,100% 57.2%,100% 100%,0 100%);
+  transition:opacity .24s ease .06s;
+}
+.gift-art-window.is-open .gift-art-closed{transition:opacity .18s ease}
+@keyframes giftLidBurst{
+  0%{opacity:.12;transform:scale(.83) translateY(66px) rotate(-9deg)}
+  26%{opacity:1;transform:scale(.93) translateY(-17px) rotate(5deg)}
+  53%{opacity:1;transform:scale(.98) translateY(-34px) rotate(-2deg)}
+  76%{opacity:1;transform:scale(.91) translateY(7px) rotate(2deg)}
+  100%{opacity:1;transform:scale(.93) translateY(0) rotate(0)}
+}
+.gift-art-window.is-open .gift-art-open-lid{animation:giftLidBurst 1.04s cubic-bezier(.2,.8,.22,1) both}
+@keyframes giftInteriorFlash{
+  0%{opacity:0;transform:translate(-50%,-50%) scale(.25)}
+  25%{opacity:1;transform:translate(-50%,-50%) scale(1.45)}
+  100%{opacity:.2;transform:translate(-50%,-50%) scale(1.05)}
+}
+.gift-art-flare{
+  position:absolute;left:50%;top:53%;width:150px;height:110px;border-radius:50%;opacity:0;
+  background:radial-gradient(circle,#fff 0%,rgba(255,242,156,.92) 25%,rgba(255,182,31,.34) 58%,transparent 76%);
+  filter:blur(6px);pointer-events:none;
+}
+.gift-art-window.is-open .gift-art-flare{animation:giftInteriorFlash 1.25s ease-out both}
+
+@keyframes giftBurstFlight{
+  0%{opacity:0;transform:translate(-50%,-50%) translate(0,20px) scale(.18) rotate(0)}
+  17%{opacity:1}
+  50%{opacity:1;transform:translate(-50%,-50%) translate(var(--burst-x),var(--burst-y)) scale(1.18) rotate(var(--burst-angle))}
+  75%{opacity:1;transform:translate(-50%,-50%) translate(var(--burst-x),var(--burst-y)) scale(1) rotate(var(--burst-angle))}
+  100%{opacity:0;transform:translate(-50%,-50%) translate(var(--burst-x),calc(var(--burst-y) + 18px)) scale(.86) rotate(var(--burst-angle))}
+}
+.gift-burst-spray{position:absolute;inset:0;z-index:9;pointer-events:none}
+.gift-burst-object{
+  position:absolute;left:50%;top:57%;display:flex;align-items:center;justify-content:center;
+  animation:giftBurstFlight 1.65s cubic-bezier(.18,.82,.28,1) var(--burst-delay) both;
+  filter:drop-shadow(0 5px 6px rgba(136,69,24,.22));
+}
+.gift-burst-ticket{
+  display:flex;align-items:center;gap:3px;padding:7px 8px;background:linear-gradient(135deg,#fffdf2,#fff 55%,#ffe6b3);
+  color:#e65435;border:1.5px solid #ffc76d;border-radius:7px;font-size:8px;font-weight:900;letter-spacing:.2px;
+  box-shadow:inset 0 1px #fff,0 4px 12px rgba(235,126,33,.22);
+}
+.gift-burst-flower svg{fill:#ffc0d3;stroke:#e76996}
+.gift-burst-leaf svg{fill:#a3e7ab;stroke:#389758}
 @media(max-width:480px){.gift-box-wrap{height:260px!important;width:min(366px,calc(100vw - 34px))!important}}
-@media(prefers-reduced-motion:reduce){.gift-art-image{transition:none!important;animation:none!important}}
+@media(prefers-reduced-motion:reduce){.gift-art-image,.gift-art-flare,.gift-burst-object{transition:none!important;animation:none!important}.gift-art-window.is-open .gift-art-open-lid{opacity:1!important}.gift-burst-object{opacity:0!important}}
 
 `;
