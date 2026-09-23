@@ -2160,6 +2160,11 @@ export const GIFT_FEATURE_STYLES = `
 .gift-art-open{opacity:0}
 .gift-art-window.is-open .gift-art-closed{opacity:0}
 .gift-art-window.is-open .gift-art-open{opacity:1}
+@keyframes giftArtBoxIdle{
+  0%,100%{transform:scale(1.22) translateY(0)}
+  50%{transform:scale(1.22) translateY(-2px)}
+}
+.gift-art-window.is-closed .gift-art-closed{animation:giftArtBoxIdle 3.4s ease-in-out infinite}
 @keyframes giftArtBoxTap{
   0%,100%{transform:scale(1.22) translateX(0) rotate(0)}
   25%{transform:scale(1.22) translateX(-2px) rotate(-.7deg)}
