@@ -2006,10 +2006,9 @@ export const GIFT_FEATURE_STYLES = `
   to{--giftCtaAngle:360deg}
 }
 
-/* Preserve SVG transform attributes so badges/coins stay in their intended positions. */
+/* Opacity animations leave the SVG placement transforms untouched. */
 .gift-svg-ambient-sale,
 .gift-svg-ambient-fs{
-  transform:none!important;
   animation:giftAmbientOpacityFloat 2.15s ease-in-out infinite!important;
 }
 .gift-svg-ambient-fs{animation-delay:-.65s!important}
@@ -2020,7 +2019,6 @@ export const GIFT_FEATURE_STYLES = `
 .gift-svg-ambient-coin-d,
 .gift-svg-ambient-coin-e,
 .gift-svg-ambient-coin-f{
-  transform:none!important;
   animation:giftAmbientCoinGlow 2.25s ease-in-out infinite!important;
 }
 .gift-svg-ambient-coin-b{animation-delay:-.45s!important}
