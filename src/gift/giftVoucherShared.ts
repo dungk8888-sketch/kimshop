@@ -2118,4 +2118,21 @@ export const GIFT_FEATURE_STYLES = `
   }
 }
 
+/* Depth and shadows shared by the closed and opened box. */
+.gift-svg-body{
+  filter:drop-shadow(0 21px 15px rgba(8,30,82,.28)) drop-shadow(0 4px 4px rgba(8,30,82,.14))!important;
+}
+.gift-svg-cavity{
+  filter:drop-shadow(0 0 16px rgba(255,194,48,.78))!important;
+}
+.gift-svg-orbit-back{opacity:.72}
+.gift-svg-orbit-front{
+  opacity:.9;
+  filter:drop-shadow(0 0 6px rgba(255,188,55,.6));
+}
+.gift-svg-stage{opacity:.52}
+@media (prefers-reduced-motion:reduce){
+  .gift-svg-orbit-front,.gift-svg-orbit-back{animation:none!important}
+}
+
 `;

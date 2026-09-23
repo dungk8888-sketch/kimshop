@@ -498,6 +498,18 @@ export default function GiftVoucherCampaign({ slug, onClose }: { slug: string; o
                         <stop offset="0%" stopColor="#071B52" stopOpacity="0" />
                         <stop offset="100%" stopColor="#071B52" stopOpacity=".30" />
                       </linearGradient>
+                      <linearGradient id="giftFaceDepth" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" stopColor="#C3DEFF" stopOpacity=".54" />
+                        <stop offset="32%" stopColor="#3375DC" stopOpacity=".06" />
+                        <stop offset="100%" stopColor="#061B62" stopOpacity=".38" />
+                      </linearGradient>
+                      <linearGradient id="giftOrbitFront" x1="0%" y1="0%" x2="100%" y2="0%">
+                        <stop offset="0%" stopColor="#F7A40E" stopOpacity="0" />
+                        <stop offset="22%" stopColor="#FFD45F" stopOpacity=".68" />
+                        <stop offset="52%" stopColor="#FFF9D5" stopOpacity=".96" />
+                        <stop offset="82%" stopColor="#FFC146" stopOpacity=".75" />
+                        <stop offset="100%" stopColor="#F7A40E" stopOpacity="0" />
+                      </linearGradient>
                       <linearGradient id="giftSwoosh" x1="0%" y1="0%" x2="100%" y2="0%">
                         <stop offset="0%" stopColor="#f5a315" stopOpacity="0" />
                         <stop offset="18%" stopColor="#ffc84b" stopOpacity=".68" />
@@ -542,6 +554,11 @@ export default function GiftVoucherCampaign({ slug, onClose }: { slug: string; o
                     </g>
 
                     <ellipse className="gift-svg-floor-shadow" cx="210" cy="228" rx="92" ry="20" fill="#112354" opacity=".2" filter="url(#giftSoftShadow)" />
+                    {/* Rear half of the orbit sits behind the box. */}
+                    <g className="gift-svg-orbit-back" fill="none" strokeLinecap="round">
+                      <path d="M80 201 C93 160 159 139 211 139 C275 139 333 160 341 199" stroke="#FFB832" strokeOpacity=".24" strokeWidth="12" filter="url(#giftGlowBlur)" />
+                      <path d="M80 201 C93 160 159 139 211 139 C275 139 333 160 341 199" stroke="url(#giftOrbitFront)" strokeOpacity=".75" strokeWidth="3.5" />
+                    </g>
 
                     <g className="gift-svg-open-glow">
                       <circle cx="210" cy="139" r="108" fill="url(#giftInnerBurst)" />
@@ -626,6 +643,10 @@ export default function GiftVoucherCampaign({ slug, onClose }: { slug: string; o
                     <g className="gift-svg-box">
                       <g className="gift-svg-body">
                         <rect x="124" y="156" width="176" height="80" rx="8" fill="url(#giftBlueFront)" stroke="#194BAE" strokeWidth="1.45" />
+                        <path d="M126 166 Q126 158 135 158 H156 V231 Q141 236 126 226 Z" fill="#87B6FC" opacity=".30" />
+                        <path d="M267 157 H290 Q300 157 300 166 V226 Q300 236 290 236 H267 Z" fill="#061F66" opacity=".36" />
+                        <path d="M126 167 Q126 158 135 158 H292 Q299 158 299 165 V226 Q299 235 291 235 H135 Q126 235 126 226 Z" fill="url(#giftFaceDepth)" opacity=".54" />
+                        <path d="M136 160 H285" fill="none" stroke="#E7F4FF" strokeOpacity=".58" strokeWidth="2" strokeLinecap="round" />
                         <path d="M124 164 Q124 156 132 156 H160 V236 H132 Q124 236 124 228 Z" fill="#76A4F4" opacity=".18" />
                         <rect x="160" y="156" width="104" height="80" fill="#215ACB" opacity=".08" />
                         <path d="M264 156 H292 Q300 156 300 164 V228 Q300 236 292 236 H264 Z" fill="#0B2C77" opacity=".18" />
@@ -741,6 +762,12 @@ export default function GiftVoucherCampaign({ slug, onClose }: { slug: string; o
 
                     <ellipse className="gift-svg-contact-shadow" cx="212" cy="242" rx="88" ry="11" fill="#071838" opacity=".17" filter="url(#giftSoftShadow)" />
                     <ellipse className="gift-svg-contact-warm" cx="212" cy="238" rx="72" ry="7" fill="#F8B938" opacity=".18" filter="url(#giftGlowBlur)" />
+                    {/* Front arc covers the lower face, completing the orbit in depth. */}
+                    <g className="gift-svg-orbit-front" fill="none" strokeLinecap="round">
+                      <path d="M78 201 C91 235 147 254 210 255 C274 254 329 237 342 199" stroke="#E6960D" strokeOpacity=".27" strokeWidth="15" filter="url(#giftGlowBlur)" />
+                      <path d="M78 201 C91 235 147 254 210 255 C274 254 329 237 342 199" stroke="url(#giftOrbitFront)" strokeWidth="5" />
+                      <path d="M112 223 C156 254 268 260 315 224" stroke="#FFF9D9" strokeOpacity=".85" strokeWidth="1.6" />
+                    </g>
                     <g className="gift-svg-stage">
                       <ellipse cx="210" cy="251" rx="132" ry="31" fill="#FFD46A" opacity=".14" />
                       <ellipse cx="210" cy="249" rx="132" ry="31" fill="none" stroke="rgba(217,133,0,.14)" strokeWidth="16" />
