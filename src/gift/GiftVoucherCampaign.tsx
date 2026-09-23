@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { Gift, X, Sparkles, Copy, Check, Loader2, Lock, ShieldAlert, PartyPopper } from 'lucide-react';
+import { Gift, X, Sparkles, Copy, Check, Loader2, Lock, ShieldAlert, PartyPopper, Flower2, Leaf } from 'lucide-react';
 import { supabase, usernameToEmail, usernameToLegacyEmail, isValidUsername } from '../supabaseClient';
 import {
   cacheGiftVoucher,
@@ -51,6 +51,19 @@ async function readEdgeFunctionError(error: any, data: any): Promise<string> {
 }
 
 const CONFETTI_COLORS = ['#EE4D2D', '#FFB020', '#22C55E', '#3B82F6', '#EC4899', '#F97316'];
+const GIFT_BURST_ITEMS = [
+  { kind: 'voucher', x: -112, y: -96, angle: -21, delay: 100 },
+  { kind: 'voucher', x: 112, y: -108, angle: 19, delay: 170 },
+  { kind: 'voucher', x: 4, y: -142, angle: 7, delay: 260 },
+  { kind: 'flower', x: -154, y: -92, angle: -30, delay: 25 },
+  { kind: 'flower', x: 152, y: -72, angle: 28, delay: 75 },
+  { kind: 'flower', x: -52, y: -147, angle: 24, delay: 215 },
+  { kind: 'flower', x: 64, y: -151, angle: -18, delay: 145 },
+  { kind: 'leaf', x: -134, y: -44, angle: -38, delay: 105 },
+  { kind: 'leaf', x: 144, y: -132, angle: 32, delay: 195 },
+  { kind: 'leaf', x: -78, y: -123, angle: 28, delay: 285 },
+  { kind: 'leaf', x: 93, y: -50, angle: -30, delay: 50 },
+] as const;
 
 export default function GiftVoucherCampaign({ slug, onClose }: { slug: string; onClose: () => void }) {
   const [phase, setPhase] = useState<Phase>('loading');
@@ -60,9 +73,11 @@ export default function GiftVoucherCampaign({ slug, onClose }: { slug: string; o
   const [result, setResult] = useState<OpenVoucherGiftResult | null>(null);
   const [already, setAlready] = useState<AlreadyVoucherView | null>(null);
   const [copied, setCopied] = useState(false);
+  const [boxStage, setBoxStage] = useState<'idle' | 'shake' | 'burst'>('idle');
   const pendingOpenRef = useRef(false);
   const openingRef = useRef(false);
   const authLockRef = useRef(false);
+  const openingStartedAtRef = useRef(0);
 
   const [authMode, setAuthMode] = useState<'login' | 'register'>('login');
   const [uname, setUname] = useState('');
@@ -131,7 +146,15 @@ export default function GiftVoucherCampaign({ slug, onClose }: { slug: string; o
     return () => sub?.subscription?.unsubscribe();
   }, []);
 
+  useEffect(() => {
+    if (phase === 'opening') {
+      setBoxStage('shake');
+    }
+    if (phase === 'teaser') setBoxStage('idle');
+  }, [phase]);
+
   const doOpenGiftInner = async () => {
+    openingStartedAtRef.current = Date.now();
     setPhase('opening');
     const { data, error } = await supabase.rpc('open_voucher_gift', { p_campaign_slug: slug });
     if (error) {
@@ -181,10 +204,12 @@ export default function GiftVoucherCampaign({ slug, onClose }: { slug: string; o
         campaignTitle: row.campaign_title,
       });
     }
+    const revealDelay = Math.max(0, 420 - (Date.now() - openingStartedAtRef.current));
+    window.setTimeout(() => setBoxStage('burst'), revealDelay);
     window.setTimeout(() => {
       setResult(row);
       setPhase('result');
-    }, 550);
+    }, revealDelay + 2300);
   };
 
   const doOpenGift = async () => {
@@ -316,13 +341,33 @@ export default function GiftVoucherCampaign({ slug, onClose }: { slug: string; o
     []
   );
 
+  const campaignTitleNode = (() => {
+    const title = campaign?.title || '';
+    const match = title.match(/^(.*?)(?:\s+)?KIMSHOP$/i);
+    if (!match) return title;
+    const before = match[1].trim();
+    const dashIndex = before.indexOf('—');
+    if (dashIndex >= 0) {
+      return (
+        <>
+          {before.slice(0, dashIndex + 1)}
+          <br />
+          {before.slice(dashIndex + 1).trim()} <span className="gift-title-brand">KIMSHOP</span>
+        </>
+      );
+    }
+    return <>{before} <span className="gift-title-brand">KIMSHOP</span></>;
+  })();
+
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-[2px] gift-anim-overlay p-4">
-      <div className="relative w-full max-w-md bg-gradient-to-b from-[#fff7f2] to-white rounded-3xl overflow-hidden shadow-2xl max-h-[88vh] overflow-y-auto">
+      <div className="gift-premium-card relative w-full max-w-[480px] rounded-[34px] overflow-hidden shadow-2xl max-h-[92vh] border border-white/60">
         <button onClick={onClose} aria-label="Đóng" className="absolute right-3 top-3 z-10 w-9 h-9 rounded-full bg-white/90 shadow flex items-center justify-center text-gray-500 hover:text-gray-800">
           <X size={18} />
         </button>
-        <div className="px-6 pt-9 pb-7 flex flex-col items-center text-center min-h-[360px] justify-center">
+        <div className="gift-premium-inner relative px-6 pt-7 pb-8 flex flex-col items-center text-center min-h-[430px] justify-start">
+          <div className="gift-premium-orb gift-premium-orb-a" />
+          <div className="gift-premium-orb gift-premium-orb-b" />
           {phase === 'loading' && <div className="flex flex-col items-center gap-3 text-gray-400"><Loader2 size={30} className="animate-spin" /><p className="text-sm">Đang tải hộp quà...</p></div>}
           {phase === 'notfound' && <EmptyState icon={<ShieldAlert size={40} className="text-gray-300" />} title="Không tìm thấy chương trình" desc="Đường dẫn quà tặng này không tồn tại hoặc đã bị gỡ." onClose={onClose} />}
           {phase === 'unavailable' && <EmptyState icon={<ShieldAlert size={40} className="text-gray-300" />} title="Chương trình chưa mở hoặc đã kết thúc" desc="Hộp quà này hiện chưa mở được. Theo dõi Fanpage KIMSHOP để không bỏ lỡ nhé!" onClose={onClose} />}
@@ -331,38 +376,71 @@ export default function GiftVoucherCampaign({ slug, onClose }: { slug: string; o
 
           {(phase === 'teaser' || phase === 'opening') && campaign && (
             <>
-              <div className="relative mb-8 flex flex-col items-center">
-                <div className="absolute inset-0 rounded-full bg-[#FFB020]/45 blur-3xl gift-anim-glow" />
-                <div className={`gift-box-wrap ${phase === 'opening' ? 'gift-anim-shake' : 'gift-anim-float'}`}>
-                  <div className="gift-box-shadow" />
-                  <div className="gift-box-3d">
-                    <div className="gift-box-lid">
-                      <div className="gift-box-gloss" />
-                      <div className="gift-box-ribbon-v" />
-                    </div>
-                    <div className="gift-box-body">
-                      <div className="gift-box-gloss" />
-                      <div className="gift-box-ribbon-v" />
-                      <div className="gift-box-ribbon-h" />
-                    </div>
-                    <div className="gift-box-base-highlight" />
-                    <div className="gift-box-bow">
-                      <div className="gift-box-knot" />
-                    </div>
+              <svg className="gift-card-edge-decor" viewBox="0 0 420 520" aria-hidden="true">
+                <defs>
+                  <linearGradient id="giftCardEdgeGold" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stopColor="#FFE9A0" stopOpacity=".72" />
+                    <stop offset="28%" stopColor="#FFC43F" stopOpacity=".82" />
+                    <stop offset="72%" stopColor="#EF9B08" stopOpacity=".76" />
+                    <stop offset="100%" stopColor="#FFE9A0" stopOpacity=".60" />
+                  </linearGradient>
+                </defs>
+                <path className="gift-card-edge-ribbon" d="M-28 310 C18 327 -4 357 25 388 C54 420 27 467 -15 526" />
+                <path className="gift-card-edge-highlight" d="M-18 320 C15 331 4 353 23 376" />
+                <path className="gift-card-edge-ribbon" d="M448 310 C402 327 424 357 395 388 C366 420 393 467 435 526" />
+                <path className="gift-card-edge-highlight" d="M438 320 C405 331 416 353 397 376" />
+              </svg>
+              <div className="relative mb-5 flex flex-col items-center gift-premium-hero w-full">
+                <div className="gift-premium-bg" />
+                <div className="gift-premium-sheen" />
+                <div className="gift-box-wrap">
+                  <div className={`gift-art-window ${boxStage === 'burst' ? 'is-open' : boxStage === 'shake' ? 'is-shaking' : 'is-closed'}`} role="img" aria-label="Hộp quà KIMSHOP màu xanh, nơ vàng và ánh sáng 3D">
+                    <img className="gift-art-image gift-art-backdrop" src="/gift-scene-background.webp" alt="" decoding="async" fetchPriority="high" />
+                    <span className="gift-art-flare" />
+                    <img className="gift-art-image gift-art-closed" src="/gift-layer-closed.webp" alt="" decoding="async" fetchPriority="high" />
+                    <img className="gift-art-image gift-art-open gift-art-open-body" src="/gift-layer-open.webp" alt="" decoding="async" />
+                    <img className="gift-art-image gift-art-open gift-art-open-lid" src="/gift-layer-open.webp" alt="" decoding="async" />
                   </div>
-                  <Sparkles size={20} className="absolute top-2 right-5 text-yellow-300" />
-                  <Sparkles size={16} className="absolute left-7 top-10 text-yellow-200" />
-                  <Sparkles size={12} className="absolute right-7 bottom-10 text-orange-200" />
-                  <div className="gift-coin" style={{ left: '10px', top: '24px', animationDelay: '0ms' }} />
-                  <div className="gift-coin" style={{ right: '14px', top: '42px', animationDelay: '220ms' }} />
-                  <div className="gift-coin" style={{ left: '34px', bottom: '26px', animationDelay: '420ms' }} />
-                  <div className="gift-coin" style={{ right: '28px', bottom: '32px', animationDelay: '620ms' }} />
+
+                  {boxStage === 'burst' && (
+                    <div className="gift-burst-spray" aria-hidden="true">
+                      {GIFT_BURST_ITEMS.map((item, i) => (
+                      <span
+                        key={i}
+                        className={`gift-burst-object gift-burst-${item.kind}`}
+                        style={{
+                          '--burst-x': `${item.x}px`,
+                          '--burst-y': `${item.y}px`,
+                          '--burst-angle': `${item.angle}deg`,
+                          '--burst-delay': `${item.delay}ms`,
+                        } as React.CSSProperties}
+                      >
+                        {item.kind === 'voucher' ? <span className="gift-burst-ticket"><Gift size={12} /><b>VOUCHER</b></span> : item.kind === 'flower' ? <Flower2 size={22} strokeWidth={2.3} /> : <Leaf size={21} strokeWidth={2.5} />}
+                      </span>
+                      ))}
+                    </div>
+                  )}
                 </div>
+
               </div>
-              <h2 className="text-lg font-bold text-gray-800 mb-1.5 gift-anim-fadeup">{campaign.title}</h2>
-              {campaign.description && <p className="text-[13px] text-gray-500 mb-5 max-w-xs gift-anim-fadeup">{campaign.description}</p>}
-              <button onClick={handleOpenClick} disabled={phase === 'opening'} className="w-full max-w-[290px] bg-gradient-to-b from-[#FF6A3D] to-[#EE4D2D] hover:from-[#ff774d] hover:to-[#f35a34] text-white font-extrabold py-4 rounded-[22px] shadow-[0_14px_30px_rgba(238,77,45,.28)] transition-all disabled:opacity-70 flex items-center justify-center gap-2 text-[15px]">
-                {phase === 'opening' ? <><Loader2 size={18} className="animate-spin" /> Đang mở quà...</> : <><Gift size={18} /> {isLoggedIn ? 'Mở quà ngay' : 'Mở quà — Đăng nhập để nhận'}</>}
+              <h2 className="text-[18px] leading-[1.15] font-extrabold text-gray-800 mb-2 gift-anim-fadeup max-w-[320px]">{campaignTitleNode}</h2>
+              {campaign.description && (
+                <p className="text-[13px] leading-6 text-gray-500 mb-5 max-w-[315px] gift-anim-fadeup">{campaign.description}</p>
+              )}
+              <button
+                onClick={handleOpenClick}
+                disabled={phase === 'opening'}
+                className="gift-premium-cta w-full max-w-[290px] bg-gradient-to-b from-[#FF6A3D] to-[#EE4D2D] hover:from-[#ff774d] hover:to-[#f35a34] text-white font-extrabold py-4 rounded-[22px] transition-all disabled:opacity-70 text-[15px]"
+              >
+                <span className="gift-premium-cta-border" aria-hidden="true" />
+                <span className="gift-premium-cta-sheen" aria-hidden="true" />
+                <span className="gift-premium-cta-inner">
+                  {phase === 'opening' ? (
+                    <><Loader2 size={18} className="animate-spin" /> Đang mở quà...</>
+                  ) : (
+                    <><Gift size={18} /> {isLoggedIn ? 'Mở quà ngay' : 'Mở quà — Đăng nhập để nhận'}</>
+                  )}
+                </span>
               </button>
               <p className="text-[11px] text-gray-400 mt-3">Mỗi tài khoản được mở {campaign.max_opens_per_user} lần.</p>
             </>
