@@ -2133,4 +2133,27 @@ export const GIFT_FEATURE_STYLES = `
   .gift-svg-orbit-front,.gift-svg-orbit-back{animation:none!important}
 }
 
+/* Paired artwork keeps the real popup interactive while matching the 3D reference. */
+.gift-premium-hero{margin-bottom:0!important}
+.gift-box-wrap{height:278px!important;width:min(386px,calc(100vw - 34px))!important;overflow:visible}
+.gift-premium-bg,.gift-premium-sheen{opacity:.12!important}
+.gift-art-window{
+  position:absolute;inset:-15px -27px -8px;overflow:hidden;
+  mask-image:radial-gradient(ellipse 76% 66% at 50% 49%,#000 66%,rgba(0,0,0,.95) 77%,transparent 99%);
+  -webkit-mask-image:radial-gradient(ellipse 76% 66% at 50% 49%,#000 66%,rgba(0,0,0,.95) 77%,transparent 99%);
+}
+.gift-art-image{
+  position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center 48%;
+  transform:scale(1.22);transform-origin:center 48%;
+  filter:drop-shadow(0 12px 16px rgba(16,43,108,.18));
+  transition:opacity .4s ease,transform .7s cubic-bezier(.2,.8,.2,1);
+  pointer-events:none;
+}
+.gift-art-closed{opacity:1}
+.gift-art-open{opacity:0;transform:scale(1.3) translateY(8px)}
+.gift-art-window.is-open .gift-art-closed{opacity:0;transform:scale(1.29) translateY(10px)}
+.gift-art-window.is-open .gift-art-open{opacity:1;transform:scale(1.22)}
+@media(max-width:480px){.gift-box-wrap{height:260px!important;width:min(366px,calc(100vw - 34px))!important}}
+@media(prefers-reduced-motion:reduce){.gift-art-image{transition:none!important}}
+
 `;
