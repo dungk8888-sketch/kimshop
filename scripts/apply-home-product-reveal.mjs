@@ -19,6 +19,22 @@ s = s.replace(rangeRe, `const storefrontBatchSize = offset === 0 ? 4 : STOREFRON
 const gridMarker = '<div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3.5">';
 const gridIndex = s.indexOf(gridMarker);
 if (gridIndex < 0) throw new Error('[home reveal] home grid marker missing');
+s = s.replace(gridMarker, '<div className="grid grid-cols-3 md:grid-cols-4 gap-1.5 sm:gap-3.5">');
+
+// Three cards across on phones need square thumbnails and compact card spacing.
+const mobileCardReplacements = [
+  ['className="w-full h-36 object-cover group-hover:scale-105 transition-transform duration-300"', 'className="w-full aspect-square object-cover sm:h-36 sm:aspect-auto group-hover:scale-105 transition-transform duration-300"'],
+  ['className="p-2.5 space-y-1.5 cursor-pointer"', 'className="p-1.5 sm:p-2.5 space-y-1 sm:space-y-1.5 cursor-pointer"'],
+  ['className="text-[11px] line-clamp-2 leading-relaxed h-8 text-gray-700"', 'className="text-[10px] sm:text-[11px] line-clamp-2 leading-relaxed h-8 text-gray-700"'],
+  ['className="text-[#EE4D2D] font-bold text-sm"', 'className="text-[#EE4D2D] font-bold text-[11px] sm:text-sm"'],
+  ['className="text-gray-300 line-through text-[10px]"', 'className="hidden sm:inline text-gray-300 line-through text-[10px]"'],
+  ['<StarRating value={p.rating} size={10} />', '<span className="hidden sm:inline-flex"><StarRating value={p.rating} size={10} /></span>'],
+];
+for (const [before, after] of mobileCardReplacements) {
+  const index = s.indexOf(before, gridIndex);
+  if (index < 0 || index - gridIndex > 3500) throw new Error(`[home reveal] mobile card marker missing: ${before}`);
+  s = s.slice(0, index) + after + s.slice(index + before.length);
+}
 
 const mapMarker = '{filteredProducts.map((p) => {';
 const mapIndex = s.indexOf(mapMarker, gridIndex);
