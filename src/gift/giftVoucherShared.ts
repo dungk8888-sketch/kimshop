@@ -2138,7 +2138,7 @@ export const GIFT_FEATURE_STYLES = `
 .gift-box-wrap{height:278px!important;width:min(386px,calc(100vw - 34px))!important;overflow:visible}
 .gift-premium-bg,.gift-premium-sheen{opacity:.12!important}
 .gift-art-window{
-  position:absolute;inset:-15px -27px -8px;overflow:hidden;
+  position:absolute;inset:-15px -27px 8px;overflow:hidden;
   mask-image:radial-gradient(ellipse 76% 66% at 50% 49%,#000 66%,rgba(0,0,0,.95) 77%,transparent 99%);
   -webkit-mask-image:radial-gradient(ellipse 76% 66% at 50% 49%,#000 66%,rgba(0,0,0,.95) 77%,transparent 99%);
 }
