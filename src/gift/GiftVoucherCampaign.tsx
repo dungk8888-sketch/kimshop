@@ -339,9 +339,6 @@ export default function GiftVoucherCampaign({ slug, onClose }: { slug: string; o
     []
   );
 
-  const boxWrapAnimClass =
-    boxStage === 'shake' ? 'gift-anim-shake-once' : boxStage === 'burst' ? 'gift-anim-burst-settle' : 'gift-anim-float';
-
   const campaignTitleNode = (() => {
     const title = campaign?.title || '';
     const match = title.match(/^(.*?)(?:\s+)?KIMSHOP$/i);
@@ -394,8 +391,9 @@ export default function GiftVoucherCampaign({ slug, onClose }: { slug: string; o
               <div className="relative mb-5 flex flex-col items-center gift-premium-hero w-full">
                 <div className="gift-premium-bg" />
                 <div className="gift-premium-sheen" />
-                <div className={`gift-box-wrap ${boxWrapAnimClass}`}>
-                  <div className={`gift-art-window ${boxStage === 'burst' ? 'is-open' : 'is-closed'}`} role="img" aria-label="Hộp quà KIMSHOP màu xanh, nơ vàng và ánh sáng 3D">
+                <div className="gift-box-wrap">
+                  <div className={`gift-art-window ${boxStage === 'burst' ? 'is-open' : boxStage === 'shake' ? 'is-shaking' : 'is-closed'}`} role="img" aria-label="Hộp quà KIMSHOP màu xanh, nơ vàng và ánh sáng 3D">
+                    <img className="gift-art-image gift-art-backdrop" src="/gift-premium-closed.webp" alt="" decoding="async" />
                     <img className="gift-art-image gift-art-closed" src="/gift-premium-closed.webp" alt="" decoding="async" fetchPriority="high" />
                     <img className="gift-art-image gift-art-open" src="/gift-premium-open.webp" alt="" decoding="async" />
                   </div>

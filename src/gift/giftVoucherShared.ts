@@ -2135,7 +2135,7 @@ export const GIFT_FEATURE_STYLES = `
 
 /* Paired artwork keeps the real popup interactive while matching the 3D reference. */
 .gift-premium-hero{margin-bottom:0!important}
-.gift-box-wrap{height:278px!important;width:min(386px,calc(100vw - 34px))!important;overflow:visible}
+.gift-box-wrap{height:278px!important;width:min(386px,calc(100vw - 34px))!important;overflow:visible;animation:none!important;transform:none!important}
 .gift-premium-bg,.gift-premium-sheen{opacity:.12!important}
 .gift-art-window{
   position:absolute;inset:-15px -27px 8px;overflow:hidden;
@@ -2145,15 +2145,28 @@ export const GIFT_FEATURE_STYLES = `
 .gift-art-image{
   position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center 48%;
   transform:scale(1.22);transform-origin:center 48%;
-  filter:drop-shadow(0 12px 16px rgba(16,43,108,.18));
-  transition:opacity .4s ease,transform .7s cubic-bezier(.2,.8,.2,1);
+  transition:opacity .4s ease;
   pointer-events:none;
 }
+.gift-art-backdrop{
+  mask-image:radial-gradient(ellipse 27% 50% at 50% 50%,transparent 0 82%,#000 100%);
+  -webkit-mask-image:radial-gradient(ellipse 27% 50% at 50% 50%,transparent 0 82%,#000 100%);
+}
+.gift-art-closed,.gift-art-open{
+  mask-image:radial-gradient(ellipse 27% 50% at 50% 50%,#000 0 82%,transparent 100%);
+  -webkit-mask-image:radial-gradient(ellipse 27% 50% at 50% 50%,#000 0 82%,transparent 100%);
+}
 .gift-art-closed{opacity:1}
-.gift-art-open{opacity:0;transform:scale(1.3) translateY(8px)}
-.gift-art-window.is-open .gift-art-closed{opacity:0;transform:scale(1.29) translateY(10px)}
-.gift-art-window.is-open .gift-art-open{opacity:1;transform:scale(1.22)}
+.gift-art-open{opacity:0}
+.gift-art-window.is-open .gift-art-closed{opacity:0}
+.gift-art-window.is-open .gift-art-open{opacity:1}
+@keyframes giftArtBoxTap{
+  0%,100%{transform:scale(1.22) translateX(0) rotate(0)}
+  25%{transform:scale(1.22) translateX(-2px) rotate(-.7deg)}
+  55%{transform:scale(1.22) translateX(2px) rotate(.7deg)}
+}
+.gift-art-window.is-shaking .gift-art-closed{animation:giftArtBoxTap .42s ease-out both}
 @media(max-width:480px){.gift-box-wrap{height:260px!important;width:min(366px,calc(100vw - 34px))!important}}
-@media(prefers-reduced-motion:reduce){.gift-art-image{transition:none!important}}
+@media(prefers-reduced-motion:reduce){.gift-art-image{transition:none!important;animation:none!important}}
 
 `;
