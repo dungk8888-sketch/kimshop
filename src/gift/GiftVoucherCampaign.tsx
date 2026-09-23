@@ -557,42 +557,54 @@ export default function GiftVoucherCampaign({ slug, onClose }: { slug: string; o
                         <ellipse cx="210" cy="142" rx="124" ry="78" fill="none" stroke="#FFFFFF" strokeOpacity=".15" strokeWidth="1.2" />
                       </g>
 
-                      <g className="gift-svg-ambient-badge gift-svg-ambient-sale" transform="translate(79 83) rotate(-9)">
+                      <g className="gift-svg-ambient-badge gift-svg-ambient-sale" transform="translate(88 88) rotate(-9)">
                         <rect x="-21" y="-18" width="42" height="36" rx="10" fill="#F64C38" />
                         <rect x="-17" y="-14" width="34" height="8" rx="4" fill="#FF8A78" opacity=".42" />
                         <text y="7" textAnchor="middle" fill="#FFFFFF" fontSize="18" fontWeight="900">%</text>
                       </g>
 
-                      <g className="gift-svg-ambient-badge gift-svg-ambient-fs" transform="translate(340 85) rotate(8)">
+                      <g className="gift-svg-ambient-badge gift-svg-ambient-fs" transform="translate(332 90) rotate(8)">
                         <rect x="-22" y="-18" width="44" height="36" rx="10" fill="#2E6EE8" />
                         <rect x="-18" y="-14" width="36" height="8" rx="4" fill="#77A8FF" opacity=".42" />
                         <text y="6" textAnchor="middle" fill="#FFFFFF" fontSize="15" fontWeight="900">Fs</text>
                       </g>
 
-                      <g className="gift-svg-ambient-coin gift-svg-ambient-coin-a" transform="translate(104 139) rotate(-14)">
+                      <g className="gift-svg-ambient-coin gift-svg-ambient-coin-a" transform="translate(108 143) rotate(-14)">
                         <ellipse rx="16" ry="14" fill="url(#giftGoldSoft)" />
                         <ellipse rx="11" ry="9" fill="none" stroke="#FFF4AF" strokeWidth="2" opacity=".9" />
                         <path d="M-5 -8 C-1 -12 8 -10 11 -4" fill="none" stroke="#FFFFFF" strokeOpacity=".54" strokeWidth="2" strokeLinecap="round" />
                         <text y="4" textAnchor="middle" fill="#995500" fontSize="11" fontWeight="900">₫</text>
                       </g>
 
-                      <g className="gift-svg-ambient-coin gift-svg-ambient-coin-b" transform="translate(319 143) rotate(15)">
+                      <g className="gift-svg-ambient-coin gift-svg-ambient-coin-b" transform="translate(315 146) rotate(15)">
                         <ellipse rx="16" ry="14" fill="url(#giftGoldSoft)" />
                         <ellipse rx="11" ry="9" fill="none" stroke="#FFF4AF" strokeWidth="2" opacity=".9" />
                         <path d="M-5 -8 C-1 -12 8 -10 11 -4" fill="none" stroke="#FFFFFF" strokeOpacity=".54" strokeWidth="2" strokeLinecap="round" />
                         <text y="4" textAnchor="middle" fill="#995500" fontSize="11" fontWeight="900">₫</text>
                       </g>
 
-                      <g className="gift-svg-ambient-coin gift-svg-ambient-coin-c" transform="translate(132 64) rotate(8)">
+                      <g className="gift-svg-ambient-coin gift-svg-ambient-coin-c" transform="translate(142 67) rotate(8)">
                         <ellipse rx="10" ry="9" fill="url(#giftGoldSoft)" />
                         <ellipse rx="6.5" ry="5.5" fill="none" stroke="#FFF4AF" strokeWidth="1.4" opacity=".88" />
                         <text y="3" textAnchor="middle" fill="#995500" fontSize="7" fontWeight="900">₫</text>
                       </g>
 
-                      <g className="gift-svg-ambient-coin gift-svg-ambient-coin-d" transform="translate(288 62) rotate(-9)">
+                      <g className="gift-svg-ambient-coin gift-svg-ambient-coin-d" transform="translate(279 66) rotate(-9)">
                         <ellipse rx="10" ry="9" fill="url(#giftGoldSoft)" />
                         <ellipse rx="6.5" ry="5.5" fill="none" stroke="#FFF4AF" strokeWidth="1.4" opacity=".88" />
                         <text y="3" textAnchor="middle" fill="#995500" fontSize="7" fontWeight="900">₫</text>
+                      </g>
+
+                      <g className="gift-svg-ambient-coin gift-svg-ambient-coin-e" transform="translate(82 174) rotate(18)">
+                        <ellipse rx="9" ry="8" fill="url(#giftGoldSoft)" />
+                        <ellipse rx="5.8" ry="4.8" fill="none" stroke="#FFF4AF" strokeWidth="1.3" opacity=".88" />
+                        <text y="2.5" textAnchor="middle" fill="#995500" fontSize="6.5" fontWeight="900">₫</text>
+                      </g>
+
+                      <g className="gift-svg-ambient-coin gift-svg-ambient-coin-f" transform="translate(343 173) rotate(-16)">
+                        <ellipse rx="9" ry="8" fill="url(#giftGoldSoft)" />
+                        <ellipse rx="5.8" ry="4.8" fill="none" stroke="#FFF4AF" strokeWidth="1.3" opacity=".88" />
+                        <text y="2.5" textAnchor="middle" fill="#995500" fontSize="6.5" fontWeight="900">₫</text>
                       </g>
 
                       <g className="gift-svg-ambient-stars">
@@ -600,6 +612,8 @@ export default function GiftVoucherCampaign({ slug, onClose }: { slug: string; o
                         <path className="gift-svg-ambient-star gift-svg-ambient-star-b" d="M303 111 l4 9 l9 4 l-9 4 l-4 9 l-4-9 l-9-4 l9-4Z" fill="#FFE35A" />
                         <path className="gift-svg-ambient-star gift-svg-ambient-star-c" d="M145 199 l3 7 l7 3 l-7 3 l-3 7 l-3-7 l-7-3 l7-3Z" fill="#FFFFFF" />
                         <path className="gift-svg-ambient-star gift-svg-ambient-star-d" d="M282 202 l3 7 l7 3 l-7 3 l-3 7 l-3-7 l-7-3 l7-3Z" fill="#FFF1A4" />
+                        <path className="gift-svg-ambient-star gift-svg-ambient-star-e" d="M87 118 l3 7 l7 3 l-7 3 l-3 7 l-3-7 l-7-3 l7-3Z" fill="#FFE76D" />
+                        <path className="gift-svg-ambient-star gift-svg-ambient-star-f" d="M334 119 l3 7 l7 3 l-7 3 l-3 7 l-3-7 l-7-3 l7-3Z" fill="#FFFFFF" opacity=".94" />
                         <circle className="gift-svg-ambient-dot gift-svg-ambient-dot-a" cx="95" cy="180" r="3" fill="#F6A316" />
                         <circle className="gift-svg-ambient-dot gift-svg-ambient-dot-b" cx="326" cy="183" r="3" fill="#2E73E7" />
                         <rect className="gift-svg-ambient-confetti gift-svg-ambient-confetti-a" x="102" y="72" width="6" height="16" rx="2" fill="#F47C16" transform="rotate(-28 102 72)" />

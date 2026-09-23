@@ -1987,4 +1987,135 @@ export const GIFT_FEATURE_STYLES = `
   }
 }
 
+
+/* KIMSHOP_GIFT_AMBIENT_CLIP_FIX_AND_TRUE_CTA_BORDER_20260923 */
+@property --giftCtaAngle{
+  syntax:"<angle>";
+  inherits:false;
+  initial-value:0deg;
+}
+@keyframes giftAmbientOpacityFloat{
+  0%,100%{opacity:.82;filter:brightness(.98) saturate(.98)}
+  50%{opacity:1;filter:brightness(1.10) saturate(1.05)}
+}
+@keyframes giftAmbientCoinGlow{
+  0%,100%{opacity:.78;filter:drop-shadow(0 5px 6px rgba(155,92,0,.16)) brightness(.98)}
+  50%{opacity:1;filter:drop-shadow(0 8px 10px rgba(155,92,0,.26)) brightness(1.12)}
+}
+@keyframes giftPremiumCtaBorderRun{
+  to{--giftCtaAngle:360deg}
+}
+
+/* Preserve SVG transform attributes so badges/coins stay in their intended positions. */
+.gift-svg-ambient-sale,
+.gift-svg-ambient-fs{
+  transform:none!important;
+  animation:giftAmbientOpacityFloat 2.15s ease-in-out infinite!important;
+}
+.gift-svg-ambient-fs{animation-delay:-.65s!important}
+
+.gift-svg-ambient-coin-a,
+.gift-svg-ambient-coin-b,
+.gift-svg-ambient-coin-c,
+.gift-svg-ambient-coin-d,
+.gift-svg-ambient-coin-e,
+.gift-svg-ambient-coin-f{
+  transform:none!important;
+  animation:giftAmbientCoinGlow 2.25s ease-in-out infinite!important;
+}
+.gift-svg-ambient-coin-b{animation-delay:-.45s!important}
+.gift-svg-ambient-coin-c{animation-delay:-.80s!important}
+.gift-svg-ambient-coin-d{animation-delay:-1.10s!important}
+.gift-svg-ambient-coin-e{animation-delay:-1.35s!important}
+.gift-svg-ambient-coin-f{animation-delay:-.20s!important}
+
+/* Confetti already has rotate() in SVG attributes; don't override it with CSS transforms. */
+.gift-svg-ambient-confetti{
+  animation:giftAmbientOpacityFloat 2.8s ease-in-out infinite!important;
+}
+.gift-svg-ambient-confetti-b{animation-delay:-.55s!important}
+.gift-svg-ambient-confetti-c{animation-delay:-1.0s!important}
+.gift-svg-ambient-confetti-d{animation-delay:-1.45s!important}
+
+.gift-svg-ambient-badge{
+  opacity:.96;
+  filter:drop-shadow(0 7px 8px rgba(16,31,70,.18)) drop-shadow(0 0 6px rgba(255,223,135,.08));
+}
+.gift-svg-ambient-coin{
+  opacity:.96;
+}
+.gift-svg-ambient-star{
+  opacity:.92;
+  filter:drop-shadow(0 0 8px rgba(255,238,173,.66));
+}
+.gift-svg-ambient-star-e{animation-delay:-.30s!important}
+.gift-svg-ambient-star-f{animation-delay:-1.0s!important}
+.gift-svg-ambient-halo{
+  opacity:.68;
+  filter:drop-shadow(0 0 14px rgba(255,217,127,.34));
+}
+
+/* True running light around the button edge. */
+.gift-premium-cta{
+  position:relative!important;
+  overflow:hidden!important;
+  isolation:isolate!important;
+  border:1px solid rgba(255,229,178,.28)!important;
+  box-shadow:0 15px 31px rgba(238,77,45,.31),0 0 24px rgba(255,163,76,.18)!important;
+}
+.gift-premium-cta-border{
+  position:absolute!important;
+  inset:0!important;
+  border-radius:inherit!important;
+  padding:2px!important;
+  background:conic-gradient(
+    from var(--giftCtaAngle),
+    transparent 0deg 248deg,
+    rgba(255,240,190,0) 248deg,
+    #FFEBA5 270deg,
+    #FFFFFF 286deg,
+    #FFD05B 302deg,
+    rgba(255,240,190,0) 322deg,
+    transparent 322deg 360deg
+  )!important;
+  -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0)!important;
+  -webkit-mask-composite:xor!important;
+  mask-composite:exclude!important;
+  animation:giftPremiumCtaBorderRun 1.75s linear infinite!important;
+  z-index:5!important;
+  pointer-events:none!important;
+}
+.gift-premium-cta-border::after{display:none!important}
+.gift-premium-cta-sheen{
+  z-index:2!important;
+  opacity:.88;
+}
+.gift-premium-cta-inner{
+  z-index:3!important;
+}
+.gift-premium-cta::after{
+  content:'';
+  position:absolute;
+  inset:3px;
+  border-radius:18px;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.24),inset 0 -1px 0 rgba(167,42,17,.15);
+  pointer-events:none;
+  z-index:4;
+}
+
+@media (prefers-reduced-motion:reduce){
+  .gift-svg-ambient-sale,
+  .gift-svg-ambient-fs,
+  .gift-svg-ambient-coin-a,
+  .gift-svg-ambient-coin-b,
+  .gift-svg-ambient-coin-c,
+  .gift-svg-ambient-coin-d,
+  .gift-svg-ambient-coin-e,
+  .gift-svg-ambient-coin-f,
+  .gift-svg-ambient-confetti,
+  .gift-premium-cta-border{
+    animation:none!important;
+  }
+}
+
 `;
