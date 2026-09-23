@@ -2161,14 +2161,20 @@ export const GIFT_FEATURE_STYLES = `
 .gift-art-window.is-open .gift-art-closed{opacity:0}
 .gift-art-window.is-open .gift-art-open{opacity:1}
 @keyframes giftArtBoxIdle{
-  0%,100%{transform:scale(1.22) translateY(0)}
-  50%{transform:scale(1.22) translateY(-2px)}
+  0%,100%{transform:scale(1.22) translate(0,0) rotate(0)}
+  18%{transform:scale(1.22) translate(-4px,-2px) rotate(-1.4deg)}
+  38%{transform:scale(1.22) translate(5px,-5px) rotate(1.8deg)}
+  58%{transform:scale(1.22) translate(-5px,-3px) rotate(-1.6deg)}
+  78%{transform:scale(1.22) translate(4px,-5px) rotate(1.4deg)}
 }
-.gift-art-window.is-closed .gift-art-closed{animation:giftArtBoxIdle 3.4s ease-in-out infinite}
+.gift-art-window.is-closed .gift-art-closed{animation:giftArtBoxIdle 2.7s ease-in-out infinite}
 @keyframes giftArtBoxTap{
   0%,100%{transform:scale(1.22) translateX(0) rotate(0)}
-  25%{transform:scale(1.22) translateX(-2px) rotate(-.7deg)}
-  55%{transform:scale(1.22) translateX(2px) rotate(.7deg)}
+  15%{transform:scale(1.22) translateX(-7px) rotate(-3deg)}
+  32%{transform:scale(1.22) translateX(8px) rotate(3deg)}
+  50%{transform:scale(1.22) translateX(-10px) rotate(-4deg)}
+  68%{transform:scale(1.22) translateX(10px) rotate(4deg)}
+  84%{transform:scale(1.22) translateX(-5px) rotate(-2deg)}
 }
 .gift-art-window.is-shaking .gift-art-closed{animation:giftArtBoxTap .42s ease-out both}
 @media(max-width:480px){.gift-box-wrap{height:260px!important;width:min(366px,calc(100vw - 34px))!important}}
