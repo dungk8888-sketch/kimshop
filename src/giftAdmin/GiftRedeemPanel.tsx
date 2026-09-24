@@ -1,5 +1,5 @@
-import React, { useRef, useState } from 'react';
-import { Search, Loader2, CheckCircle2, AlertCircle, Ticket, RotateCcw } from 'lucide-react';
+import React, { useEffect, useRef, useState } from 'react';
+import { Search, Loader2, CheckCircle2, AlertCircle, RotateCcw, RefreshCw } from 'lucide-react';
 import { supabase } from '../supabaseClient';
 import {
   AdminVoucherLookup,
@@ -22,6 +22,30 @@ type SessionLogItem = {
   usedAt: string;
 };
 
+type VoucherListRow = {
+  id: string;
+  code: string;
+  status: string;
+  issued_at: string;
+  expires_at: string | null;
+  used_at: string | null;
+  voucher_campaign_prizes: { label: string } | { label: string }[] | null;
+  voucher_campaigns: { title: string } | { title: string }[] | null;
+};
+
+const PAGE_SIZE = 50;
+
+function voucherDisplayStatus(row: Pick<VoucherListRow, 'status' | 'expires_at'>) {
+  return row.status === 'active' && row.expires_at && new Date(row.expires_at).getTime() < Date.now()
+    ? 'expired'
+    : row.status;
+}
+
+function relationText<T extends object>(value: T | T[] | null, key: keyof T) {
+  const item = Array.isArray(value) ? value[0] : value;
+  return item?.[key] || '';
+}
+
 export default function GiftRedeemPanel() {
   const [codeInput, setCodeInput] = useState('');
   const [phase, setPhase] = useState<Phase>('idle');
@@ -30,10 +54,42 @@ export default function GiftRedeemPanel() {
   const [confirming, setConfirming] = useState(false);
   const [justRedeemed, setJustRedeemed] = useState(false);
   const [sessionLog, setSessionLog] = useState<SessionLogItem[]>([]);
+  const [listRows, setListRows] = useState<VoucherListRow[]>([]);
+  const [listTotal, setListTotal] = useState(0);
+  const [listLoading, setListLoading] = useState(false);
+  const [listError, setListError] = useState<string | null>(null);
   const busyRef = useRef(false);
+  const listBusyRef = useRef(false);
   const inputRef = useRef<HTMLInputElement | null>(null);
+  const resultRef = useRef<HTMLDivElement | null>(null);
 
   const busy = phase === 'looking-up' || phase === 'redeeming';
+
+  const loadVouchers = async (offset = 0) => {
+    if (listBusyRef.current) return;
+    listBusyRef.current = true;
+    setListLoading(true);
+    setListError(null);
+    try {
+      const { data, count, error } = await supabase
+        .from('user_vouchers')
+        .select('id, code, status, issued_at, expires_at, used_at, voucher_campaign_prizes(label), voucher_campaigns(title)', { count: 'exact' })
+        .order('issued_at', { ascending: false })
+        .range(offset, offset + PAGE_SIZE - 1);
+      if (error) throw error;
+      setListRows((previous) => offset === 0 ? (data || []) as VoucherListRow[] : [...previous, ...(data || []) as VoucherListRow[]]);
+      setListTotal(count ?? 0);
+    } catch (e: any) {
+      setListError(friendlyAdminError(e?.message));
+    } finally {
+      listBusyRef.current = false;
+      setListLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    void loadVouchers();
+  }, []);
 
   const resetResult = () => {
     setVoucher(null);
@@ -43,14 +99,15 @@ export default function GiftRedeemPanel() {
     setPhase('idle');
   };
 
-  const lookup = async () => {
-    const code = normalizeVoucherCode(codeInput);
+  const lookup = async (selectedCode?: string) => {
+    const code = normalizeVoucherCode(selectedCode ?? codeInput);
     if (!code) {
       setMessage('Nhập mã voucher khách gửi.');
       setVoucher(null);
       return;
     }
     if (busyRef.current) return;
+    setCodeInput(code);
     busyRef.current = true;
     setPhase('looking-up');
     setMessage(null);
@@ -72,6 +129,7 @@ export default function GiftRedeemPanel() {
       }
       setVoucher(row);
       setPhase('found');
+      requestAnimationFrame(() => resultRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' }));
     } catch (e: any) {
       setPhase('idle');
       setMessage(friendlyAdminError(e?.message));
@@ -101,6 +159,8 @@ export default function GiftRedeemPanel() {
       setConfirming(false);
       setPhase('found');
       setSessionLog((prev) => [{ code: voucher.code, prizeLabel: voucher.prize_label, usedAt }, ...prev].slice(0, 8));
+      setListRows((previous) => previous.map((item) => item.code === voucher.code ? { ...item, status: 'used', used_at: usedAt } : item));
+      void loadVouchers();
     } catch (e: any) {
       setPhase('found');
       setConfirming(false);
@@ -116,6 +176,7 @@ export default function GiftRedeemPanel() {
       if (error) return;
       const row: AdminVoucherLookup | undefined = Array.isArray(data) ? data[0] : (data as any);
       if (row) setVoucher(row);
+      void loadVouchers();
     } catch {}
   };
 
@@ -132,9 +193,53 @@ export default function GiftRedeemPanel() {
 
   return (
     <div className="px-4 py-4 space-y-4">
+      <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white" aria-label="Danh sách voucher đã phát">
+        <div className="flex items-center justify-between gap-3 border-b border-slate-100 px-4 py-3">
+          <div>
+            <h3 className="text-[14px] font-bold text-slate-800">Voucher đã phát ({listTotal})</h3>
+            <p className="text-[11px] text-slate-500">Mới nhất trước · Chạm vào mã để xem chi tiết</p>
+          </div>
+          <button type="button" onClick={() => void loadVouchers()} disabled={listLoading} aria-label="Tải lại danh sách voucher" className="rounded-lg p-2 text-slate-500 hover:bg-slate-100 disabled:opacity-50">
+            <RefreshCw size={16} className={listLoading ? 'animate-spin' : ''} />
+          </button>
+        </div>
+        {listError && (
+          <div className="px-4 py-4 text-[13px] text-rose-700" role="alert">
+            {listError} <button type="button" onClick={() => void loadVouchers()} className="font-bold underline">Thử lại</button>
+          </div>
+        )}
+        {listLoading && listRows.length === 0 && <p className="px-4 py-6 text-center text-[13px] text-slate-500">Đang tải voucher…</p>}
+        {!listLoading && !listError && listRows.length === 0 && <p className="px-4 py-6 text-center text-[13px] text-slate-500">Chưa có voucher nào được phát.</p>}
+        {listRows.length > 0 && (
+          <ul className="divide-y divide-slate-100">
+            {listRows.map((item) => {
+              const status = voucherDisplayStatus(item);
+              return (
+                <li key={item.id}>
+                  <button type="button" onClick={() => void lookup(item.code)} disabled={busy} className={`flex w-full flex-wrap items-center justify-between gap-x-4 gap-y-1 px-4 py-3 text-left hover:bg-orange-50 disabled:opacity-60 ${voucher?.id === item.id ? 'bg-orange-50' : ''}`}>
+                    <span className="min-w-0">
+                      <span className="block break-all font-mono text-[13px] font-bold text-slate-800">{prettyCode(item.code)}</span>
+                      <span className="block text-[12px] text-slate-500">{relationText(item.voucher_campaign_prizes, 'label') || relationText(item.voucher_campaigns, 'title') || 'Voucher'} · {formatDateTimeVN(item.issued_at)}</span>
+                    </span>
+                    <span className={`rounded-full px-2.5 py-1 text-[11px] font-bold ring-1 ${VOUCHER_STATUS_CLASS[status] || 'bg-slate-100 text-slate-600 ring-slate-200'}`}>
+                      {VOUCHER_STATUS_LABEL[status] || status}
+                    </span>
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
+        )}
+        {listRows.length < listTotal && (
+          <button type="button" onClick={() => void loadVouchers(listRows.length)} disabled={listLoading} className="w-full border-t border-slate-100 px-4 py-3 text-[13px] font-semibold text-[#EE4D2D] hover:bg-orange-50 disabled:opacity-50">
+            {listLoading ? 'Đang tải…' : `Xem thêm (${listTotal - listRows.length})`}
+          </button>
+        )}
+      </section>
+
       <div>
-        <label htmlFor="ga-code" className="block text-[13px] font-semibold text-slate-700 mb-1.5">
-          Mã voucher khách gửi
+        <label htmlFor="ga-code" className="mb-1.5 block text-[13px] font-semibold text-slate-700">
+          Tra mã thủ công (nếu cần)
         </label>
         <div className="flex gap-2">
           <input
@@ -143,7 +248,7 @@ export default function GiftRedeemPanel() {
             value={codeInput}
             onChange={(e) => setCodeInput(e.target.value.toUpperCase())}
             onKeyDown={(e) => {
-              if (e.key === 'Enter' && !busy) lookup();
+              if (e.key === 'Enter' && !busy) void lookup();
             }}
             placeholder="VD: HOPCHA-3F7A21B9"
             autoComplete="off"
@@ -151,20 +256,17 @@ export default function GiftRedeemPanel() {
             autoCorrect="off"
             spellCheck={false}
             inputMode="text"
-            className="ga-code-input flex-1 min-w-0 rounded-xl border border-slate-300 bg-white px-3.5 py-3 font-mono text-[15px] font-bold text-slate-800 placeholder:font-sans placeholder:font-normal placeholder:tracking-normal placeholder:text-slate-300 focus:border-[#EE4D2D] focus:outline-none focus:ring-2 focus:ring-orange-100"
+            className="ga-code-input min-w-0 flex-1 rounded-xl border border-slate-300 bg-white px-3.5 py-3 font-mono text-[15px] font-bold text-slate-800 placeholder:font-sans placeholder:font-normal placeholder:tracking-normal placeholder:text-slate-300 focus:border-[#EE4D2D] focus:outline-none focus:ring-2 focus:ring-orange-100"
           />
           <button
-            onClick={lookup}
+            onClick={() => void lookup()}
             disabled={busy}
-            className="flex-shrink-0 inline-flex items-center gap-1.5 rounded-xl bg-[#EE4D2D] px-4 py-3 text-[14px] font-bold text-white transition-colors hover:bg-[#f63] focus:outline-none focus:ring-2 focus:ring-orange-200 disabled:opacity-60"
+            className="inline-flex flex-shrink-0 items-center gap-1.5 rounded-xl bg-[#EE4D2D] px-4 py-3 text-[14px] font-bold text-white transition-colors hover:bg-[#f63] focus:outline-none focus:ring-2 focus:ring-orange-200 disabled:opacity-60"
           >
             {phase === 'looking-up' ? <Loader2 size={16} className="animate-spin" /> : <Search size={16} />}
             Tra mã
           </button>
         </div>
-        <p className="mt-1.5 text-[11px] text-slate-400">
-          Dán mã khách gửi qua Facebook/Zalo. Không phân biệt chữ hoa thường.
-        </p>
       </div>
 
       {message && (
@@ -175,7 +277,7 @@ export default function GiftRedeemPanel() {
       )}
 
       {voucher && (
-        <div className="ga-fade-in overflow-hidden rounded-2xl border border-slate-200 bg-white">
+        <div ref={resultRef} className="ga-fade-in overflow-hidden rounded-2xl border border-slate-200 bg-white">
           <div className="flex items-start justify-between gap-3 border-b border-slate-100 px-4 py-3.5">
             <div className="min-w-0">
               <p className="font-mono text-[15px] font-bold tracking-wide text-slate-900">{prettyCode(voucher.code)}</p>
@@ -299,12 +401,6 @@ export default function GiftRedeemPanel() {
         </div>
       )}
 
-      {!voucher && !message && phase === 'idle' && (
-        <div className="rounded-2xl border border-dashed border-slate-200 px-4 py-8 text-center">
-          <Ticket size={22} className="mx-auto mb-2 text-slate-300" />
-          <p className="text-[13px] text-slate-500">Khách gửi mã qua Facebook/Zalo, dán vào ô trên để xem quà và xác nhận.</p>
-        </div>
-      )}
     </div>
   );
 }
