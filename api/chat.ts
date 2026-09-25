@@ -30,6 +30,7 @@ async function supabaseGet(path: string, token: string) {
 
 const validId = (value: unknown): value is string => typeof value === 'string' && UUID.test(value);
 const threadId = (shopId: string, buyerId: string) => `chat:v1:${shopId}:${buyerId}`;
+const displayName = (profile: any) => String(profile?.full_name || profile?.username || '').trim().slice(0, 80);
 
 export default async function handler(req: any, res: any) {
   res.setHeader('Cache-Control', 'no-store');
@@ -65,6 +66,21 @@ export default async function handler(req: any, res: any) {
         const raw = await redis('GET', `${key}:meta`);
         return raw ? JSON.parse(raw) : null;
       }));
+      // Fill in names for conversations created before the buyer name was saved.
+      // Profile RLS limits this lookup to accounts with permission (e.g. an admin).
+      const unnamed = entries.filter((entry: any) => entry && !entry.buyerName && validId(entry.buyerId));
+      if (unnamed.length) {
+        const buyerIds = [...new Set(unnamed.map((entry: any) => entry.buyerId))];
+        const profiles = await supabaseGet(`/rest/v1/profiles?id=in.(${buyerIds.join(',')})&select=id,full_name,username`, bearer).catch(() => []);
+        const names = new Map(profiles.map((profile: any) => [profile.id, displayName(profile)]));
+        await Promise.all(unnamed.map(async (entry: any) => {
+          const name = names.get(entry.buyerId);
+          if (name) {
+            entry.buyerName = name;
+            await redis('SET', `${threadId(shopId, entry.buyerId)}:meta`, JSON.stringify(entry));
+          }
+        }));
+      }
       return res.status(200).json({ conversations: entries.filter(Boolean).sort((a: any, b: any) => b.lastAt.localeCompare(a.lastAt)) });
     }
 
@@ -101,7 +117,12 @@ export default async function handler(req: any, res: any) {
     // A message is acknowledged only after it is persisted. Subsequent reads use the list.
     await redis('RPUSH', `${key}:messages`, JSON.stringify(item));
     await redis('LTRIM', `${key}:messages`, -200, -1);
-    const meta = { shopId, shopName: shop.name, buyerId: partnerId, lastAt: item.createdAt, lastText: text.slice(0, 100), lastSenderId: user.id };
+    let buyerName = existing ? JSON.parse(existing).buyerName : '';
+    if (!isSeller && !buyerName) {
+      const profiles = await supabaseGet(`/rest/v1/profiles?id=eq.${user.id}&select=full_name,username&limit=1`, bearer).catch(() => []);
+      buyerName = displayName(profiles[0]);
+    }
+    const meta = { shopId, shopName: shop.name, buyerId: partnerId, buyerName, lastAt: item.createdAt, lastText: text.slice(0, 100), lastSenderId: user.id };
     await redis('SET', `${key}:meta`, JSON.stringify(meta));
     await redis('SADD', `chat:v1:shop:${shopId}`, key);
     await redis('SADD', `chat:v1:buyer:${partnerId}`, key);

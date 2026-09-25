@@ -3,7 +3,7 @@ import { ArrowLeft, Loader2, MessageCircle, Send, X } from 'lucide-react';
 import { supabase } from './supabaseClient';
 
 export type ChatTarget = { shopId?: string; buyerId?: string; orderId?: string; label?: string };
-type Conversation = { shopId: string; shopName: string; buyerId: string; lastAt: string; lastText: string; lastSenderId: string };
+type Conversation = { shopId: string; shopName: string; buyerId: string; buyerName?: string; lastAt: string; lastText: string; lastSenderId: string };
 type Message = { id: string; senderId: string; text: string; createdAt: string; orderId: string | null };
 
 const errorText: Record<string, string> = {
@@ -123,8 +123,8 @@ export default function ShopChat({ userId, sellerShopId, target, onClose }: {
           {loading && <div className="flex justify-center p-8 text-gray-400"><Loader2 className="animate-spin" size={20} /></div>}
           {!active && !loading && conversations.length === 0 && <p className="p-8 text-center text-sm text-gray-500">Chưa có cuộc trò chuyện nào. Bạn có thể nhắn shop từ trang sản phẩm hoặc đơn mua.</p>}
           {!active && conversations.map((item) => (
-            <button key={`${item.shopId}:${item.buyerId}`} onClick={() => choose({ shopId: item.shopId, buyerId: sellerShopId ? item.buyerId : undefined, label: sellerShopId ? `Khách ${item.buyerId.slice(0, 8)}` : item.shopName })} className="mb-2 w-full rounded-xl border border-gray-100 bg-white p-3 text-left hover:border-orange-200">
-              <div className="flex justify-between gap-2 text-sm font-semibold"><span className="truncate">{sellerShopId ? `Khách ${item.buyerId.slice(0, 8)}` : item.shopName}</span><time className="text-[10px] font-normal text-gray-400">{new Date(item.lastAt).toLocaleString('vi-VN')}</time></div>
+            <button key={`${item.shopId}:${item.buyerId}`} onClick={() => choose({ shopId: item.shopId, buyerId: sellerShopId ? item.buyerId : undefined, label: sellerShopId ? (item.buyerName || `Khách ${item.buyerId.slice(0, 8)}`) : item.shopName })} className="mb-2 w-full rounded-xl border border-gray-100 bg-white p-3 text-left hover:border-orange-200">
+              <div className="flex justify-between gap-2 text-sm font-semibold"><span className="truncate">{sellerShopId ? (item.buyerName || `Khách ${item.buyerId.slice(0, 8)}`) : item.shopName}</span><time className="text-[10px] font-normal text-gray-400">{new Date(item.lastAt).toLocaleString('vi-VN')}</time></div>
               <p className="mt-1 truncate text-xs text-gray-500">{item.lastSenderId === userId ? 'Bạn: ' : ''}{item.lastText}</p>
             </button>
           ))}
