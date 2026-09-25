@@ -1,5 +1,6 @@
 // Private, order-aware chat. Message bodies live in Redis, not Supabase.
-import { sendChatPush } from './push';
+import { createECDH, createHash } from 'node:crypto';
+import webPush from 'web-push';
 const SUPABASE = (process.env.VITE_SUPABASE_URL || 'https://ygqqtudavuugrvpkhvdp.supabase.co').replace(/\/$/, '');
 const ANON_KEY = process.env.VITE_SUPABASE_ANON_KEY || 'sb_publishable_8B6gKD7mNeh8Ny8DtPXdrQ_trIgA2Rb';
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -42,6 +43,37 @@ async function unreadCount(keys: string[], userId: string) {
     return item.lastMessageId ? item.lastMessageId !== readAt : (!readAt || item.lastAt > readAt);
   }));
   return unread.filter(Boolean).length;
+}
+
+// Keep delivery in this function's bundle. Vercel runs each /api file as an
+// independent ESM function, so an extensionless import from another route
+// leaves /api/chat unable to start in production.
+async function sendChatPush(userId: string, sender: string, text: string, conversation: string) {
+  if (!validId(userId)) return;
+  try {
+    const keys = await redis('SMEMBERS', `push:v1:user:${userId}`) || [];
+    if (!keys.length) return;
+    const seed = createHash('sha256').update('kimshop-web-push-v1:').update(redisToken()).digest();
+    const curve = createECDH('prime256v1');
+    curve.setPrivateKey(seed);
+    webPush.setVapidDetails('https://kimshop-six.vercel.app', curve.getPublicKey(undefined, 'uncompressed').toString('base64url'), seed.toString('base64url'));
+    const payload = JSON.stringify({ title: `KIMSHOP · ${sender.slice(0, 50)}`, body: text.slice(0, 120), url: '/?chat=1', tag: `kimshop-chat-${conversation}` });
+    await Promise.allSettled(keys.slice(0, 5).map(async (hash: string) => {
+      const subKey = `push:v1:sub:${userId}:${hash}`;
+      const raw = await redis('GET', subKey);
+      if (!raw) { await redis('SREM', `push:v1:user:${userId}`, hash); return; }
+      if (await redis('GET', `push:v1:owner:${hash}`) !== userId) return;
+      try {
+        await webPush.sendNotification(JSON.parse(raw), payload, { TTL: 3600, timeout: 4500 });
+      } catch (error: any) {
+        if (error?.statusCode === 404 || error?.statusCode === 410) {
+          await redis('SREM', `push:v1:user:${userId}`, hash);
+          await redis('DEL', subKey);
+          await redis('DEL', `push:v1:owner:${hash}`);
+        }
+      }
+    }));
+  } catch { /* A push failure must not block a saved chat message. */ }
 }
 
 export default async function handler(req: any, res: any) {
