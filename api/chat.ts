@@ -31,6 +31,17 @@ async function supabaseGet(path: string, token: string) {
 const validId = (value: unknown): value is string => typeof value === 'string' && UUID.test(value);
 const threadId = (shopId: string, buyerId: string) => `chat:v1:${shopId}:${buyerId}`;
 const displayName = (profile: any) => String(profile?.full_name || profile?.username || '').trim().slice(0, 80);
+async function unreadCount(keys: string[], userId: string) {
+  const unread = await Promise.all(keys.slice(0, 100).map(async (key) => {
+    const raw = await redis('GET', `${key}:meta`);
+    if (!raw) return false;
+    const item = JSON.parse(raw);
+    if (item.lastSenderId === userId) return false;
+    const readAt = await redis('GET', `${key}:read:${userId}`);
+    return item.lastMessageId ? item.lastMessageId !== readAt : (!readAt || item.lastAt > readAt);
+  }));
+  return unread.filter(Boolean).length;
+}
 
 export default async function handler(req: any, res: any) {
   res.setHeader('Cache-Control', 'no-store');
@@ -46,8 +57,9 @@ export default async function handler(req: any, res: any) {
     const shopId = req.method === 'GET' ? req.query?.shopId : req.body?.shopId;
     const buyerId = req.method === 'GET' ? req.query?.buyerId : req.body?.buyerId;
     const orderId = req.method === 'GET' ? req.query?.orderId : req.body?.orderId;
-    if (action === 'list' && !shopId) {
+    if ((action === 'list' || action === 'unread') && !shopId) {
       const ids = (await redis('SMEMBERS', `chat:v1:buyer:${user.id}`)) || [];
+      if (action === 'unread') return res.status(200).json({ unread: await unreadCount(ids, user.id) });
       const entries = await Promise.all(ids.slice(0, 100).map(async (key: string) => {
         const raw = await redis('GET', `${key}:meta`);
         return raw ? JSON.parse(raw) : null;
@@ -83,6 +95,11 @@ export default async function handler(req: any, res: any) {
       }
       return res.status(200).json({ conversations: entries.filter(Boolean).sort((a: any, b: any) => b.lastAt.localeCompare(a.lastAt)) });
     }
+    if (action === 'unread') {
+      if (!isSeller) return res.status(403).json({ error: 'forbidden' });
+      const ids = (await redis('SMEMBERS', `chat:v1:shop:${shopId}`)) || [];
+      return res.status(200).json({ unread: await unreadCount(ids, user.id) });
+    }
 
     let partnerId: string;
     if (isSeller) {
@@ -104,7 +121,9 @@ export default async function handler(req: any, res: any) {
     }
     if (action === 'thread') {
       const raw = await redis('LRANGE', `${key}:messages`, -200, -1);
-      return res.status(200).json({ messages: (raw || []).map((s: string) => JSON.parse(s)), shopName: shop.name });
+      const messages = (raw || []).map((s: string) => JSON.parse(s));
+      if (messages.length) await redis('SET', `${key}:read:${user.id}`, messages[messages.length - 1].id);
+      return res.status(200).json({ messages, shopName: shop.name });
     }
     if (action !== 'send') return res.status(400).json({ error: 'invalid_action' });
     const text = String(req.body?.text || '').trim();
@@ -122,7 +141,7 @@ export default async function handler(req: any, res: any) {
       const profiles = await supabaseGet(`/rest/v1/profiles?id=eq.${user.id}&select=full_name,username&limit=1`, bearer).catch(() => []);
       buyerName = displayName(profiles[0]);
     }
-    const meta = { shopId, shopName: shop.name, buyerId: partnerId, buyerName, lastAt: item.createdAt, lastText: text.slice(0, 100), lastSenderId: user.id };
+    const meta = { shopId, shopName: shop.name, buyerId: partnerId, buyerName, lastAt: item.createdAt, lastMessageId: item.id, lastText: text.slice(0, 100), lastSenderId: user.id };
     await redis('SET', `${key}:meta`, JSON.stringify(meta));
     await redis('SADD', `chat:v1:shop:${shopId}`, key);
     await redis('SADD', `chat:v1:buyer:${partnerId}`, key);
