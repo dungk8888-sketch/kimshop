@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { ArrowLeft, Bell, Copy, Loader2, MessageCircle, Send, Store, Trash2, X } from 'lucide-react';
+import { ArrowLeft, Bell, Copy, Loader2, MessageCircle, MoreHorizontal, Send, Store, Trash2, X } from 'lucide-react';
 import { supabase } from './supabaseClient';
 import { enablePushNotifications, restorePushSubscription } from './pushClient';
 import './shopChatMenu.css';
@@ -40,6 +40,7 @@ export default function ShopChat({ userId, sellerShopId, isAdmin, target, onClos
   const [officialLoading, setOfficialLoading] = useState(!sellerShopId);
   const [messages, setMessages] = useState<Message[]>([]);
   const [menuMessage, setMenuMessage] = useState<Message | null>(null);
+  const [menuConversation, setMenuConversation] = useState<Conversation | null>(null);
   const [confirmDeleteAll, setConfirmDeleteAll] = useState(false);
   const [deletingMessage, setDeletingMessage] = useState(false);
   const [draft, setDraft] = useState('');
@@ -52,6 +53,7 @@ export default function ShopChat({ userId, sellerShopId, isAdmin, target, onClos
   const bottomRef = useRef<HTMLDivElement>(null);
   const longPressTimer = useRef<number | null>(null);
   const touchOrigin = useRef<{ x: number; y: number } | null>(null);
+  const lastConversationMenuAt = useRef(0);
   const activeRef = useRef(active);
   activeRef.current = active;
 
@@ -118,6 +120,7 @@ export default function ShopChat({ userId, sellerShopId, isAdmin, target, onClos
 
   const choose = (next: ChatTarget) => {
     setMenuMessage(null);
+    setMenuConversation(null);
     setConfirmDeleteAll(false);
     activeRef.current = next;
     setActive(next);
@@ -127,6 +130,7 @@ export default function ShopChat({ userId, sellerShopId, isAdmin, target, onClos
   };
   const back = () => {
     setMenuMessage(null);
+    setMenuConversation(null);
     setConfirmDeleteAll(false);
     activeRef.current = null;
     setActive(null);
@@ -167,6 +171,11 @@ export default function ShopChat({ userId, sellerShopId, isAdmin, target, onClos
     setConfirmDeleteAll(false);
     setMenuMessage(message);
   };
+  const openConversationMenu = (conversation: Conversation) => {
+    lastConversationMenuAt.current = Date.now();
+    setConfirmDeleteAll(false);
+    setMenuConversation(conversation);
+  };
   const startLongPress = (event: React.TouchEvent<HTMLDivElement>, message: Message) => {
     cancelLongPress();
     if (event.touches.length !== 1) return;
@@ -181,6 +190,18 @@ export default function ShopChat({ userId, sellerShopId, isAdmin, target, onClos
   const moveLongPress = (event: React.TouchEvent<HTMLDivElement>) => {
     if (!touchOrigin.current || event.touches.length !== 1) return;
     if (Math.abs(event.touches[0].clientX - touchOrigin.current.x) > 22 || Math.abs(event.touches[0].clientY - touchOrigin.current.y) > 22) cancelLongPress();
+  };
+  const startConversationLongPress = (event: React.TouchEvent<HTMLDivElement>, conversation: Conversation) => {
+    if (!isAdmin || !sellerShopId) return;
+    cancelLongPress();
+    if (event.touches.length !== 1) return;
+    touchOrigin.current = { x: event.touches[0].clientX, y: event.touches[0].clientY };
+    longPressTimer.current = window.setTimeout(() => {
+      longPressTimer.current = null;
+      touchOrigin.current = null;
+      openConversationMenu(conversation);
+      navigator.vibrate?.(10);
+    }, 420);
   };
   const deleteSelectedMessage = async () => {
     if (!menuMessage || !active?.shopId || deletingMessage) return;
@@ -202,16 +223,20 @@ export default function ShopChat({ userId, sellerShopId, isAdmin, target, onClos
     }
   };
   const deleteEntireConversation = async () => {
-    if (!isAdmin || !active?.shopId || !active.buyerId || !menuMessage || deletingMessage) return;
+    const selection = menuConversation || (menuMessage && active?.buyerId ? active : null);
+    if (!isAdmin || !selection?.shopId || !selection.buyerId || deletingMessage) return;
     setDeletingMessage(true);
     try {
-      await request('delete-conversation', { shopId: active.shopId, buyerId: active.buyerId });
+      await request('delete-conversation', { shopId: selection.shopId, buyerId: selection.buyerId });
       setMenuMessage(null);
+      setMenuConversation(null);
       setConfirmDeleteAll(false);
       setError('');
-      back();
+      if (active?.shopId === selection.shopId && active?.buyerId === selection.buyerId) back();
+      else await load(null);
     } catch {
       setMenuMessage(null);
+      setMenuConversation(null);
       setConfirmDeleteAll(false);
       setError('Không xóa được cuộc trò chuyện. Vui lòng thử lại.');
     } finally {
@@ -258,10 +283,13 @@ export default function ShopChat({ userId, sellerShopId, isAdmin, target, onClos
           )}
           {!active && !loading && !officialLoading && !officialShop && conversations.length === 0 && <p className="p-8 text-center text-sm text-gray-500">Chưa có cuộc trò chuyện nào. Bạn có thể nhắn shop từ trang sản phẩm hoặc đơn mua.</p>}
           {!active && conversations.filter((item) => !officialShop?.shopId || item.shopId !== officialShop.shopId).map((item) => (
-            <button key={`${item.shopId}:${item.buyerId}`} onClick={() => choose({ shopId: item.shopId, buyerId: sellerShopId ? item.buyerId : undefined, label: sellerShopId ? (item.buyerName || `Khách ${item.buyerId.slice(0, 8)}`) : item.shopName })} className="mb-2 w-full rounded-xl border border-gray-100 bg-white p-3 text-left hover:border-orange-200">
-              <div className="flex justify-between gap-2 text-sm font-semibold"><span className="truncate">{sellerShopId ? (item.buyerName || `Khách ${item.buyerId.slice(0, 8)}`) : item.shopName}</span><time className="text-[10px] font-normal text-gray-400">{new Date(item.lastAt).toLocaleString('vi-VN')}</time></div>
-              <p className="mt-1 truncate text-xs text-gray-500">{item.lastSenderId === userId ? 'Bạn: ' : ''}{item.lastText}</p>
-            </button>
+            <div key={`${item.shopId}:${item.buyerId}`} className="mb-2 flex w-full items-center rounded-xl border border-gray-100 bg-white hover:border-orange-200" style={{ WebkitTouchCallout: 'none', WebkitUserSelect: 'none', userSelect: 'none' }} onTouchStart={(event) => startConversationLongPress(event, item)} onTouchMove={moveLongPress} onTouchEnd={cancelLongPress} onTouchCancel={cancelLongPress} onContextMenu={isAdmin && sellerShopId ? (event) => { event.preventDefault(); cancelLongPress(); openConversationMenu(item); } : undefined}>
+              <button type="button" onClick={() => { if (Date.now() - lastConversationMenuAt.current < 700) return; choose({ shopId: item.shopId, buyerId: sellerShopId ? item.buyerId : undefined, label: sellerShopId ? (item.buyerName || `Khách ${item.buyerId.slice(0, 8)}`) : item.shopName }); }} className="min-w-0 flex-1 p-3 text-left" aria-label={`Mở tin nhắn với ${item.buyerName || item.shopName}`}>
+                <div className="flex justify-between gap-2 text-sm font-semibold"><span className="truncate">{sellerShopId ? (item.buyerName || `Khách ${item.buyerId.slice(0, 8)}`) : item.shopName}</span><time className="shrink-0 text-[10px] font-normal text-gray-400">{new Date(item.lastAt).toLocaleString('vi-VN')}</time></div>
+                <p className="mt-1 truncate text-xs text-gray-500">{item.lastSenderId === userId ? 'Bạn: ' : ''}{item.lastText}</p>
+              </button>
+              {isAdmin && sellerShopId && <button type="button" onClick={() => openConversationMenu(item)} aria-label={`Tùy chọn cuộc trò chuyện với ${item.buyerName || item.buyerId.slice(0, 8)}`} className="mr-1 flex h-11 w-11 shrink-0 items-center justify-center rounded-lg text-gray-500 hover:bg-gray-100 hover:text-[#EE4D2D]"><MoreHorizontal size={20} /></button>}
+            </div>
           ))}
           {active && !loading && messages.length === 0 && !error && <p className="p-8 text-center text-sm text-gray-500">Bắt đầu cuộc trò chuyện với shop.</p>}
           {active && messages.map((item) => (
@@ -295,6 +323,17 @@ export default function ShopChat({ userId, sellerShopId, isAdmin, target, onClos
             {isAdmin && active?.buyerId && <button type="button" onClick={() => setConfirmDeleteAll(true)} className="flex w-full items-center gap-3 border-t border-gray-100 px-5 py-4 text-left text-sm font-semibold text-red-600 active:bg-red-50"><Trash2 size={19} /> Xóa toàn bộ cuộc trò chuyện</button>}
           </div>}
           <button type="button" disabled={deletingMessage} onClick={() => { setMenuMessage(null); setConfirmDeleteAll(false); }} className="w-full rounded-2xl bg-white px-5 py-4 text-center text-sm font-semibold text-gray-800 shadow-xl active:bg-gray-100 disabled:opacity-50">Hủy</button>
+        </div>
+      </div>}
+      {menuConversation && <div className="fixed inset-0 z-[140] flex items-end justify-center bg-black/35 p-4 pb-[max(1.25rem,env(safe-area-inset-bottom))] backdrop-blur-[2px] sm:items-center" onClick={() => { if (!deletingMessage) { setMenuConversation(null); setConfirmDeleteAll(false); } }}>
+        <div role="dialog" aria-modal="true" aria-label="Tùy chọn cuộc trò chuyện" className="shop-chat-action-sheet w-full max-w-[360px] space-y-3" onClick={(event) => event.stopPropagation()}>
+          <div className="rounded-2xl bg-white px-5 py-4 text-sm font-semibold text-gray-900 shadow-xl">{menuConversation.buyerName || `Khách ${menuConversation.buyerId.slice(0, 8)}`}</div>
+          {confirmDeleteAll ? <div className="overflow-hidden rounded-2xl bg-white/95 shadow-2xl">
+            <p className="px-5 pt-4 text-sm font-bold text-gray-900">Xóa toàn bộ cuộc trò chuyện?</p>
+            <p className="px-5 pb-4 pt-1 text-xs leading-relaxed text-gray-500">Tất cả tin nhắn với khách này sẽ bị xóa khỏi cả hai phía và không thể khôi phục.</p>
+            <button type="button" disabled={deletingMessage} onClick={() => void deleteEntireConversation()} className="flex w-full items-center justify-center gap-2 border-t border-gray-100 px-5 py-4 text-sm font-bold text-red-600 active:bg-red-50 disabled:opacity-50">{deletingMessage && <Loader2 size={18} className="animate-spin" />} Xóa toàn bộ ở cả hai phía</button>
+          </div> : <button type="button" onClick={() => setConfirmDeleteAll(true)} className="flex w-full items-center gap-3 rounded-2xl bg-white px-5 py-4 text-left text-sm font-semibold text-red-600 shadow-xl active:bg-red-50"><Trash2 size={19} /> Xóa toàn bộ cuộc trò chuyện</button>}
+          <button type="button" disabled={deletingMessage} onClick={() => { setMenuConversation(null); setConfirmDeleteAll(false); }} className="w-full rounded-2xl bg-white px-5 py-4 text-center text-sm font-semibold text-gray-800 shadow-xl active:bg-gray-100 disabled:opacity-50">Hủy</button>
         </div>
       </div>}
     </div>
