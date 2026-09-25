@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { ArrowLeft, Bell, Loader2, MessageCircle, Send, X } from 'lucide-react';
+import { ArrowLeft, Bell, Loader2, MessageCircle, Send, Store, X } from 'lucide-react';
 import { supabase } from './supabaseClient';
 import { enablePushNotifications, restorePushSubscription } from './pushClient';
 
@@ -35,6 +35,8 @@ export default function ShopChat({ userId, sellerShopId, target, onClose }: {
 }) {
   const [active, setActive] = useState<ChatTarget | null>(target.shopId ? target : null);
   const [conversations, setConversations] = useState<Conversation[]>([]);
+  const [officialShop, setOfficialShop] = useState<ChatTarget | null>(null);
+  const [officialLoading, setOfficialLoading] = useState(!sellerShopId);
   const [messages, setMessages] = useState<Message[]>([]);
   const [draft, setDraft] = useState('');
   const [loading, setLoading] = useState(true);
@@ -74,6 +76,16 @@ export default function ShopChat({ userId, sellerShopId, target, onClose }: {
     document.addEventListener('visibilitychange', onVisible);
     return () => { window.clearInterval(timer); document.removeEventListener('visibilitychange', onVisible); };
   }, [sellerShopId]);
+
+  useEffect(() => {
+    if (sellerShopId) { setOfficialShop(null); setOfficialLoading(false); return; }
+    let cancelled = false;
+    void request('official-shop')
+      .then(({ shop }) => { if (!cancelled && shop?.id) setOfficialShop({ shopId: shop.id, label: `Shop Admin · ${shop.name}` }); })
+      .catch(() => { if (!cancelled) setOfficialShop(null); })
+      .finally(() => { if (!cancelled) setOfficialLoading(false); });
+    return () => { cancelled = true; };
+  }, [sellerShopId, userId]);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ block: 'end' });
@@ -125,6 +137,7 @@ export default function ShopChat({ userId, sellerShopId, target, onClose }: {
       setSending(false);
     }
   };
+  const officialConversation = officialShop?.shopId ? conversations.find((item) => item.shopId === officialShop.shopId) : undefined;
 
   return (
     <div className="fixed inset-0 z-[120] flex items-end justify-center bg-black/45 p-0 sm:items-center sm:p-4" role="dialog" aria-modal="true" aria-label="Tin nhắn với shop">
@@ -145,8 +158,15 @@ export default function ShopChat({ userId, sellerShopId, target, onClose }: {
         {pushError && <p role="alert" className="bg-amber-50 px-4 py-2 text-xs text-amber-800">{pushError}</p>}
         <div className="min-h-0 flex-1 overflow-y-auto bg-[#fafafa] px-3 py-4">
           {loading && <div className="flex justify-center p-8 text-gray-400"><Loader2 className="animate-spin" size={20} /></div>}
-          {!active && !loading && conversations.length === 0 && <p className="p-8 text-center text-sm text-gray-500">Chưa có cuộc trò chuyện nào. Bạn có thể nhắn shop từ trang sản phẩm hoặc đơn mua.</p>}
-          {!active && conversations.map((item) => (
+          {!active && !loading && officialShop?.shopId && (
+            <button type="button" onClick={() => choose(officialShop)} className="mb-2 flex w-full items-center gap-3 rounded-xl border border-orange-200 bg-orange-50 p-3 text-left hover:border-[#EE4D2D]" aria-label="Nhắn tin cho Shop Admin">
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#EE4D2D] text-white"><Store size={19} /></span>
+              <span className="min-w-0 flex-1"><span className="block text-sm font-bold text-gray-800">Shop Admin</span><span className="block truncate text-xs text-gray-500">{officialConversation ? `${officialConversation.lastSenderId === userId ? 'Bạn: ' : ''}${officialConversation.lastText}` : `Nhắn trực tiếp với ${officialShop.label?.replace(/^Shop Admin · /, '')}`}</span></span>
+              <MessageCircle size={17} className="text-[#EE4D2D]" />
+            </button>
+          )}
+          {!active && !loading && !officialLoading && !officialShop && conversations.length === 0 && <p className="p-8 text-center text-sm text-gray-500">Chưa có cuộc trò chuyện nào. Bạn có thể nhắn shop từ trang sản phẩm hoặc đơn mua.</p>}
+          {!active && conversations.filter((item) => !officialShop?.shopId || item.shopId !== officialShop.shopId).map((item) => (
             <button key={`${item.shopId}:${item.buyerId}`} onClick={() => choose({ shopId: item.shopId, buyerId: sellerShopId ? item.buyerId : undefined, label: sellerShopId ? (item.buyerName || `Khách ${item.buyerId.slice(0, 8)}`) : item.shopName })} className="mb-2 w-full rounded-xl border border-gray-100 bg-white p-3 text-left hover:border-orange-200">
               <div className="flex justify-between gap-2 text-sm font-semibold"><span className="truncate">{sellerShopId ? (item.buyerName || `Khách ${item.buyerId.slice(0, 8)}`) : item.shopName}</span><time className="text-[10px] font-normal text-gray-400">{new Date(item.lastAt).toLocaleString('vi-VN')}</time></div>
               <p className="mt-1 truncate text-xs text-gray-500">{item.lastSenderId === userId ? 'Bạn: ' : ''}{item.lastText}</p>

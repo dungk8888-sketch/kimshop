@@ -32,6 +32,8 @@ async function supabaseGet(path: string, token: string) {
 
 const validId = (value: unknown): value is string => typeof value === 'string' && UUID.test(value);
 const threadId = (shopId: string, buyerId: string) => `chat:v1:${shopId}:${buyerId}`;
+// Existing active shop owned by the Admin account. No empty chat is stored until a buyer sends a message.
+const OFFICIAL_SHOP_ID = '69734ebe-89dd-480b-8edf-eab115611b44';
 const displayName = (profile: any) => String(profile?.full_name || profile?.username || '').trim().slice(0, 80);
 async function unreadCount(keys: string[], userId: string) {
   const unread = await Promise.all(keys.slice(0, 100).map(async (key) => {
@@ -90,6 +92,12 @@ export default async function handler(req: any, res: any) {
     const shopId = req.method === 'GET' ? req.query?.shopId : req.body?.shopId;
     const buyerId = req.method === 'GET' ? req.query?.buyerId : req.body?.buyerId;
     const orderId = req.method === 'GET' ? req.query?.orderId : req.body?.orderId;
+    if (action === 'official-shop' && req.method === 'GET') {
+      const shops = await supabaseGet(`/rest/v1/shops?id=eq.${OFFICIAL_SHOP_ID}&select=id,name,owner_id,status&limit=1`, bearer);
+      const shop = shops[0];
+      if (!shop || shop.status !== 'active' || shop.owner_id === user.id) return res.status(404).json({ error: 'shop_unavailable' });
+      return res.status(200).json({ shop: { id: shop.id, name: shop.name } });
+    }
     if ((action === 'list' || action === 'unread') && !shopId) {
       const ids = (await redis('SMEMBERS', `chat:v1:buyer:${user.id}`)) || [];
       if (action === 'unread') return res.status(200).json({ unread: await unreadCount(ids, user.id) });
