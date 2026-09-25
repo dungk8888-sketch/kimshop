@@ -10,6 +10,7 @@ function replaceOnce(before, after) {
 replaceOnce("const BuyerPurchasePage = lazy(() => import('./BuyerPurchasePage'));", "const BuyerPurchasePage = lazy(() => import('./BuyerPurchasePage'));\nconst ShopChat = lazy(() => import('./ShopChat'));");
 replaceOnce("{ key: 'placeholder', label: 'Quản Lý Chat', icon: MessageCircle }", "{ key: 'chat', label: 'Quản Lý Chat', icon: MessageCircle }");
 replaceOnce("  const [authModal, setAuthModal] = useState(null); // null | 'login' | 'register' | 'apply'", "  const [authModal, setAuthModal] = useState(null); // null | 'login' | 'register' | 'apply'\n  const [chatTarget, setChatTarget] = useState<{shopId?:string;buyerId?:string;orderId?:string;label?:string}|null>(null);");
+replaceOnce("  const doLogout = async () => {\n    await supabase.auth.signOut();", "  const doLogout = async () => {\n    await import('./pushClient').then((m) => m.disconnectPushNotifications()).catch(() => {});\n    await supabase.auth.signOut();");
 replaceOnce("  const [toast, setToast] = useState('');", "  const [toast, setToast] = useState('');\n  const [unreadChats, setUnreadChats] = useState(0);\n  const lastUnreadRef = useRef<{userId:string;count:number|null}>({userId:'',count:null});");
 replaceOnce("  const myShop = currentUser ? shops.find((s) => s.ownerId === currentUser.id) : null;", `  const myShop = currentUser ? shops.find((s) => s.ownerId === currentUser.id) : null;
   const openShopChat = (target: {shopId?:string;buyerId?:string;orderId?:string;label?:string} = {}) => {
@@ -38,6 +39,8 @@ replaceOnce("  const myShop = currentUser ? shops.find((s) => s.ownerId === curr
         if (lastUnreadRef.current.count !== null && count > lastUnreadRef.current.count) showToast('Bạn có tin nhắn mới. Nhấn vào biểu tượng chat để xem.');
         lastUnreadRef.current = {userId,count};
         setUnreadChats(count);
+        if (count) void navigator.setAppBadge?.(count).catch(() => {});
+        else void navigator.clearAppBadge?.().catch(() => {});
       } catch { /* Chat notification is best effort. */ }
     };
     void check();
@@ -45,7 +48,22 @@ replaceOnce("  const myShop = currentUser ? shops.find((s) => s.ownerId === curr
     document.addEventListener('visibilitychange',check);
     window.addEventListener('kimshop:chat-read',check);
     return () => { stopped = true; window.clearInterval(timer); document.removeEventListener('visibilitychange',check); window.removeEventListener('kimshop:chat-read',check); };
-  }, [currentUser?.id,myShop?.id,!!chatTarget]);`);
+  }, [currentUser?.id,myShop?.id,!!chatTarget]);
+  useEffect(() => {
+    if (!currentUser?.id) return;
+    if (new URLSearchParams(window.location.search).has('chat')) {
+      setChatTarget({});
+      const url = new URL(window.location.href);
+      url.searchParams.delete('chat');
+      window.history.replaceState(window.history.state, '', url.pathname + url.search + url.hash);
+    }
+    if (!('serviceWorker' in navigator)) return;
+    const onPushClick = (event: MessageEvent) => {
+      if (event.data?.type === 'kimshop-open-chat') setChatTarget({});
+    };
+    navigator.serviceWorker.addEventListener('message', onPushClick);
+    return () => navigator.serviceWorker.removeEventListener('message', onPushClick);
+  }, [currentUser?.id]);`);
 replaceOnce("    goSellerPage(item.key);\n  };\n\n  const isMenuItemActive", "    if (item.key === 'chat') { openShopChat({}); return; }\n    goSellerPage(item.key);\n  };\n\n  const isMenuItemActive");
 replaceOnce('<div className="min-h-screen bg-[#F5F5F5] font-sans text-xs text-[#333333] relative">', `<div className="min-h-screen bg-[#F5F5F5] font-sans text-xs text-[#333333] relative">
       {currentUser && !chatTarget && <button type="button" aria-label={unreadChats ? 'Tin nhắn, ' + unreadChats + ' cuộc trò chuyện chưa đọc' : 'Mở tin nhắn'} title="Tin nhắn" onClick={() => openShopChat({})} className="fixed bottom-[9.25rem] right-3.5 z-[70] flex h-12 w-12 items-center justify-center rounded-full bg-[#EE4D2D] text-white shadow-lg shadow-orange-300/50 hover:bg-[#f63]"><MessageCircle size={21} />{unreadChats > 0 && <span className="absolute -top-1.5 -right-1.5 flex min-w-5 h-5 items-center justify-center rounded-full border-2 border-white bg-red-600 px-0.5 text-[10px] font-bold text-white">{unreadChats > 9 ? '9+' : unreadChats}</span>}</button>}

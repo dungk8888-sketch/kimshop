@@ -1,4 +1,5 @@
 // Private, order-aware chat. Message bodies live in Redis, not Supabase.
+import { sendChatPush } from './push';
 const SUPABASE = (process.env.VITE_SUPABASE_URL || 'https://ygqqtudavuugrvpkhvdp.supabase.co').replace(/\/$/, '');
 const ANON_KEY = process.env.VITE_SUPABASE_ANON_KEY || 'sb_publishable_8B6gKD7mNeh8Ny8DtPXdrQ_trIgA2Rb';
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -145,6 +146,7 @@ export default async function handler(req: any, res: any) {
     await redis('SET', `${key}:meta`, JSON.stringify(meta));
     await redis('SADD', `chat:v1:shop:${shopId}`, key);
     await redis('SADD', `chat:v1:buyer:${partnerId}`, key);
+    await sendChatPush(isSeller ? partnerId : shop.owner_id, isSeller ? shop.name : (buyerName || 'Khách hàng'), text, key);
     return res.status(201).json({ message: item });
   } catch (error: any) {
     return res.status(503).json({ error: error?.message === 'identity_unavailable' ? 'identity_unavailable' : 'chat_unavailable' });

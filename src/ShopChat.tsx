@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { ArrowLeft, Loader2, MessageCircle, Send, X } from 'lucide-react';
+import { ArrowLeft, Bell, Loader2, MessageCircle, Send, X } from 'lucide-react';
 import { supabase } from './supabaseClient';
+import { enablePushNotifications, restorePushSubscription } from './pushClient';
 
 export type ChatTarget = { shopId?: string; buyerId?: string; orderId?: string; label?: string };
 type Conversation = { shopId: string; shopName: string; buyerId: string; buyerName?: string; lastAt: string; lastText: string; lastSenderId: string };
@@ -39,6 +40,9 @@ export default function ShopChat({ userId, sellerShopId, target, onClose }: {
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
   const [error, setError] = useState('');
+  const [pushEnabled, setPushEnabled] = useState(false);
+  const [pushBusy, setPushBusy] = useState(false);
+  const [pushError, setPushError] = useState('');
   const bottomRef = useRef<HTMLDivElement>(null);
   const activeRef = useRef(active);
   activeRef.current = active;
@@ -74,6 +78,21 @@ export default function ShopChat({ userId, sellerShopId, target, onClose }: {
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ block: 'end' });
   }, [messages.length, active]);
+
+  useEffect(() => {
+    void restorePushSubscription().then(setPushEnabled).catch(() => setPushEnabled(false));
+  }, [userId]);
+
+  const enablePush = async () => {
+    setPushBusy(true);
+    setPushError('');
+    try {
+      await enablePushNotifications();
+      setPushEnabled(true);
+    } catch (e: any) {
+      setPushError(e?.message || 'Không bật được thông báo. Vui lòng thử lại.');
+    } finally { setPushBusy(false); }
+  };
 
   const choose = (next: ChatTarget) => {
     activeRef.current = next;
@@ -117,8 +136,13 @@ export default function ShopChat({ userId, sellerShopId, target, onClose }: {
             <h2 className="truncate text-sm font-bold">{active ? (active.label || (active.buyerId ? `Khách ${active.buyerId.slice(0, 8)}` : 'Nhắn shop')) : 'Tin nhắn'}</h2>
             <p className="text-[11px] text-gray-500">{active?.orderId ? `Liên quan đơn #${active.orderId.slice(0, 8)}` : 'Hỏi đáp trực tiếp trong ứng dụng'}</p>
           </div>
+          <button type="button" onClick={enablePush} disabled={pushBusy || pushEnabled} className="flex shrink-0 items-center gap-1 rounded-lg px-2 py-2 text-[11px] font-medium text-[#EE4D2D] hover:bg-orange-50 disabled:opacity-60" aria-label={pushEnabled ? 'Đã bật thông báo tin nhắn' : 'Bật thông báo tin nhắn ra điện thoại'}>
+            {pushBusy ? <Loader2 size={16} className="animate-spin" /> : <Bell size={16} />}
+            <span className="hidden min-[375px]:inline">{pushEnabled ? 'Đã bật' : 'Bật thông báo'}</span>
+          </button>
           <button onClick={onClose} aria-label="Đóng tin nhắn" className="rounded-lg p-2 hover:bg-gray-100"><X size={19} /></button>
         </header>
+        {pushError && <p role="alert" className="bg-amber-50 px-4 py-2 text-xs text-amber-800">{pushError}</p>}
         <div className="min-h-0 flex-1 overflow-y-auto bg-[#fafafa] px-3 py-4">
           {loading && <div className="flex justify-center p-8 text-gray-400"><Loader2 className="animate-spin" size={20} /></div>}
           {!active && !loading && conversations.length === 0 && <p className="p-8 text-center text-sm text-gray-500">Chưa có cuộc trò chuyện nào. Bạn có thể nhắn shop từ trang sản phẩm hoặc đơn mua.</p>}
