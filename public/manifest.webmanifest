@@ -1,7 +1,7 @@
 {
-  "name": "KIMSHOP",
-  "short_name": "KIMSHOP",
-  "description": "Ứng dụng mua sắm KIMSHOP",
+  "name": "Shopee Mini",
+  "short_name": "Shopee Mini",
+  "description": "Ứng dụng mua sắm Shopee Mini",
   "lang": "vi",
   "start_url": "/",
   "scope": "/",
