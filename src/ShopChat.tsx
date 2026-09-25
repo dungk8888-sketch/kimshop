@@ -69,7 +69,7 @@ export default function ShopChat({ userId, sellerShopId, target, onClose }: {
     const onVisible = () => { if (!document.hidden) void load(); };
     document.addEventListener('visibilitychange', onVisible);
     return () => { window.clearInterval(timer); document.removeEventListener('visibilitychange', onVisible); };
-  }, []);
+  }, [sellerShopId]);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ block: 'end' });
