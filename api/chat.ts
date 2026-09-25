@@ -34,12 +34,41 @@ const validId = (value: unknown): value is string => typeof value === 'string' &
 const threadId = (shopId: string, buyerId: string) => `chat:v1:${shopId}:${buyerId}`;
 // Existing active shop owned by the Admin account. No empty chat is stored until a buyer sends a message.
 const OFFICIAL_SHOP_ID = '69734ebe-89dd-480b-8edf-eab115611b44';
+// Update one message atomically so concurrent sends cannot shift its list position.
+// A hidden message remains visible to the other participant; no separate deletion keys are created.
+const HIDE_MESSAGE_SCRIPT = `
+local messages = redis.call('LRANGE', KEYS[1], 0, -1)
+for index, raw in ipairs(messages) do
+  local message = cjson.decode(raw)
+  if message.id == ARGV[1] then
+    local hidden = message.hiddenFor or {}
+    for _, userId in ipairs(hidden) do
+      if userId == ARGV[2] then return 1 end
+    end
+    table.insert(hidden, ARGV[2])
+    message.hiddenFor = hidden
+    redis.call('LSET', KEYS[1], index - 1, cjson.encode(message))
+    local rawMeta = redis.call('GET', KEYS[2])
+    if rawMeta then
+      local meta = cjson.decode(rawMeta)
+      if meta.lastMessageId == ARGV[1] then
+        local lastHidden = meta.lastHiddenFor or {}
+        table.insert(lastHidden, ARGV[2])
+        meta.lastHiddenFor = lastHidden
+        redis.call('SET', KEYS[2], cjson.encode(meta))
+      end
+    end
+    return 1
+  end
+end
+return 0`;
 const displayName = (profile: any) => String(profile?.full_name || profile?.username || '').trim().slice(0, 80);
 async function unreadCount(keys: string[], userId: string) {
   const unread = await Promise.all(keys.slice(0, 100).map(async (key) => {
     const raw = await redis('GET', `${key}:meta`);
     if (!raw) return false;
     const item = JSON.parse(raw);
+    if (item.lastHiddenFor?.includes(userId)) return false;
     if (item.lastSenderId === userId) return false;
     const readAt = await redis('GET', `${key}:read:${userId}`);
     return item.lastMessageId ? item.lastMessageId !== readAt : (!readAt || item.lastAt > readAt);
@@ -105,7 +134,7 @@ export default async function handler(req: any, res: any) {
         const raw = await redis('GET', `${key}:meta`);
         return raw ? JSON.parse(raw) : null;
       }));
-      return res.status(200).json({ conversations: entries.filter(Boolean).sort((a: any, b: any) => b.lastAt.localeCompare(a.lastAt)) });
+      return res.status(200).json({ conversations: entries.filter(Boolean).map((entry: any) => entry.lastHiddenFor?.includes(user.id) ? { ...entry, lastText: 'Tin nhắn đã xóa ở phía tôi' } : entry).sort((a: any, b: any) => b.lastAt.localeCompare(a.lastAt)) });
     }
     if (!validId(shopId)) return res.status(400).json({ error: 'invalid_shop' });
     const shops = await supabaseGet(`/rest/v1/shops?id=eq.${shopId}&select=id,name,owner_id,status&limit=1`, bearer);
@@ -134,7 +163,7 @@ export default async function handler(req: any, res: any) {
           }
         }));
       }
-      return res.status(200).json({ conversations: entries.filter(Boolean).sort((a: any, b: any) => b.lastAt.localeCompare(a.lastAt)) });
+      return res.status(200).json({ conversations: entries.filter(Boolean).map((entry: any) => entry.lastHiddenFor?.includes(user.id) ? { ...entry, lastText: 'Tin nhắn đã xóa ở phía tôi' } : entry).sort((a: any, b: any) => b.lastAt.localeCompare(a.lastAt)) });
     }
     if (action === 'unread') {
       if (!isSeller) return res.status(403).json({ error: 'forbidden' });
@@ -162,9 +191,17 @@ export default async function handler(req: any, res: any) {
     }
     if (action === 'thread') {
       const raw = await redis('LRANGE', `${key}:messages`, -200, -1);
-      const messages = (raw || []).map((s: string) => JSON.parse(s));
-      if (messages.length) await redis('SET', `${key}:read:${user.id}`, messages[messages.length - 1].id);
+      const allMessages = (raw || []).map((s: string) => JSON.parse(s));
+      const messages = allMessages.filter((message: any) => !message.hiddenFor?.includes(user.id)).map(({ hiddenFor, ...message }: any) => message);
+      if (allMessages.length) await redis('SET', `${key}:read:${user.id}`, allMessages[allMessages.length - 1].id);
       return res.status(200).json({ messages, shopName: shop.name });
+    }
+    if (action === 'delete' && req.method === 'POST') {
+      const messageId = req.body?.messageId;
+      if (!validId(messageId)) return res.status(400).json({ error: 'invalid_message' });
+      const hidden = await redis('EVAL', HIDE_MESSAGE_SCRIPT, 2, `${key}:messages`, `${key}:meta`, messageId, user.id);
+      if (!hidden) return res.status(404).json({ error: 'message_not_found' });
+      return res.status(200).json({ deleted: true });
     }
     if (action !== 'send') return res.status(400).json({ error: 'invalid_action' });
     const text = String(req.body?.text || '').trim();

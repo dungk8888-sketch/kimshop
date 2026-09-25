@@ -1,7 +1,8 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { ArrowLeft, Bell, Loader2, MessageCircle, Send, Store, X } from 'lucide-react';
+import { ArrowLeft, Bell, Copy, Loader2, MessageCircle, Send, Store, Trash2, X } from 'lucide-react';
 import { supabase } from './supabaseClient';
 import { enablePushNotifications, restorePushSubscription } from './pushClient';
+import './shopChatMenu.css';
 
 export type ChatTarget = { shopId?: string; buyerId?: string; orderId?: string; label?: string };
 type Conversation = { shopId: string; shopName: string; buyerId: string; buyerName?: string; lastAt: string; lastText: string; lastSenderId: string };
@@ -18,7 +19,7 @@ const errorText: Record<string, string> = {
 async function request(action: string, params: Record<string, string> = {}, text?: string) {
   const { data } = await supabase.auth.getSession();
   if (!data.session?.access_token) throw new Error('login_required');
-  const method = action === 'send' ? 'POST' : 'GET';
+  const method = action === 'send' || action === 'delete' ? 'POST' : 'GET';
   const response = await fetch(method === 'GET' ? `/api/chat?${new URLSearchParams({ action, ...params })}` : '/api/chat', {
     method,
     headers: { Authorization: `Bearer ${data.session.access_token}`, ...(method === 'POST' ? { 'Content-Type': 'application/json' } : {}) },
@@ -38,6 +39,8 @@ export default function ShopChat({ userId, sellerShopId, target, onClose }: {
   const [officialShop, setOfficialShop] = useState<ChatTarget | null>(null);
   const [officialLoading, setOfficialLoading] = useState(!sellerShopId);
   const [messages, setMessages] = useState<Message[]>([]);
+  const [menuMessage, setMenuMessage] = useState<Message | null>(null);
+  const [deletingMessage, setDeletingMessage] = useState(false);
   const [draft, setDraft] = useState('');
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
@@ -46,6 +49,8 @@ export default function ShopChat({ userId, sellerShopId, target, onClose }: {
   const [pushBusy, setPushBusy] = useState(false);
   const [pushError, setPushError] = useState('');
   const bottomRef = useRef<HTMLDivElement>(null);
+  const longPressTimer = useRef<number | null>(null);
+  const touchOrigin = useRef<{ x: number; y: number } | null>(null);
   const activeRef = useRef(active);
   activeRef.current = active;
 
@@ -91,6 +96,10 @@ export default function ShopChat({ userId, sellerShopId, target, onClose }: {
     bottomRef.current?.scrollIntoView({ block: 'end' });
   }, [messages.length, active]);
 
+  useEffect(() => () => {
+    if (longPressTimer.current !== null) window.clearTimeout(longPressTimer.current);
+  }, []);
+
   useEffect(() => {
     void restorePushSubscription().then(setPushEnabled).catch(() => setPushEnabled(false));
   }, [userId]);
@@ -107,6 +116,7 @@ export default function ShopChat({ userId, sellerShopId, target, onClose }: {
   };
 
   const choose = (next: ChatTarget) => {
+    setMenuMessage(null);
     activeRef.current = next;
     setActive(next);
     setLoading(true);
@@ -114,6 +124,7 @@ export default function ShopChat({ userId, sellerShopId, target, onClose }: {
     void load(next);
   };
   const back = () => {
+    setMenuMessage(null);
     activeRef.current = null;
     setActive(null);
     setLoading(true);
@@ -143,6 +154,55 @@ export default function ShopChat({ userId, sellerShopId, target, onClose }: {
     event.preventDefault();
     if (!draft.trim() || sending || error || !active?.shopId) return;
     event.currentTarget.form?.requestSubmit();
+  };
+  const cancelLongPress = () => {
+    if (longPressTimer.current !== null) window.clearTimeout(longPressTimer.current);
+    longPressTimer.current = null;
+    touchOrigin.current = null;
+  };
+  const startLongPress = (event: React.TouchEvent<HTMLDivElement>, message: Message) => {
+    cancelLongPress();
+    if (event.touches.length !== 1) return;
+    touchOrigin.current = { x: event.touches[0].clientX, y: event.touches[0].clientY };
+    longPressTimer.current = window.setTimeout(() => {
+      longPressTimer.current = null;
+      touchOrigin.current = null;
+      setMenuMessage(message);
+      navigator.vibrate?.(10);
+    }, 520);
+  };
+  const moveLongPress = (event: React.TouchEvent<HTMLDivElement>) => {
+    if (!touchOrigin.current || event.touches.length !== 1) return;
+    if (Math.abs(event.touches[0].clientX - touchOrigin.current.x) > 10 || Math.abs(event.touches[0].clientY - touchOrigin.current.y) > 10) cancelLongPress();
+  };
+  const deleteSelectedMessage = async () => {
+    if (!menuMessage || !active?.shopId || deletingMessage) return;
+    setDeletingMessage(true);
+    try {
+      await request('delete', {
+        shopId: active.shopId, messageId: menuMessage.id,
+        ...(active.buyerId ? { buyerId: active.buyerId } : {}),
+        ...(active.orderId ? { orderId: active.orderId } : {}),
+      });
+      setMessages((current) => current.filter((item) => item.id !== menuMessage.id));
+      setMenuMessage(null);
+      setError('');
+    } catch {
+      setMenuMessage(null);
+      setError('Không xóa được tin nhắn. Vui lòng thử lại.');
+    } finally {
+      setDeletingMessage(false);
+    }
+  };
+  const copySelectedMessage = async () => {
+    if (!menuMessage) return;
+    try {
+      await navigator.clipboard.writeText(menuMessage.text);
+      setMenuMessage(null);
+    } catch {
+      setMenuMessage(null);
+      setError('Không sao chép được tin nhắn.');
+    }
   };
   const officialConversation = officialShop?.shopId ? conversations.find((item) => item.shopId === officialShop.shopId) : undefined;
 
@@ -182,7 +242,7 @@ export default function ShopChat({ userId, sellerShopId, target, onClose }: {
           {active && !loading && messages.length === 0 && !error && <p className="p-8 text-center text-sm text-gray-500">Bắt đầu cuộc trò chuyện với shop.</p>}
           {active && messages.map((item) => (
             <div key={item.id} className={`mb-2 flex ${item.senderId === userId ? 'justify-end' : 'justify-start'}`}>
-              <div className={`max-w-[84%] rounded-2xl px-3 py-2 text-sm ${item.senderId === userId ? 'bg-[#EE4D2D] text-white' : 'border border-gray-100 bg-white text-gray-800'}`}>
+              <div role="button" tabIndex={0} aria-label="Nhấn giữ để mở thao tác tin nhắn" onTouchStart={(event) => startLongPress(event, item)} onTouchMove={moveLongPress} onTouchEnd={cancelLongPress} onTouchCancel={cancelLongPress} onContextMenu={(event) => { event.preventDefault(); cancelLongPress(); setMenuMessage(item); }} onKeyDown={(event) => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); setMenuMessage(item); } }} style={{ WebkitTouchCallout: 'none', userSelect: 'none' }} className={`max-w-[84%] cursor-context-menu rounded-2xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-300 ${item.senderId === userId ? 'bg-[#EE4D2D] text-white' : 'border border-gray-100 bg-white text-gray-800'}`}>
                 <p className="whitespace-pre-wrap break-words">{item.text}</p>
                 <time className={`mt-1 block text-right text-[10px] ${item.senderId === userId ? 'text-white/80' : 'text-gray-400'}`}>{new Date(item.createdAt).toLocaleString('vi-VN')}</time>
               </div>
@@ -196,6 +256,18 @@ export default function ShopChat({ userId, sellerShopId, target, onClose }: {
           <button type="submit" disabled={sending || !draft.trim() || !!error} aria-label="Gửi tin nhắn" className="rounded-xl bg-[#EE4D2D] p-3 text-white disabled:opacity-50">{sending ? <Loader2 className="animate-spin" size={18} /> : <Send size={18} />}</button>
         </form>}
       </div>
+      {menuMessage && <div className="fixed inset-0 z-[140] flex items-end justify-center bg-black/35 p-4 pb-[max(1.25rem,env(safe-area-inset-bottom))] backdrop-blur-[2px] sm:items-center" onClick={() => { if (!deletingMessage) setMenuMessage(null); }}>
+        <div role="dialog" aria-modal="true" aria-label="Tùy chọn tin nhắn" className="shop-chat-action-sheet w-full max-w-[360px] space-y-3" onClick={(event) => event.stopPropagation()}>
+          <div className={`flex ${menuMessage.senderId === userId ? 'justify-end' : 'justify-start'}`}>
+            <div className={`max-h-32 max-w-[88%] overflow-y-auto whitespace-pre-wrap break-words rounded-2xl px-4 py-3 text-sm shadow-xl ${menuMessage.senderId === userId ? 'bg-[#EE4D2D] text-white' : 'bg-white text-gray-800'}`}>{menuMessage.text}</div>
+          </div>
+          <div className="overflow-hidden rounded-2xl border border-white/60 bg-white/95 shadow-2xl backdrop-blur-xl">
+            <button type="button" onClick={() => void copySelectedMessage()} className="flex w-full items-center gap-3 border-b border-gray-100 px-5 py-4 text-left text-sm font-medium text-gray-800 active:bg-gray-100"><Copy size={19} className="text-gray-500" /> Sao chép</button>
+            <button type="button" onClick={() => void deleteSelectedMessage()} disabled={deletingMessage} className="flex w-full items-center gap-3 px-5 py-4 text-left text-sm font-semibold text-red-600 active:bg-red-50 disabled:opacity-50">{deletingMessage ? <Loader2 size={19} className="animate-spin" /> : <Trash2 size={19} />} Xóa ở phía tôi</button>
+          </div>
+          <button type="button" disabled={deletingMessage} onClick={() => setMenuMessage(null)} className="w-full rounded-2xl bg-white px-5 py-4 text-center text-sm font-semibold text-gray-800 shadow-xl active:bg-gray-100 disabled:opacity-50">Hủy</button>
+        </div>
+      </div>}
     </div>
   );
 }
