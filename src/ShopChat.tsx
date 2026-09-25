@@ -176,11 +176,11 @@ export default function ShopChat({ userId, sellerShopId, isAdmin, target, onClos
       touchOrigin.current = null;
       openMessageMenu(message);
       navigator.vibrate?.(10);
-    }, 520);
+    }, 420);
   };
   const moveLongPress = (event: React.TouchEvent<HTMLDivElement>) => {
     if (!touchOrigin.current || event.touches.length !== 1) return;
-    if (Math.abs(event.touches[0].clientX - touchOrigin.current.x) > 10 || Math.abs(event.touches[0].clientY - touchOrigin.current.y) > 10) cancelLongPress();
+    if (Math.abs(event.touches[0].clientX - touchOrigin.current.x) > 22 || Math.abs(event.touches[0].clientY - touchOrigin.current.y) > 22) cancelLongPress();
   };
   const deleteSelectedMessage = async () => {
     if (!menuMessage || !active?.shopId || deletingMessage) return;
@@ -266,7 +266,7 @@ export default function ShopChat({ userId, sellerShopId, isAdmin, target, onClos
           {active && !loading && messages.length === 0 && !error && <p className="p-8 text-center text-sm text-gray-500">Bắt đầu cuộc trò chuyện với shop.</p>}
           {active && messages.map((item) => (
             <div key={item.id} className={`mb-2 flex ${item.senderId === userId ? 'justify-end' : 'justify-start'}`}>
-              <div role="button" tabIndex={0} aria-label="Nhấn giữ để mở thao tác tin nhắn" onTouchStart={(event) => startLongPress(event, item)} onTouchMove={moveLongPress} onTouchEnd={cancelLongPress} onTouchCancel={cancelLongPress} onContextMenu={(event) => { event.preventDefault(); cancelLongPress(); openMessageMenu(item); }} onKeyDown={(event) => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); openMessageMenu(item); } }} style={{ WebkitTouchCallout: 'none', userSelect: 'none' }} className={`max-w-[84%] cursor-context-menu rounded-2xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-300 ${item.senderId === userId ? 'bg-[#EE4D2D] text-white' : 'border border-gray-100 bg-white text-gray-800'}`}>
+              <div role="button" tabIndex={0} aria-label="Chạm hoặc nhấn giữ để mở thao tác tin nhắn" onClick={() => openMessageMenu(item)} onTouchStart={(event) => startLongPress(event, item)} onTouchMove={moveLongPress} onTouchEnd={cancelLongPress} onTouchCancel={cancelLongPress} onContextMenu={(event) => { event.preventDefault(); cancelLongPress(); openMessageMenu(item); }} onKeyDown={(event) => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); openMessageMenu(item); } }} style={{ WebkitTouchCallout: 'none', WebkitUserSelect: 'none', userSelect: 'none', touchAction: 'pan-y' }} className={`max-w-[84%] cursor-pointer rounded-2xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-300 ${item.senderId === userId ? 'bg-[#EE4D2D] text-white' : 'border border-gray-100 bg-white text-gray-800'}`}>
                 <p className="whitespace-pre-wrap break-words">{item.text}</p>
                 <time className={`mt-1 block text-right text-[10px] ${item.senderId === userId ? 'text-white/80' : 'text-gray-400'}`}>{new Date(item.createdAt).toLocaleString('vi-VN')}</time>
               </div>
