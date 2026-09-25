@@ -19,7 +19,7 @@ const errorText: Record<string, string> = {
 async function request(action: string, params: Record<string, string> = {}, text?: string) {
   const { data } = await supabase.auth.getSession();
   if (!data.session?.access_token) throw new Error('login_required');
-  const method = action === 'send' || action === 'delete' ? 'POST' : 'GET';
+  const method = action === 'send' || action === 'delete' || action === 'delete-conversation' ? 'POST' : 'GET';
   const response = await fetch(method === 'GET' ? `/api/chat?${new URLSearchParams({ action, ...params })}` : '/api/chat', {
     method,
     headers: { Authorization: `Bearer ${data.session.access_token}`, ...(method === 'POST' ? { 'Content-Type': 'application/json' } : {}) },
@@ -31,8 +31,8 @@ async function request(action: string, params: Record<string, string> = {}, text
   return body;
 }
 
-export default function ShopChat({ userId, sellerShopId, target, onClose }: {
-  userId: string; sellerShopId?: string | null; target: ChatTarget; onClose: () => void;
+export default function ShopChat({ userId, sellerShopId, isAdmin, target, onClose }: {
+  userId: string; sellerShopId?: string | null; isAdmin?: boolean; target: ChatTarget; onClose: () => void;
 }) {
   const [active, setActive] = useState<ChatTarget | null>(target.shopId ? target : null);
   const [conversations, setConversations] = useState<Conversation[]>([]);
@@ -40,6 +40,7 @@ export default function ShopChat({ userId, sellerShopId, target, onClose }: {
   const [officialLoading, setOfficialLoading] = useState(!sellerShopId);
   const [messages, setMessages] = useState<Message[]>([]);
   const [menuMessage, setMenuMessage] = useState<Message | null>(null);
+  const [confirmDeleteAll, setConfirmDeleteAll] = useState(false);
   const [deletingMessage, setDeletingMessage] = useState(false);
   const [draft, setDraft] = useState('');
   const [loading, setLoading] = useState(true);
@@ -117,6 +118,7 @@ export default function ShopChat({ userId, sellerShopId, target, onClose }: {
 
   const choose = (next: ChatTarget) => {
     setMenuMessage(null);
+    setConfirmDeleteAll(false);
     activeRef.current = next;
     setActive(next);
     setLoading(true);
@@ -125,6 +127,7 @@ export default function ShopChat({ userId, sellerShopId, target, onClose }: {
   };
   const back = () => {
     setMenuMessage(null);
+    setConfirmDeleteAll(false);
     activeRef.current = null;
     setActive(null);
     setLoading(true);
@@ -160,6 +163,10 @@ export default function ShopChat({ userId, sellerShopId, target, onClose }: {
     longPressTimer.current = null;
     touchOrigin.current = null;
   };
+  const openMessageMenu = (message: Message) => {
+    setConfirmDeleteAll(false);
+    setMenuMessage(message);
+  };
   const startLongPress = (event: React.TouchEvent<HTMLDivElement>, message: Message) => {
     cancelLongPress();
     if (event.touches.length !== 1) return;
@@ -167,7 +174,7 @@ export default function ShopChat({ userId, sellerShopId, target, onClose }: {
     longPressTimer.current = window.setTimeout(() => {
       longPressTimer.current = null;
       touchOrigin.current = null;
-      setMenuMessage(message);
+      openMessageMenu(message);
       navigator.vibrate?.(10);
     }, 520);
   };
@@ -190,6 +197,23 @@ export default function ShopChat({ userId, sellerShopId, target, onClose }: {
     } catch {
       setMenuMessage(null);
       setError('Không xóa được tin nhắn. Vui lòng thử lại.');
+    } finally {
+      setDeletingMessage(false);
+    }
+  };
+  const deleteEntireConversation = async () => {
+    if (!isAdmin || !active?.shopId || !active.buyerId || !menuMessage || deletingMessage) return;
+    setDeletingMessage(true);
+    try {
+      await request('delete-conversation', { shopId: active.shopId, buyerId: active.buyerId });
+      setMenuMessage(null);
+      setConfirmDeleteAll(false);
+      setError('');
+      back();
+    } catch {
+      setMenuMessage(null);
+      setConfirmDeleteAll(false);
+      setError('Không xóa được cuộc trò chuyện. Vui lòng thử lại.');
     } finally {
       setDeletingMessage(false);
     }
@@ -242,7 +266,7 @@ export default function ShopChat({ userId, sellerShopId, target, onClose }: {
           {active && !loading && messages.length === 0 && !error && <p className="p-8 text-center text-sm text-gray-500">Bắt đầu cuộc trò chuyện với shop.</p>}
           {active && messages.map((item) => (
             <div key={item.id} className={`mb-2 flex ${item.senderId === userId ? 'justify-end' : 'justify-start'}`}>
-              <div role="button" tabIndex={0} aria-label="Nhấn giữ để mở thao tác tin nhắn" onTouchStart={(event) => startLongPress(event, item)} onTouchMove={moveLongPress} onTouchEnd={cancelLongPress} onTouchCancel={cancelLongPress} onContextMenu={(event) => { event.preventDefault(); cancelLongPress(); setMenuMessage(item); }} onKeyDown={(event) => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); setMenuMessage(item); } }} style={{ WebkitTouchCallout: 'none', userSelect: 'none' }} className={`max-w-[84%] cursor-context-menu rounded-2xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-300 ${item.senderId === userId ? 'bg-[#EE4D2D] text-white' : 'border border-gray-100 bg-white text-gray-800'}`}>
+              <div role="button" tabIndex={0} aria-label="Nhấn giữ để mở thao tác tin nhắn" onTouchStart={(event) => startLongPress(event, item)} onTouchMove={moveLongPress} onTouchEnd={cancelLongPress} onTouchCancel={cancelLongPress} onContextMenu={(event) => { event.preventDefault(); cancelLongPress(); openMessageMenu(item); }} onKeyDown={(event) => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); openMessageMenu(item); } }} style={{ WebkitTouchCallout: 'none', userSelect: 'none' }} className={`max-w-[84%] cursor-context-menu rounded-2xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-300 ${item.senderId === userId ? 'bg-[#EE4D2D] text-white' : 'border border-gray-100 bg-white text-gray-800'}`}>
                 <p className="whitespace-pre-wrap break-words">{item.text}</p>
                 <time className={`mt-1 block text-right text-[10px] ${item.senderId === userId ? 'text-white/80' : 'text-gray-400'}`}>{new Date(item.createdAt).toLocaleString('vi-VN')}</time>
               </div>
@@ -256,16 +280,21 @@ export default function ShopChat({ userId, sellerShopId, target, onClose }: {
           <button type="submit" disabled={sending || !draft.trim() || !!error} aria-label="Gửi tin nhắn" className="rounded-xl bg-[#EE4D2D] p-3 text-white disabled:opacity-50">{sending ? <Loader2 className="animate-spin" size={18} /> : <Send size={18} />}</button>
         </form>}
       </div>
-      {menuMessage && <div className="fixed inset-0 z-[140] flex items-end justify-center bg-black/35 p-4 pb-[max(1.25rem,env(safe-area-inset-bottom))] backdrop-blur-[2px] sm:items-center" onClick={() => { if (!deletingMessage) setMenuMessage(null); }}>
+      {menuMessage && <div className="fixed inset-0 z-[140] flex items-end justify-center bg-black/35 p-4 pb-[max(1.25rem,env(safe-area-inset-bottom))] backdrop-blur-[2px] sm:items-center" onClick={() => { if (!deletingMessage) { setMenuMessage(null); setConfirmDeleteAll(false); } }}>
         <div role="dialog" aria-modal="true" aria-label="Tùy chọn tin nhắn" className="shop-chat-action-sheet w-full max-w-[360px] space-y-3" onClick={(event) => event.stopPropagation()}>
           <div className={`flex ${menuMessage.senderId === userId ? 'justify-end' : 'justify-start'}`}>
             <div className={`max-h-32 max-w-[88%] overflow-y-auto whitespace-pre-wrap break-words rounded-2xl px-4 py-3 text-sm shadow-xl ${menuMessage.senderId === userId ? 'bg-[#EE4D2D] text-white' : 'bg-white text-gray-800'}`}>{menuMessage.text}</div>
           </div>
-          <div className="overflow-hidden rounded-2xl border border-white/60 bg-white/95 shadow-2xl backdrop-blur-xl">
+          {confirmDeleteAll ? <div className="overflow-hidden rounded-2xl bg-white/95 shadow-2xl backdrop-blur-xl">
+            <p className="px-5 pt-4 text-sm font-bold text-gray-900">Xóa toàn bộ cuộc trò chuyện?</p>
+            <p className="px-5 pb-4 pt-1 text-xs leading-relaxed text-gray-500">Tất cả tin nhắn sẽ bị xóa khỏi cả hai phía, kể cả lịch sử và thông báo chưa đọc. Không thể khôi phục.</p>
+            <button type="button" onClick={() => void deleteEntireConversation()} disabled={deletingMessage} className="flex w-full items-center justify-center gap-2 border-t border-gray-100 px-5 py-4 text-sm font-bold text-red-600 active:bg-red-50 disabled:opacity-50">{deletingMessage && <Loader2 size={18} className="animate-spin" />} Xóa toàn bộ ở cả hai phía</button>
+          </div> : <div className="overflow-hidden rounded-2xl border border-white/60 bg-white/95 shadow-2xl backdrop-blur-xl">
             <button type="button" onClick={() => void copySelectedMessage()} className="flex w-full items-center gap-3 border-b border-gray-100 px-5 py-4 text-left text-sm font-medium text-gray-800 active:bg-gray-100"><Copy size={19} className="text-gray-500" /> Sao chép</button>
             <button type="button" onClick={() => void deleteSelectedMessage()} disabled={deletingMessage} className="flex w-full items-center gap-3 px-5 py-4 text-left text-sm font-semibold text-red-600 active:bg-red-50 disabled:opacity-50">{deletingMessage ? <Loader2 size={19} className="animate-spin" /> : <Trash2 size={19} />} Xóa ở phía tôi</button>
-          </div>
-          <button type="button" disabled={deletingMessage} onClick={() => setMenuMessage(null)} className="w-full rounded-2xl bg-white px-5 py-4 text-center text-sm font-semibold text-gray-800 shadow-xl active:bg-gray-100 disabled:opacity-50">Hủy</button>
+            {isAdmin && active?.buyerId && <button type="button" onClick={() => setConfirmDeleteAll(true)} className="flex w-full items-center gap-3 border-t border-gray-100 px-5 py-4 text-left text-sm font-semibold text-red-600 active:bg-red-50"><Trash2 size={19} /> Xóa toàn bộ cuộc trò chuyện</button>}
+          </div>}
+          <button type="button" disabled={deletingMessage} onClick={() => { setMenuMessage(null); setConfirmDeleteAll(false); }} className="w-full rounded-2xl bg-white px-5 py-4 text-center text-sm font-semibold text-gray-800 shadow-xl active:bg-gray-100 disabled:opacity-50">Hủy</button>
         </div>
       </div>}
     </div>

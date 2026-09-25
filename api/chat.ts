@@ -62,6 +62,13 @@ for index, raw in ipairs(messages) do
   end
 end
 return 0`;
+// Remove the entire conversation for both parties in one Redis operation.
+const DELETE_CONVERSATION_SCRIPT = `
+if redis.call('EXISTS', KEYS[2]) == 0 then return 0 end
+redis.call('DEL', KEYS[1], KEYS[2], KEYS[5], KEYS[6])
+redis.call('SREM', KEYS[3], ARGV[1])
+redis.call('SREM', KEYS[4], ARGV[1])
+return 1`;
 const displayName = (profile: any) => String(profile?.full_name || profile?.username || '').trim().slice(0, 80);
 async function unreadCount(keys: string[], userId: string) {
   const unread = await Promise.all(keys.slice(0, 100).map(async (key) => {
@@ -201,6 +208,16 @@ export default async function handler(req: any, res: any) {
       if (!validId(messageId)) return res.status(400).json({ error: 'invalid_message' });
       const hidden = await redis('EVAL', HIDE_MESSAGE_SCRIPT, 2, `${key}:messages`, `${key}:meta`, messageId, user.id);
       if (!hidden) return res.status(404).json({ error: 'message_not_found' });
+      return res.status(200).json({ deleted: true });
+    }
+    if (action === 'delete-conversation' && req.method === 'POST') {
+      if (!isSeller) return res.status(403).json({ error: 'forbidden' });
+      const profiles = await supabaseGet(`/rest/v1/profiles?id=eq.${user.id}&select=role&limit=1`, bearer);
+      if (profiles[0]?.role !== 'admin') return res.status(403).json({ error: 'forbidden' });
+      const deleted = await redis('EVAL', DELETE_CONVERSATION_SCRIPT, 6,
+        `${key}:messages`, `${key}:meta`, `chat:v1:shop:${shopId}`, `chat:v1:buyer:${partnerId}`,
+        `${key}:read:${partnerId}`, `${key}:read:${shop.owner_id}`, key);
+      if (!deleted) return res.status(404).json({ error: 'conversation_not_found' });
       return res.status(200).json({ deleted: true });
     }
     if (action !== 'send') return res.status(400).json({ error: 'invalid_action' });
