@@ -122,7 +122,7 @@ export default function ShopChat({ userId, sellerShopId, target, onClose }: {
   const send = async (event: React.FormEvent) => {
     event.preventDefault();
     const value = draft.trim();
-    if (!value || !active?.shopId || sending) return;
+    if (!value || !active?.shopId || sending || error) return;
     setSending(true);
     try {
       await request('send', {
@@ -136,6 +136,13 @@ export default function ShopChat({ userId, sellerShopId, target, onClose }: {
     } finally {
       setSending(false);
     }
+  };
+  const handleMessageKeyDown = (event: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    // Enter sends; Shift+Enter inserts a newline. Don't send while an IME is selecting Vietnamese text.
+    if (event.key !== 'Enter' || event.shiftKey || event.nativeEvent.isComposing || event.nativeEvent.keyCode === 229) return;
+    event.preventDefault();
+    if (!draft.trim() || sending || error || !active?.shopId) return;
+    event.currentTarget.form?.requestSubmit();
   };
   const officialConversation = officialShop?.shopId ? conversations.find((item) => item.shopId === officialShop.shopId) : undefined;
 
@@ -185,7 +192,7 @@ export default function ShopChat({ userId, sellerShopId, target, onClose }: {
         </div>
         {error && <p role="alert" className="border-t border-rose-100 bg-rose-50 px-4 py-2 text-xs text-rose-700">{error}</p>}
         {active && <form onSubmit={send} className="flex items-end gap-2 border-t border-gray-100 bg-white p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
-          <textarea value={draft} onChange={(e) => setDraft(e.target.value)} maxLength={2000} rows={2} aria-label="Nội dung tin nhắn" placeholder="Nhập tin nhắn..." className="min-h-11 flex-1 resize-none rounded-xl border border-gray-200 px-3 py-2 text-sm outline-none focus:border-[#EE4D2D]" />
+          <textarea value={draft} onChange={(e) => setDraft(e.target.value)} onKeyDown={handleMessageKeyDown} enterKeyHint="send" maxLength={2000} rows={2} aria-label="Nội dung tin nhắn" placeholder="Nhập tin nhắn..." className="min-h-11 flex-1 resize-none rounded-xl border border-gray-200 px-3 py-2 text-sm outline-none focus:border-[#EE4D2D]" />
           <button type="submit" disabled={sending || !draft.trim() || !!error} aria-label="Gửi tin nhắn" className="rounded-xl bg-[#EE4D2D] p-3 text-white disabled:opacity-50">{sending ? <Loader2 className="animate-spin" size={18} /> : <Send size={18} />}</button>
         </form>}
       </div>
