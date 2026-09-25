@@ -2,12 +2,14 @@
 const SUPABASE = (process.env.VITE_SUPABASE_URL || 'https://ygqqtudavuugrvpkhvdp.supabase.co').replace(/\/$/, '');
 const ANON_KEY = process.env.VITE_SUPABASE_ANON_KEY || 'sb_publishable_8B6gKD7mNeh8Ny8DtPXdrQ_trIgA2Rb';
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-const redisUrl = () => (process.env.UPSTASH_REDIS_REST_URL || '').replace(/\/$/, '');
+// Vercel's Upstash Marketplace integration injects KV_REST_API_* for Preview.
+const redisUrl = () => (process.env.UPSTASH_REDIS_REST_URL || process.env.KV_REST_API_URL || '').replace(/\/$/, '');
+const redisToken = () => process.env.UPSTASH_REDIS_REST_TOKEN || process.env.KV_REST_API_TOKEN || '';
 
 async function redis(...args: (string | number)[]): Promise<any> {
   const response = await fetch(redisUrl(), {
     method: 'POST',
-    headers: { Authorization: `Bearer ${process.env.UPSTASH_REDIS_REST_TOKEN}`, 'Content-Type': 'application/json' },
+    headers: { Authorization: `Bearer ${redisToken()}`, 'Content-Type': 'application/json' },
     body: JSON.stringify(args),
     signal: AbortSignal.timeout(8000),
   });
@@ -32,7 +34,7 @@ const threadId = (shopId: string, buyerId: string) => `chat:v1:${shopId}:${buyer
 export default async function handler(req: any, res: any) {
   res.setHeader('Cache-Control', 'no-store');
   if (!['GET', 'POST'].includes(req.method)) return res.status(405).json({ error: 'method_not_allowed' });
-  if (!redisUrl() || !process.env.UPSTASH_REDIS_REST_TOKEN) return res.status(503).json({ error: 'chat_storage_not_configured' });
+  if (!redisUrl() || !redisToken()) return res.status(503).json({ error: 'chat_storage_not_configured' });
   const bearer = /^Bearer (.+)$/i.exec(String(req.headers.authorization || ''))?.[1];
   if (!bearer) return res.status(401).json({ error: 'login_required' });
 
