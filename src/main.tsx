@@ -2,6 +2,7 @@ import React, { Suspense, lazy, useEffect, useState } from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
 import './styles.css';
+import './installPrompt';
 
 // [FIX] Trước đây không có Error Boundary nào bao ngoài <App />: BẤT KỲ lỗi
 // render nào chưa lường trước (vd. thao tác lưu/sửa/xoá sản phẩm dẫn tới 1
