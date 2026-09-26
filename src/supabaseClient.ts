@@ -10,8 +10,10 @@ const isProductionAlias = typeof window !== 'undefined' && [
   'kimshop-dungk8888-6492.vercel.app',
   'kimshop-git-main-dungk8888-6492.vercel.app',
 ].includes(window.location.hostname);
-export const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || (isProductionAlias ? TEST_FALLBACK_SUPABASE_URL : '');
-export const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY || (isProductionAlias ? TEST_FALLBACK_SUPABASE_ANON_KEY : '');
+const PREVIEW_SUPABASE_URL = 'https://petytkjfsojwkjktzxcx.supabase.co';
+const PREVIEW_SUPABASE_ANON_KEY = 'sb_publishable_oRoqpDHN2roxJ2UzCbkEWw_KmjCZS0A';
+export const SUPABASE_URL = isProductionAlias ? TEST_FALLBACK_SUPABASE_URL : (import.meta.env.VITE_SUPABASE_URL || PREVIEW_SUPABASE_URL);
+export const SUPABASE_ANON_KEY = isProductionAlias ? TEST_FALLBACK_SUPABASE_ANON_KEY : (import.meta.env.VITE_SUPABASE_ANON_KEY || PREVIEW_SUPABASE_ANON_KEY);
 
 if (!SUPABASE_URL || !SUPABASE_ANON_KEY || (!isProductionAlias && SUPABASE_URL === TEST_FALLBACK_SUPABASE_URL)) {
   if (typeof document !== 'undefined') {
