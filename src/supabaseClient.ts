@@ -1,19 +1,19 @@
 import { createClient } from '@supabase/supabase-js';
 
-// Preview/test branch fallback only: Vite replaces import.meta.env values at build time.
-// The Vercel Preview environment may not have the two VITE_* variables configured,
-// which previously made this module throw before React mounted and left a completely
-// blank page. These are the OLD project's public URL + publishable/anon key (not a
-// service-role secret), so they are safe to use in browser code. Production can still
-// override them through the normal VITE_* environment variables.
+// The production alias can use the existing publishable key until its Vite env
+// variables are configured. Previews must have their own Supabase project.
 const TEST_FALLBACK_SUPABASE_URL = 'https://ygqqtudavuugrvpkhvdp.supabase.co';
 const TEST_FALLBACK_SUPABASE_ANON_KEY = 'sb_publishable_8B6gKD7mNeh8Ny8DtPXdrQ_trIgA2Rb';
 
-export const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || TEST_FALLBACK_SUPABASE_URL;
-export const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY || TEST_FALLBACK_SUPABASE_ANON_KEY;
+const isProductionAlias = typeof window !== 'undefined' && window.location.hostname === 'kimshop-six.vercel.app';
+export const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || (isProductionAlias ? TEST_FALLBACK_SUPABASE_URL : '');
+export const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY || (isProductionAlias ? TEST_FALLBACK_SUPABASE_ANON_KEY : '');
 
-if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
-  throw new Error('Thiếu cấu hình Supabase.');
+if (!SUPABASE_URL || !SUPABASE_ANON_KEY || (!isProductionAlias && SUPABASE_URL === TEST_FALLBACK_SUPABASE_URL)) {
+  if (typeof document !== 'undefined') {
+    document.body.innerHTML = '<main style="max-width:38rem;margin:15vh auto;padding:2rem;font:16px system-ui;color:#243042"><h1>Bản thử nghiệm chưa có dữ liệu riêng</h1><p>Vui lòng kết nối bản thử nghiệm với dự án Supabase riêng trước khi sử dụng.</p></main>';
+  }
+  throw new Error('Bản thử nghiệm chưa được kết nối Supabase riêng.');
 }
 
 // Chỉ dùng Anon/Publishable Key ở frontend. TUYỆT ĐỐI không đặt Service Role Key ở đây.
