@@ -5,7 +5,11 @@ import { createClient } from '@supabase/supabase-js';
 const TEST_FALLBACK_SUPABASE_URL = 'https://ygqqtudavuugrvpkhvdp.supabase.co';
 const TEST_FALLBACK_SUPABASE_ANON_KEY = 'sb_publishable_8B6gKD7mNeh8Ny8DtPXdrQ_trIgA2Rb';
 
-const isProductionAlias = typeof window !== 'undefined' && window.location.hostname === 'kimshop-six.vercel.app';
+const isProductionAlias = typeof window !== 'undefined' && [
+  'kimshop-six.vercel.app',
+  'kimshop-dungk8888-6492.vercel.app',
+  'kimshop-git-main-dungk8888-6492.vercel.app',
+].includes(window.location.hostname);
 export const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || (isProductionAlias ? TEST_FALLBACK_SUPABASE_URL : '');
 export const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY || (isProductionAlias ? TEST_FALLBACK_SUPABASE_ANON_KEY : '');
 
