@@ -32,7 +32,7 @@ export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
     // Cho phép nhiều tab đồng bộ trạng thái đăng nhập/đăng xuất với nhau.
     detectSessionInUrl: true,
     storage: typeof window !== 'undefined' ? window.localStorage : undefined,
-    storageKey: 'kimshop-auth',
+    storageKey: isProductionAlias ? 'kimshop-auth' : 'kimshop-auth-preview-v2',
   },
 });
 
