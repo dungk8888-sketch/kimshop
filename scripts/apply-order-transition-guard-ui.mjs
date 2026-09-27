@@ -52,10 +52,6 @@ change('src/App.tsx',
   'seller return approval button');
 
 change('src/BuyerPurchasePage.tsx',
-  `canReceive=ord.orderStatus==='Chờ giao hàng',canReturn=['Chờ giao hàng','Hoàn thành'].includes(ord.orderStatus)`,
-  `canReceive=ord.orderStatus==='Vận chuyển',canReturn=['Chờ giao hàng','Vận chuyển','Hoàn thành'].includes(ord.orderStatus)&&!ord.returnReason`,
-  'buyer buttons by order state');
-change('src/BuyerPurchasePage.tsx',
   `{canReturn&&<button onClick={()=>requestReturn(ord.id)}`,
   `{ord.returnReason&&ord.orderStatus!=='Trả hàng/Hoàn tiền'&&<span className="text-amber-700 px-2 py-2 text-[11px]">Đã yêu cầu trả hàng, chờ shop xử lý</span>}{canReturn&&<button onClick={()=>requestReturn(ord.id)}`,
   'buyer return request indicator');
