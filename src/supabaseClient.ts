@@ -51,7 +51,7 @@ export const LEGACY_LOCAL_EMAIL_DOMAIN = 'kimshop.local';
 
 export const usernameToEmail = (usernameOrEmail: string) => {
   const v = (usernameOrEmail || '').trim().toLowerCase();
-  // Production admin Auth account cũ vẫn giữ nguyên để không làm mất quyền admin.
+  // App chính giữ email admin cũ; bản test dùng email riêng vừa đăng ký.
   if (v === 'admin') return isProductionAlias ? 'admin.auth@kimshop.local' : 'admin@users.kimshop.app';
   return v.includes('@') ? v : `${v}@${LOCAL_EMAIL_DOMAIN}`;
 };
