@@ -23,7 +23,11 @@ replace(app,
   'Đã giao hàng': ['Trả hàng/Hoàn tiền'],
   'Hoàn thành': ['Trả hàng/Hoàn tiền'],
 };
-const sellerStatusChoices = (status) => [status, ...(SELLER_NEXT_STATUSES[status] || [])];
+const SELLER_MILESTONES = ['Chờ thanh toán', 'Chờ giao hàng', 'Đã lấy hàng', 'Vận chuyển', 'Đã giao hàng'];
+const sellerStatusChoices = (status) => [
+  ...SELLER_MILESTONES, ...(status === 'Hoàn thành' ? ['Hoàn thành'] : []),
+  'Đã hủy', 'Trả hàng/Hoàn tiền',
+];
 const sellerStatusLabel = (status) => ({
   'Chờ thanh toán': 'Đơn hàng đã được đặt · Chờ thanh toán',
   'Chờ giao hàng': 'Người bán đang chuẩn bị hàng',
@@ -95,7 +99,7 @@ replace(app,
   'seller tab filter');
 replace(app,
   "{ORDER_STATUS_OPTIONS.map((s) => <option key={s} value={s}>{s}</option>)}",
-  "{sellerStatusChoices(o.orderStatus).map((s) => <option key={s} value={s}>{sellerStatusLabel(s)}</option>)}",
+  "{sellerStatusChoices(o.orderStatus).map((s) => <option key={s} value={s} disabled={s !== o.orderStatus && !SELLER_NEXT_STATUSES[o.orderStatus]?.includes(s)}>{sellerStatusLabel(s)}</option>)}",
   'seller status dropdown');
 replace(app,
   "rounded-sm px-2 py-1 text-[11px] border-0 ${STATUS_STYLES[o.orderStatus]}",
