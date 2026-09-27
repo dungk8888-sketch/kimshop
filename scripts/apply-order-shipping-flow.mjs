@@ -195,6 +195,10 @@ replace(buyer,
   "canReceive=ord.orderStatus==='Đã giao hàng',canReturn=['Chờ giao hàng','Đã lấy hàng','Vận chuyển','Đã giao hàng','Hoàn thành'].includes(ord.orderStatus)&&!ord.returnReason",
   'buyer receive gate');
 replace(buyer,
+  "ord.reviewDeadline?` • Hạn đánh giá: ${ord.reviewDeadline}`:''",
+  "ord.orderStatus==='Hoàn thành'&&ord.reviewDeadline?` • Hạn đánh giá: ${ord.reviewDeadline}`:''",
+  'hide premature review deadline');
+replace(buyer,
   "<div className=\"pt-2 flex justify-end gap-2 flex-wrap\">",
   "<OrderProgress status={ord.orderStatus}/><div className=\"pt-2 flex justify-end gap-2 flex-wrap\">",
   'buyer order progress display');
