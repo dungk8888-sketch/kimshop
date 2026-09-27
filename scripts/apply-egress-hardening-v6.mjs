@@ -36,5 +36,11 @@ if(!s.includes(oldMeta) && !s.includes("supabase.from('shops').select('id,owner_
 }
 if(s.includes(oldMeta)){ s=s.replace(oldMeta,newMeta); changes++; }
 
+// Preview catalog uses an isolated cache generation after seed images changed.
+// The storefront can otherwise keep a valid but pictureless 2-hour snapshot.
+if(!s.includes("const KIMSHOP_HOME_KEY='default-home-v6';") || !s.includes("return 'query:v6:'")) throw new Error('Preview cache marker not found');
+s=s.replace("const KIMSHOP_HOME_KEY='default-home-v6';","const KIMSHOP_HOME_KEY='default-home-v7-test';");
+s=s.replace("return 'query:v6:'","return 'query:v7-test:');
+
 fs.writeFileSync(file,s);
 console.log('[EGRESS V6] isolated cache namespace + empty-cache recovery enabled:',changes);
