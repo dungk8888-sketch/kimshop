@@ -52,13 +52,13 @@ export const LEGACY_LOCAL_EMAIL_DOMAIN = 'kimshop.local';
 export const usernameToEmail = (usernameOrEmail: string) => {
   const v = (usernameOrEmail || '').trim().toLowerCase();
   // Production admin Auth account cũ vẫn giữ nguyên để không làm mất quyền admin.
-  if (v === 'admin') return 'admin.auth@kimshop.local';
+  if (v === 'admin') return isProductionAlias ? 'admin.auth@kimshop.local' : 'admin@users.kimshop.app';
   return v.includes('@') ? v : `${v}@${LOCAL_EMAIL_DOMAIN}`;
 };
 
 export const usernameToLegacyEmail = (username: string) => {
   const v = (username || '').trim().toLowerCase();
-  if (v === 'admin') return 'admin.auth@kimshop.local';
+  if (v === 'admin') return isProductionAlias ? 'admin.auth@kimshop.local' : 'admin@users.kimshop.app';
   return `${v}@${LEGACY_LOCAL_EMAIL_DOMAIN}`;
 };
 
