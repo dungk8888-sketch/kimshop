@@ -29,7 +29,7 @@ const sellerStatusChoices = (status) => [
   'Đã hủy', 'Trả hàng/Hoàn tiền',
 ];
 const sellerStatusLabel = (status) => ({
-  'Chờ thanh toán': 'Đơn hàng đã được đặt · Chờ thanh toán',
+  'Chờ thanh toán': 'Đơn hàng đã được đặt',
   'Chờ giao hàng': 'Người bán đang chuẩn bị hàng',
   'Đã lấy hàng': 'Đơn vị vận chuyển lấy hàng thành công',
   'Vận chuyển': 'Đơn hàng sẽ sớm được giao, vui lòng chú ý điện thoại',
