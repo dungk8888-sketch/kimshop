@@ -1,7 +1,14 @@
 export default async function handler(req:any,res:any){
   if(req.method!=='POST') return res.status(405).json({error:'method_not_allowed'});
-  const base=(process.env.VITE_SUPABASE_URL||'https://ygqqtudavuugrvpkhvdp.supabase.co').replace(/\/$/,'');
-  const key=process.env.VITE_SUPABASE_ANON_KEY||'';
+  // Match the isolated browser Auth project on Vercel Preview.
+  const preview=process.env.VERCEL_ENV==='preview';
+  const base=preview
+    ? 'https://petytkjfsojwkjktzxcx.supabase.co'
+    : (process.env.VITE_SUPABASE_URL||'https://ygqqtudavuugrvpkhvdp.supabase.co').replace(/\/$/,'');
+  const key=preview
+    ? 'sb_publishable_oRoqpDHN2roxJ2UzCbkEWw_KmjCZS0A'
+    : (process.env.VITE_SUPABASE_ANON_KEY||'');
+  const email=preview ? 'admin@users.kimshop.app' : 'admin.auth@kimshop.local';
   if(!key) return res.status(500).json({error:'missing_anon_key'});
   const password=String(req.body?.password||'');
   if(!password) return res.status(400).json({error:'missing_password'});
@@ -9,7 +16,7 @@ export default async function handler(req:any,res:any){
     const r=await fetch(base+'/auth/v1/token?grant_type=password',{
       method:'POST',
       headers:{'content-type':'application/json',apikey:key,authorization:`Bearer ${key}`},
-      body:JSON.stringify({email:'admin.auth@kimshop.local',password}),
+      body:JSON.stringify({email,password}),
       signal:AbortSignal.timeout(12000),
     });
     const text=await r.text();

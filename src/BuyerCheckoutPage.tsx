@@ -21,7 +21,7 @@ useEffect(()=>{
     byShop.set(shopId,g);
   }
 
-  supabase.rpc('preview_auto_shipping',{p_groups:Array.from(byShop.values())})
+  Promise.resolve(supabase.rpc('preview_auto_shipping',{p_groups:Array.from(byShop.values())}))
     .then(({data,error}:any)=>{
       if(dead) return;
       if(error || !data?.valid){ setAutoShipping(null); return; }

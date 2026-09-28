@@ -4,8 +4,9 @@ import webPush from 'web-push';
 
 const redisUrl = () => (process.env.UPSTASH_REDIS_REST_URL || process.env.KV_REST_API_URL || '').replace(/\/$/, '');
 const redisToken = () => process.env.UPSTASH_REDIS_REST_TOKEN || process.env.KV_REST_API_TOKEN || '';
-const supabaseUrl = (process.env.VITE_SUPABASE_URL || 'https://ygqqtudavuugrvpkhvdp.supabase.co').replace(/\/$/, '');
-const supabaseKey = process.env.VITE_SUPABASE_ANON_KEY || 'sb_publishable_8B6gKD7mNeh8Ny8DtPXdrQ_trIgA2Rb';
+const preview = process.env.VERCEL_ENV === 'preview';
+const supabaseUrl = preview ? 'https://petytkjfsojwkjktzxcx.supabase.co' : (process.env.VITE_SUPABASE_URL || 'https://ygqqtudavuugrvpkhvdp.supabase.co').replace(/\/$/, '');
+const supabaseKey = preview ? 'sb_publishable_oRoqpDHN2roxJ2UzCbkEWw_KmjCZS0A' : (process.env.VITE_SUPABASE_ANON_KEY || 'sb_publishable_8B6gKD7mNeh8Ny8DtPXdrQ_trIgA2Rb');
 const validId = (value: unknown): value is string => typeof value === 'string' && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value);
 
 async function redis(...args: (string | number)[]): Promise<any> {

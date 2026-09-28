@@ -10,8 +10,10 @@ const isProductionAlias = typeof window !== 'undefined' && [
   'kimshop-dungk8888-6492.vercel.app',
   'kimshop-git-main-dungk8888-6492.vercel.app',
 ].includes(window.location.hostname);
-export const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || (isProductionAlias ? TEST_FALLBACK_SUPABASE_URL : '');
-export const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY || (isProductionAlias ? TEST_FALLBACK_SUPABASE_ANON_KEY : '');
+const PREVIEW_SUPABASE_URL = 'https://petytkjfsojwkjktzxcx.supabase.co';
+const PREVIEW_SUPABASE_ANON_KEY = 'sb_publishable_oRoqpDHN2roxJ2UzCbkEWw_KmjCZS0A';
+export const SUPABASE_URL = isProductionAlias ? TEST_FALLBACK_SUPABASE_URL : PREVIEW_SUPABASE_URL;
+export const SUPABASE_ANON_KEY = isProductionAlias ? TEST_FALLBACK_SUPABASE_ANON_KEY : PREVIEW_SUPABASE_ANON_KEY;
 
 if (!SUPABASE_URL || !SUPABASE_ANON_KEY || (!isProductionAlias && SUPABASE_URL === TEST_FALLBACK_SUPABASE_URL)) {
   if (typeof document !== 'undefined') {
@@ -30,7 +32,7 @@ export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
     // Cho phép nhiều tab đồng bộ trạng thái đăng nhập/đăng xuất với nhau.
     detectSessionInUrl: true,
     storage: typeof window !== 'undefined' ? window.localStorage : undefined,
-    storageKey: 'kimshop-auth',
+    storageKey: isProductionAlias ? 'kimshop-auth' : 'kimshop-auth-preview-v2',
   },
 });
 
@@ -49,14 +51,14 @@ export const LEGACY_LOCAL_EMAIL_DOMAIN = 'kimshop.local';
 
 export const usernameToEmail = (usernameOrEmail: string) => {
   const v = (usernameOrEmail || '').trim().toLowerCase();
-  // Production admin Auth account cũ vẫn giữ nguyên để không làm mất quyền admin.
-  if (v === 'admin') return 'admin.auth@kimshop.local';
+  // App chính giữ email admin cũ; bản test dùng email riêng vừa đăng ký.
+  if (v === 'admin') return isProductionAlias ? 'admin.auth@kimshop.local' : 'admin@users.kimshop.app';
   return v.includes('@') ? v : `${v}@${LOCAL_EMAIL_DOMAIN}`;
 };
 
 export const usernameToLegacyEmail = (username: string) => {
   const v = (username || '').trim().toLowerCase();
-  if (v === 'admin') return 'admin.auth@kimshop.local';
+  if (v === 'admin') return isProductionAlias ? 'admin.auth@kimshop.local' : 'admin@users.kimshop.app';
   return `${v}@${LEGACY_LOCAL_EMAIL_DOMAIN}`;
 };
 

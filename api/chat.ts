@@ -1,8 +1,9 @@
 // Private, order-aware chat. Message bodies live in Redis, not Supabase.
 import { createECDH, createHash } from 'node:crypto';
 import webPush from 'web-push';
-const SUPABASE = (process.env.VITE_SUPABASE_URL || 'https://ygqqtudavuugrvpkhvdp.supabase.co').replace(/\/$/, '');
-const ANON_KEY = process.env.VITE_SUPABASE_ANON_KEY || 'sb_publishable_8B6gKD7mNeh8Ny8DtPXdrQ_trIgA2Rb';
+const preview = process.env.VERCEL_ENV === 'preview';
+const SUPABASE = preview ? 'https://petytkjfsojwkjktzxcx.supabase.co' : (process.env.VITE_SUPABASE_URL || 'https://ygqqtudavuugrvpkhvdp.supabase.co').replace(/\/$/, '');
+const ANON_KEY = preview ? 'sb_publishable_oRoqpDHN2roxJ2UzCbkEWw_KmjCZS0A' : (process.env.VITE_SUPABASE_ANON_KEY || 'sb_publishable_8B6gKD7mNeh8Ny8DtPXdrQ_trIgA2Rb');
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 // Vercel's Upstash Marketplace integration injects KV_REST_API_* for Preview.
 const redisUrl = () => (process.env.UPSTASH_REDIS_REST_URL || process.env.KV_REST_API_URL || '').replace(/\/$/, '');
@@ -33,7 +34,7 @@ async function supabaseGet(path: string, token: string) {
 const validId = (value: unknown): value is string => typeof value === 'string' && UUID.test(value);
 const threadId = (shopId: string, buyerId: string) => `chat:v1:${shopId}:${buyerId}`;
 // Existing active shop owned by the Admin account. No empty chat is stored until a buyer sends a message.
-const OFFICIAL_SHOP_ID = '69734ebe-89dd-480b-8edf-eab115611b44';
+const OFFICIAL_SHOP_ID = preview ? 'e7644e8d-96ce-4cc7-b2f2-e396c58392b5' : '69734ebe-89dd-480b-8edf-eab115611b44';
 // Update one message atomically so concurrent sends cannot shift its list position.
 // A hidden message remains visible to the other participant; no separate deletion keys are created.
 const HIDE_MESSAGE_SCRIPT = `
