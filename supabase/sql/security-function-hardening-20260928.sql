@@ -34,3 +34,10 @@ end $$;
 revoke execute on function public.admin_adjust_wallet(uuid, numeric, text) from public, anon;
 revoke execute on function public.admin_resolve_withdrawal(uuid, boolean, text) from public, anon;
 revoke execute on function public.request_withdrawal(uuid, uuid, numeric, text) from public, anon;
+
+-- Internal helpers are called by privileged checkout/preview functions.
+-- They are not called directly by the browser app.
+revoke execute on function public.resolve_voucher(text, uuid[], numeric[], uuid, boolean)
+  from public, anon, authenticated;
+revoke execute on function public.bulk_unit_price(uuid, integer, numeric)
+  from public, anon, authenticated;
