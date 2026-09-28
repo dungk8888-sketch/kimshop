@@ -1,6 +1,11 @@
 export default async function handler(req:any,res:any){
-  const base=(process.env.VITE_SUPABASE_URL||'https://ygqqtudavuugrvpkhvdp.supabase.co').replace(/\/$/,'');
-  const key=process.env.VITE_SUPABASE_ANON_KEY||'';
+  const preview=process.env.VERCEL_ENV==='preview';
+  const base=preview
+    ? 'https://petytkjfsojwkjktzxcx.supabase.co'
+    : (process.env.VITE_SUPABASE_URL||'https://ygqqtudavuugrvpkhvdp.supabase.co').replace(/\/$/,'');
+  const key=preview
+    ? 'sb_publishable_oRoqpDHN2roxJ2UzCbkEWw_KmjCZS0A'
+    : (process.env.VITE_SUPABASE_ANON_KEY||'');
   const started=Date.now();
   try{
     const r=await fetch(base+'/auth/v1/health',{headers:key?{apikey:key}:{},signal:AbortSignal.timeout(8000)});

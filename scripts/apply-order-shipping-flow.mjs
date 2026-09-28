@@ -2,6 +2,7 @@ import { readFileSync, writeFileSync } from 'node:fs';
 
 function replace(file, before, after, label) {
   const source = readFileSync(file, 'utf8');
+  if (file === 'src/BuyerPurchasePage.tsx' && source.includes(after)) return;
   if (!source.includes(before)) throw new Error(`Cannot find ${label} in ${file}`);
   writeFileSync(file, source.replace(before, after));
 }
@@ -158,7 +159,7 @@ replace(app,
       current: index === position, done: position !== undefined && index <= position,
     })).reverse();
     if (o.orderStatus === 'Đã hủy' || o.orderStatus === 'Trả hàng/Hoàn tiền')
-      steps.unshift({ label: o.orderStatus, current: true, done: true });
+      steps.unshift({ label: o.orderStatus, time: '', current: true, done: true });
     return steps;
   };`,
   'seller order history');
