@@ -1,21 +1,17 @@
 import { createClient } from '@supabase/supabase-js';
 
-// The production alias can use the existing publishable key until its Vite env
-// variables are configured. Previews must have their own Supabase project.
+// This target is embedded at build time from VERCEL_ENV, matching the API
+// routes. Deployment-specific URLs and aliases cannot switch databases.
 const TEST_FALLBACK_SUPABASE_URL = 'https://ygqqtudavuugrvpkhvdp.supabase.co';
 const TEST_FALLBACK_SUPABASE_ANON_KEY = 'sb_publishable_8B6gKD7mNeh8Ny8DtPXdrQ_trIgA2Rb';
 
-const isProductionAlias = typeof window !== 'undefined' && [
-  'kimshop-six.vercel.app',
-  'kimshop-dungk8888-6492.vercel.app',
-  'kimshop-git-main-dungk8888-6492.vercel.app',
-].includes(window.location.hostname);
+const isProductionDeployment = __KIMSHOP_DEPLOYMENT_ENV__ === 'production';
 const PREVIEW_SUPABASE_URL = 'https://petytkjfsojwkjktzxcx.supabase.co';
 const PREVIEW_SUPABASE_ANON_KEY = 'sb_publishable_oRoqpDHN2roxJ2UzCbkEWw_KmjCZS0A';
-export const SUPABASE_URL = isProductionAlias ? TEST_FALLBACK_SUPABASE_URL : PREVIEW_SUPABASE_URL;
-export const SUPABASE_ANON_KEY = isProductionAlias ? TEST_FALLBACK_SUPABASE_ANON_KEY : PREVIEW_SUPABASE_ANON_KEY;
+export const SUPABASE_URL = isProductionDeployment ? TEST_FALLBACK_SUPABASE_URL : PREVIEW_SUPABASE_URL;
+export const SUPABASE_ANON_KEY = isProductionDeployment ? TEST_FALLBACK_SUPABASE_ANON_KEY : PREVIEW_SUPABASE_ANON_KEY;
 
-if (!SUPABASE_URL || !SUPABASE_ANON_KEY || (!isProductionAlias && SUPABASE_URL === TEST_FALLBACK_SUPABASE_URL)) {
+if (!SUPABASE_URL || !SUPABASE_ANON_KEY || (!isProductionDeployment && SUPABASE_URL === TEST_FALLBACK_SUPABASE_URL)) {
   if (typeof document !== 'undefined') {
     document.body.innerHTML = '<main style="max-width:38rem;margin:15vh auto;padding:2rem;font:16px system-ui;color:#243042"><h1>Bản thử nghiệm chưa có dữ liệu riêng</h1><p>Vui lòng kết nối bản thử nghiệm với dự án Supabase riêng trước khi sử dụng.</p></main>';
   }
@@ -32,7 +28,7 @@ export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
     // Cho phép nhiều tab đồng bộ trạng thái đăng nhập/đăng xuất với nhau.
     detectSessionInUrl: true,
     storage: typeof window !== 'undefined' ? window.localStorage : undefined,
-    storageKey: isProductionAlias ? 'kimshop-auth' : 'kimshop-auth-preview-v2',
+    storageKey: isProductionDeployment ? 'kimshop-auth' : 'kimshop-auth-preview-v2',
   },
 });
 
@@ -52,13 +48,13 @@ export const LEGACY_LOCAL_EMAIL_DOMAIN = 'kimshop.local';
 export const usernameToEmail = (usernameOrEmail: string) => {
   const v = (usernameOrEmail || '').trim().toLowerCase();
   // App chính giữ email admin cũ; bản test dùng email riêng vừa đăng ký.
-  if (v === 'admin') return isProductionAlias ? 'admin.auth@kimshop.local' : 'admin@users.kimshop.app';
+  if (v === 'admin') return isProductionDeployment ? 'admin.auth@kimshop.local' : 'admin@users.kimshop.app';
   return v.includes('@') ? v : `${v}@${LOCAL_EMAIL_DOMAIN}`;
 };
 
 export const usernameToLegacyEmail = (username: string) => {
   const v = (username || '').trim().toLowerCase();
-  if (v === 'admin') return isProductionAlias ? 'admin.auth@kimshop.local' : 'admin@users.kimshop.app';
+  if (v === 'admin') return isProductionDeployment ? 'admin.auth@kimshop.local' : 'admin@users.kimshop.app';
   return `${v}@${LEGACY_LOCAL_EMAIL_DOMAIN}`;
 };
 

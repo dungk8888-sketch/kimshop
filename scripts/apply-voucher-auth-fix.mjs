@@ -69,8 +69,8 @@ client = applyIdempotent(client,
   "export const LOCAL_EMAIL_DOMAIN = 'kimshop.local';",
   "export const LOCAL_EMAIL_DOMAIN = 'users.kimshop.app';\nexport const LEGACY_LOCAL_EMAIL_DOMAIN = 'kimshop.local';",
   'internal email domain');
-const previewAdminMapping = "if (v === 'admin') return isProductionAlias ? 'admin.auth@kimshop.local' : 'admin@users.kimshop.app';";
-if ((client.match(/return isProductionAlias \? 'admin\.auth@kimshop\.local' : 'admin@users\.kimshop\.app';/g) || []).length !== 2 || !client.includes(previewAdminMapping)) client = applyIdempotent(client,
+const previewAdminMapping = "if (v === 'admin') return isProductionDeployment ? 'admin.auth@kimshop.local' : 'admin@users.kimshop.app';";
+if ((client.match(/return isProductionDeployment \? 'admin\.auth@kimshop\.local' : 'admin@users\.kimshop\.app';/g) || []).length !== 2 || !client.includes(previewAdminMapping)) client = applyIdempotent(client,
 `export const usernameToEmail = (usernameOrEmail: string) => {
   const v = (usernameOrEmail || '').trim().toLowerCase();
   // Production admin Auth account uses admin.auth@kimshop.local.
