@@ -272,8 +272,7 @@ replaceOnce(
     if (placingOrder) return;`,
   `    if (checkoutItems.length === 0) { showToast('Không có sản phẩm để đặt hàng'); return; }
     const minimumIssues = minimumOrderIssues(checkoutItems);
-    if (minimumIssues.length) { setCheckoutError(minimumIssues[0].message); showToast(minimumIssues[0].message); return; }
-    setCheckoutError('');
+    if (minimumIssues.length) { showToast(minimumIssues[0].message); return; }
     if (placingOrder) return;`
 );
 
