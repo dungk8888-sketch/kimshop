@@ -43,11 +43,18 @@ replaceOnce(
   'stock:Number(p.stock||0), min_order_quantity:minOrderQty(p), sold:Number(p.sold||0)'
 );
 
-replaceOnce(
-  'new product default minimum',
-  "setEditingProduct({ id: null, name: '', category: defaultCat?.name || '', categoryId: defaultCat?.id || '', price: '', originalPrice: '', stock: '', image: '', images: [], variantGroups: [], variantCombos: [], description: '' });",
-  "setEditingProduct({ id: null, name: '', category: defaultCat?.name || '', categoryId: defaultCat?.id || '', price: '', originalPrice: '', stock: '', minOrderQuantity: 1, image: '', images: [], variantGroups: [], variantCombos: [], description: '' });"
-);
+const defaultProductStatements = source.match(/setEditingProduct\(\{ id: null,[^;]*\}\);/g) || [];
+if (defaultProductStatements.length !== 1) {
+  throw new Error(`[min-order-quantity] Expected one new-product state object; found ${defaultProductStatements.length}.`);
+}
+const defaultProductStatement = defaultProductStatements[0];
+if (!/minOrderQuantity\s*:/.test(defaultProductStatement)) {
+  const updatedDefaultProductStatement = defaultProductStatement.replace(/stock:\s*'',/, "stock: '', minOrderQuantity: 1,");
+  if (updatedDefaultProductStatement === defaultProductStatement) {
+    throw new Error('[min-order-quantity] Could not add the default minimum quantity field.');
+  }
+  source = source.replace(defaultProductStatement, updatedDefaultProductStatement);
+}
 
 replaceOnce(
   'minimum quantity editor field',
