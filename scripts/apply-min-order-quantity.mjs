@@ -11,6 +11,14 @@ function replaceOnce(label, from, to) {
   source = source.replace(from, to);
 }
 
+function replaceCount(label, from, to, expected) {
+  const count = source.split(from).length - 1;
+  if (count !== expected) {
+    throw new Error(`[min-order-quantity] Expected ${expected} matches for ${label}; found ${count}. Refusing a risky patch.`);
+  }
+  source = source.split(from).join(to);
+}
+
 // The rule is product-level and applies to the combined quantity of its selected variants.
 replaceOnce(
   'minimum quantity helpers',
@@ -69,6 +77,8 @@ replaceOnce(
                     </div>`
 );
 
+replaceOnce("minimum quantity field for products with variants", "                    )}\n\n                    <div>\n                      <label className=\"block text-gray-600 text-[11px] mb-1.5\">", "                    )}\n\n                    {(editingProduct.variantGroups || []).filter((g:any) => g.name?.trim() && (g.values || []).length).length > 0 && (\n                      <div className=\"mb-3\">\n                        <label className=\"block text-gray-600 text-[11px] mb-1.5\">Số lượng mua tối thiểu</label>\n                        <input type=\"number\" min={1} step={1} placeholder=\"1\" value={editingProduct.minOrderQuantity ?? 1} onChange={(e) => setEditingProduct({ ...editingProduct, minOrderQuantity: e.target.value })} className=\"w-full border border-gray-200 rounded-sm px-3 py-2 outline-none focus:border-[#EE4D2D]\" />\n                        <p className=\"text-gray-400 text-[10px] mt-1\">Để 1 nếu không giới hạn. Ví dụ đặt 5 thì khách phải mua ít nhất 5 cái.</p>\n                      </div>\n                    )}\n\n                    <div>\n                      <label className=\"block text-gray-600 text-[11px] mb-1.5\">");
+
 replaceOnce(
   'minimum quantity save validation',
   'const imageList = Array.from(new Set((Array.isArray(editingProduct.images) ? editingProduct.images : []).filter(Boolean))).slice(0, MAX_PRODUCT_IMAGES);',
@@ -77,44 +87,15 @@ replaceOnce(
     const imageList = Array.from(new Set((Array.isArray(editingProduct.images) ? editingProduct.images : []).filter(Boolean))).slice(0, MAX_PRODUCT_IMAGES);`
 );
 
-replaceOnce(
-  'open product minimum quantity',
-  'setSelectedQty(1);\n    setMultiVariantQty({});',
-  `const initialQtyStock = product.variants?.length ? Number(product.variants[0].stock || 0) : Number(product.stock || 0);
-    setSelectedQty(Math.min(minOrderQty(product), initialQtyStock > 0 ? initialQtyStock : minOrderQty(product)));
-    setMultiVariantQty({});`
-);
+replaceOnce("open product minimum quantity", "setSelectedQty(1);\n    setQtyDraft(null);\n    setVariantQtyMap({});\n    setVariantQtyDraftMap({});", "const initialVariant = (product.variants || []).find((v: any) => v && v.isActive !== false && Number(v.stock || 0) > 0) || (product.variants || [])[0];\n    const initialQtyStock = initialVariant ? Number(initialVariant.stock || 0) : Number(product.stock || 0);\n    setSelectedQty(Math.min(minOrderQty(product), initialQtyStock > 0 ? initialQtyStock : minOrderQty(product)));\n    setQtyDraft(null);\n    setVariantQtyMap({});\n    setVariantQtyDraftMap({});");
 
-replaceOnce(
-  'variant selection minimum quantity',
-  'setSelectedVariant(match ? match.name : \'\');\n    setSelectedQty(1);',
-  `setSelectedVariant(match ? match.name : '');
-    const selectedVariantStock = match ? Number(match.stock || 0) : Number(selectedProduct.stock || 0);
-    setSelectedQty(Math.min(minOrderQty(selectedProduct), selectedVariantStock > 0 ? selectedVariantStock : minOrderQty(selectedProduct)));`
-);
+replaceOnce("variant selection minimum quantity", "setSelectedQty(1);\n    setQtyDraft(null);\n    setGalleryIndex(0);", "setSelectedQty(minOrderQty(selectedProduct));\n    setQtyDraft(null);\n    setGalleryIndex(0);");
 
-replaceOnce(
-  'product purchase minimum gate',
-  'const purchaseActionDisabled = multiVariantActive ? false : (displayStock === 0 || variantChoiceDisabled);',
-  `const minQtyForSelectedProduct = minOrderQty(selectedProduct);
-  const multiVariantAvailableStock = multiVariantList.reduce((sum, v) => sum + Math.max(0, Number(v.stock || 0)), 0);
-  const purchaseActionDisabled = multiVariantActive
-    ? (multiVariantTotalQty < minQtyForSelectedProduct || multiVariantAvailableStock < minQtyForSelectedProduct)
-    : (displayStock < minQtyForSelectedProduct || displayStock === 0 || variantChoiceDisabled);`
-);
+replaceOnce("product purchase minimum gate", "const purchaseActionDisabled = hasVariants\n    ? (purchasableSelectedVariants.length === 0 || (isMultiVariantQty && variantQtyTotal === 0))\n    : (displayStock === 0);", "const minQtyForSelectedProduct = minOrderQty(selectedProduct);\n  const selectedVariantStockTotal = purchasableSelectedVariants.reduce((sum: number, v: any) => sum + Math.max(0, Number(v.stock || 0)), 0);\n  const purchaseActionDisabled = hasVariants\n    ? (purchasableSelectedVariants.length === 0 || (isMultiVariantQty\n      ? (variantQtyTotal < minQtyForSelectedProduct || selectedVariantStockTotal < minQtyForSelectedProduct)\n      : quantityMaxStock < minQtyForSelectedProduct))\n    : (displayStock < minQtyForSelectedProduct || displayStock === 0);");
 
-replaceOnce(
-  'quantity decrement minimum',
-  'onClick={() => setSelectedQty((q) => Math.max(1, q - 1))}',
-  'onClick={() => setSelectedQty((q) => Math.max(minOrderQty(selectedProduct), q - 1))}'
-);
+replaceOnce("quantity decrement minimum", "const commitQty = (raw: number | string) => {\n    let n = Math.floor(Number(raw));\n    const max = Math.max(1, quantityMaxStock || 1);\n    if (!Number.isFinite(n) || n < 1) n = 1;\n    if (n > max) n = max;\n    setSelectedQty(n);\n    setQtyDraft(null);\n  };", "const commitQty = (raw: number | string) => {\n    let n = Math.floor(Number(raw));\n    const minimum = minOrderQty(selectedProduct);\n    const max = Math.max(1, quantityMaxStock || 1);\n    if (!Number.isFinite(n) || n < minimum) n = minimum;\n    if (n > max) n = max;\n    setSelectedQty(n);\n    setQtyDraft(null);\n  };");
 
-replaceOnce(
-  'product detail minimum label',
-  '<span className="text-gray-400 text-[11px]">{displayStock} sản phẩm có sẵn</span>',
-  `<span className="text-gray-400 text-[11px]">{displayStock} sản phẩm có sẵn</span>
-                    {minOrderQty(selectedProduct) > 1 && <span className="text-amber-600 text-[11px] font-medium">Mua tối thiểu {minOrderQty(selectedProduct)} cái</span>}`
-);
+replaceOnce("product detail minimum label", "{hasVariants && (\n                    <div className=\"space-y-3 order-4 md:order-none\">", "{minOrderQty(selectedProduct) > 1 && (\n                    <div className=\"text-amber-700 text-[11px] font-medium bg-amber-50 border border-amber-100 rounded-lg px-3 py-2 order-4 md:order-none\">\n                      Mua tối thiểu {minOrderQty(selectedProduct)} cái.\n                      {isMultiVariantQty && ' Có thể kết hợp nhiều phân loại để đạt số lượng tối thiểu.'}\n                    </div>\n                  )}\n                  {hasVariants && (\n                    <div className=\"space-y-3 order-4 md:order-none\">");
 
 replaceOnce(
   'add to cart minimum implementation',
@@ -180,101 +161,13 @@ replaceOnce(
   };`
 );
 
-replaceOnce(
-  'multi-variant add minimum check',
-  `if (multiVariantActive) {
-                          multiVariantSelectedLines.forEach(({ v, qty }) => addToCart(selectedProduct, v.name, qty));`,
-  `if (multiVariantActive) {
-                          const selectedTotalQty = multiVariantSelectedLines.reduce((sum, line) => sum + line.qty, 0);
-                          if (selectedTotalQty < minOrderQty(selectedProduct)) { showToast('Sản phẩm này cần mua tối thiểu ' + minOrderQty(selectedProduct) + ' cái.'); return; }
-                          multiVariantSelectedLines.forEach(({ v, qty }) => addToCart(selectedProduct, v.name, qty, true));`
-);
+replaceCount("allow multi-variant batch add", "if (q > 0) addToCart(selectedProduct, v.name, q);", "if (q > 0) addToCart(selectedProduct, v.name, q, true);", 2);
 
-replaceOnce(
-  'single variant add minimum check',
-  `                        addToCart(selectedProduct, selectedVariant, selectedQty);
-                        showToast('Đã thêm vào giỏ hàng!');`,
-  `                        if (selectedQty < minOrderQty(selectedProduct)) { showToast('Sản phẩm này cần mua tối thiểu ' + minOrderQty(selectedProduct) + ' cái.'); return; }
-                        addToCart(selectedProduct, selectedVariant, selectedQty);
-                        showToast('Đã thêm vào giỏ hàng!');`
-);
+replaceOnce("selected cart checkout minimum guard", "const goToCheckout = () => {", "const goToCheckout = () => {\n    const minimumIssues = minimumOrderIssues(selectedItems);\n    if (minimumIssues.length) { showToast(minimumIssues[0].message); return; }");
 
-replaceOnce(
-  'multi-variant buy now minimum check',
-  `if (multiVariantActive) {
-                          setBuyNowItems(multiVariantSelectedLines.map(({ v, qty }) => ({ productId: selectedProduct.id, variant: v.name, qty })));`,
-  `if (multiVariantActive) {
-                          const selectedTotalQty = multiVariantSelectedLines.reduce((sum, line) => sum + line.qty, 0);
-                          if (selectedTotalQty < minOrderQty(selectedProduct)) { showToast('Sản phẩm này cần mua tối thiểu ' + minOrderQty(selectedProduct) + ' cái.'); return; }
-                          setBuyNowItems(multiVariantSelectedLines.map(({ v, qty }) => ({ productId: selectedProduct.id, variant: v.name, qty }))); `
-);
+replaceOnce("checkout quantity minimum guard", "const updateCheckoutQty = (item, delta) => {", "const updateCheckoutQty = (item, delta) => {\n    const minimum = minOrderQty(item.product);\n    if (delta < 0) {\n      const maxForMinimum = item.product ? cartAvailableStock(item.product, item.variant) : 99;\n      const currentCheckoutItems = (buyNowItems && buyNowItems.length > 0) ? buyNowItems : (buyNowItem ? [buyNowItem] : selectedItems);\n      const totalBefore = currentCheckoutItems.filter((entry) => entry.productId === item.productId).reduce((sum, entry) => sum + Number(entry.qty || 0), 0);\n      const nextQty = Math.max(1, Math.min(Number(item.qty || 1) + delta, maxForMinimum));\n      if (totalBefore - Number(item.qty || 0) + nextQty < minimum) { showToast((item.product?.name || 'Sản phẩm') + ' cần mua tối thiểu ' + minimum + ' cái.'); return; }\n    }");
 
-replaceOnce(
-  'single product buy now minimum check',
-  `                        setBuyNowItems(null);
-                        setBuyNowItem({ productId: selectedProduct.id, variant: selectedVariant, qty: selectedQty });`,
-  `                        if (selectedQty < minOrderQty(selectedProduct)) { showToast('Sản phẩm này cần mua tối thiểu ' + minOrderQty(selectedProduct) + ' cái.'); return; }
-                        setBuyNowItems(null);
-                        setBuyNowItem({ productId: selectedProduct.id, variant: selectedVariant, qty: selectedQty });`
-);
-
-replaceOnce(
-  'selected cart checkout minimum guard',
-  `  const goToCheckout = () => {
-    if (selectedItems.length === 0) { showToast('Vui lòng chọn sản phẩm để thanh toán'); return; }
-    setBuyNowItem(null);`,
-  `  const goToCheckout = () => {
-    if (selectedItems.length === 0) { showToast('Vui lòng chọn sản phẩm để thanh toán'); return; }
-    const minimumIssues = minimumOrderIssues(selectedItems);
-    if (minimumIssues.length) { showToast(minimumIssues[0].message); return; }
-    setBuyNowItem(null);`
-);
-
-replaceOnce(
-  'checkout quantity minimum guard',
-  `  const updateCheckoutQty = (item, delta) => {
-    const max = item.product ? cartAvailableStock(item.product, item.variant) : 99;
-    if (buyNowItems && buyNowItems.length > 0) {
-      setBuyNowItems((prev) => (prev || []).map((bi) => (cartKey(bi.productId, bi.variant) === item.key ? { ...bi, qty: Math.max(1, Math.min(bi.qty + delta, max)) } : bi)));
-    } else if (buyNowItem) {
-      setBuyNowItem((prev) => (prev ? { ...prev, qty: Math.max(1, Math.min(prev.qty + delta, max)) } : prev));
-    } else {
-      updateCartQty(item.key, delta);
-    }
-  };`,
-  `  const updateCheckoutQty = (item, delta) => {
-    const max = item.product ? cartAvailableStock(item.product, item.variant) : 99;
-    const minimum = minOrderQty(item.product);
-    if (buyNowItems && buyNowItems.length > 0) {
-      const current = (buyNowItems || []).find((bi) => cartKey(bi.productId, bi.variant) === item.key);
-      if (!current) return;
-      const nextQty = Math.max(1, Math.min(Number(current.qty || 1) + delta, max));
-      const productQtyBefore = (buyNowItems || []).filter((bi) => bi.productId === item.productId).reduce((sum, bi) => sum + Number(bi.qty || 0), 0);
-      const productQtyAfter = productQtyBefore - Number(current.qty || 0) + nextQty;
-      if (delta < 0 && productQtyAfter < minimum) { showToast(item.product.name + ' cần mua tối thiểu ' + minimum + ' cái.'); return; }
-      setBuyNowItems((prev) => (prev || []).map((bi) => (cartKey(bi.productId, bi.variant) === item.key ? { ...bi, qty: nextQty } : bi)));
-    } else if (buyNowItem) {
-      const nextQty = Math.max(1, Math.min(Number(buyNowItem.qty || 1) + delta, max));
-      if (delta < 0 && nextQty < minimum) { showToast(item.product.name + ' cần mua tối thiểu ' + minimum + ' cái.'); return; }
-      setBuyNowItem((prev) => (prev ? { ...prev, qty: nextQty } : prev));
-    } else {
-      const productQtyBefore = selectedItems.filter((c) => c.productId === item.productId).reduce((sum, c) => sum + Number(c.qty || 0), 0);
-      const nextQty = Math.max(1, Math.min(Number(item.qty || 1) + delta, max));
-      if (delta < 0 && productQtyBefore - Number(item.qty || 0) + nextQty < minimum) { showToast(item.product.name + ' cần mua tối thiểu ' + minimum + ' cái.'); return; }
-      updateCartQty(item.key, delta);
-    }
-  };`
-);
-
-replaceOnce(
-  'checkout minimum validation',
-  `    if (checkoutItems.length === 0) { showToast('Không có sản phẩm để đặt hàng'); return; }
-    if (placingOrder) return;`,
-  `    if (checkoutItems.length === 0) { showToast('Không có sản phẩm để đặt hàng'); return; }
-    const minimumIssues = minimumOrderIssues(checkoutItems);
-    if (minimumIssues.length) { showToast(minimumIssues[0].message); return; }
-    if (placingOrder) return;`
-);
+replaceOnce("checkout minimum validation", "if (checkoutItems.length === 0) { showToast('Không có sản phẩm để đặt hàng'); return; }", "if (checkoutItems.length === 0) { showToast('Không có sản phẩm để đặt hàng'); return; }\n    const minimumIssues = minimumOrderIssues(checkoutItems);\n    if (minimumIssues.length) { setCheckoutError(minimumIssues[0].message); showToast(minimumIssues[0].message); return; }");
 
 writeFileSync(file, source);
 console.log('[min-order-quantity] applied');
