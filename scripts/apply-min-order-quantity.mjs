@@ -79,13 +79,7 @@ replaceOnce(
 
 replaceOnce("minimum quantity field for products with variants", "                    )}\n\n                    <div>\n                      <label className=\"block text-gray-600 text-[11px] mb-1.5\">", "                    )}\n\n                    {(editingProduct.variantGroups || []).filter((g:any) => g.name?.trim() && (g.values || []).length).length > 0 && (\n                      <div className=\"mb-3\">\n                        <label className=\"block text-gray-600 text-[11px] mb-1.5\">Số lượng mua tối thiểu</label>\n                        <input type=\"number\" min={1} step={1} placeholder=\"1\" value={editingProduct.minOrderQuantity ?? 1} onChange={(e) => setEditingProduct({ ...editingProduct, minOrderQuantity: e.target.value })} className=\"w-full border border-gray-200 rounded-sm px-3 py-2 outline-none focus:border-[#EE4D2D]\" />\n                        <p className=\"text-gray-400 text-[10px] mt-1\">Để 1 nếu không giới hạn. Ví dụ đặt 5 thì khách phải mua ít nhất 5 cái.</p>\n                      </div>\n                    )}\n\n                    <div>\n                      <label className=\"block text-gray-600 text-[11px] mb-1.5\">");
 
-replaceOnce(
-  'minimum quantity save validation',
-  'const imageList = Array.from(new Set((Array.isArray(editingProduct.images) ? editingProduct.images : []).filter(Boolean))).slice(0, MAX_PRODUCT_IMAGES);',
-  `const minQtyValue = Number(editingProduct.minOrderQuantity || 1);
-    if (!Number.isInteger(minQtyValue) || minQtyValue < 1) { showToast('Số lượng mua tối thiểu phải là số nguyên từ 1 trở lên'); return; }
-    const imageList = Array.from(new Set((Array.isArray(editingProduct.images) ? editingProduct.images : []).filter(Boolean))).slice(0, MAX_PRODUCT_IMAGES);`
-);
+replaceOnce("minimum quantity save validation","const saveProduct = async () => {","const saveProduct = async () => {\n    const minQtyValue = Number(editingProduct.minOrderQuantity || 1);\n    if (!Number.isInteger(minQtyValue) || minQtyValue < 1) { showToast('Số lượng mua tối thiểu phải là số nguyên từ 1 trở lên'); return; }");
 
 replaceOnce("open product minimum quantity", "setSelectedQty(1);\n    setQtyDraft(null);\n    setVariantQtyMap({});\n    setVariantQtyDraftMap({});", "const initialVariant = (product.variants || []).find((v: any) => v && v.isActive !== false && Number(v.stock || 0) > 0) || (product.variants || [])[0];\n    const initialQtyStock = initialVariant ? Number(initialVariant.stock || 0) : Number(product.stock || 0);\n    setSelectedQty(Math.min(minOrderQty(product), initialQtyStock > 0 ? initialQtyStock : minOrderQty(product)));\n    setQtyDraft(null);\n    setVariantQtyMap({});\n    setVariantQtyDraftMap({});");
 
