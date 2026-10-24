@@ -195,7 +195,7 @@ replaceOnce(
 replaceOnce(
   'multi-variant buy now minimum check',
   `if (multiVariantActive) {
-                          setBuyNowItems(multiVariantSelectedLines.map(({ v, qty }) => ({ productId: selectedProduct.id, variant: v.name, qty }))); `,
+                          setBuyNowItems(multiVariantSelectedLines.map(({ v, qty }) => ({ productId: selectedProduct.id, variant: v.name, qty })));,
   `if (multiVariantActive) {
                           const selectedTotalQty = multiVariantSelectedLines.reduce((sum, line) => sum + line.qty, 0);
                           if (selectedTotalQty < minOrderQty(selectedProduct)) { showToast(`Sản phẩm này cần mua tối thiểu ${minOrderQty(selectedProduct)} cái.`); return; }
