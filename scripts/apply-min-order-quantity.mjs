@@ -30,7 +30,7 @@ const minimumOrderIssues = (items: any[] = []) => {
     .filter(({ product, qty }) => qty < minOrderQty(product))
     .map(({ product, qty }) => {
       const minimum = minOrderQty(product);
-      return { productId: product.id, productName: product.name || 'Sản phẩm', minimum, qty, message: `${product.name || 'Sản phẩm'} cần mua tối thiểu ${minimum} cái (đang chọn ${qty}).` };
+      return { productId: product.id, productName: product.name || 'Sản phẩm', minimum, qty, message: (product.name || 'Sản phẩm') + ' cần mua tối thiểu ' + minimum + ' cái (đang chọn ' + qty + ').' };
     });
 };
 
@@ -132,7 +132,7 @@ replaceOnce(
     const productQtyBefore = cart.filter((c) => c.productId === product.id).reduce((sum, c) => sum + Number(c.qty || 0), 0);
     const productQtyAfter = productQtyBefore - Number(existing?.qty || 0) + finalQty;
     if (!allowBelowMinimum && productQtyAfter < minOrderQty(product)) {
-      showToast(`${product.name} cần mua tối thiểu ${minOrderQty(product)} cái.`);
+      showToast(product.name + ' cần mua tối thiểu ' + minOrderQty(product) + ' cái.');
       return;
     }
     setCart((prev) => {
@@ -165,7 +165,7 @@ replaceOnce(
     const productQtyBefore = cart.filter((c) => c.productId === current.productId).reduce((sum, c) => sum + Number(c.qty || 0), 0);
     const productQtyAfter = productQtyBefore - Number(current.qty || 0) + newQty;
     if (delta < 0 && product && productQtyAfter < minOrderQty(product)) {
-      showToast(`${product.name} cần mua tối thiểu ${minOrderQty(product)} cái.`);
+      showToast(product.name + ' cần mua tối thiểu ' + minOrderQty(product) + ' cái.');
       return;
     }
     setCart((prev) => prev.map((c) => (c.key === key ? { ...c, qty: newQty } : c)));
@@ -179,7 +179,7 @@ replaceOnce(
                           multiVariantSelectedLines.forEach(({ v, qty }) => addToCart(selectedProduct, v.name, qty));`,
   `if (multiVariantActive) {
                           const selectedTotalQty = multiVariantSelectedLines.reduce((sum, line) => sum + line.qty, 0);
-                          if (selectedTotalQty < minOrderQty(selectedProduct)) { showToast(`Sản phẩm này cần mua tối thiểu ${minOrderQty(selectedProduct)} cái.`); return; }
+                          if (selectedTotalQty < minOrderQty(selectedProduct)) { showToast('Sản phẩm này cần mua tối thiểu ' + minOrderQty(selectedProduct) + ' cái.'); return; }
                           multiVariantSelectedLines.forEach(({ v, qty }) => addToCart(selectedProduct, v.name, qty, true));`
 );
 
@@ -187,7 +187,7 @@ replaceOnce(
   'single variant add minimum check',
   `                        addToCart(selectedProduct, selectedVariant, selectedQty);
                         showToast('Đã thêm vào giỏ hàng!');`,
-  `                        if (selectedQty < minOrderQty(selectedProduct)) { showToast(`Sản phẩm này cần mua tối thiểu ${minOrderQty(selectedProduct)} cái.`); return; }
+  `                        if (selectedQty < minOrderQty(selectedProduct)) { showToast('Sản phẩm này cần mua tối thiểu ' + minOrderQty(selectedProduct) + ' cái.'); return; }
                         addToCart(selectedProduct, selectedVariant, selectedQty);
                         showToast('Đã thêm vào giỏ hàng!');`
 );
@@ -198,7 +198,7 @@ replaceOnce(
                           setBuyNowItems(multiVariantSelectedLines.map(({ v, qty }) => ({ productId: selectedProduct.id, variant: v.name, qty })));`,
   `if (multiVariantActive) {
                           const selectedTotalQty = multiVariantSelectedLines.reduce((sum, line) => sum + line.qty, 0);
-                          if (selectedTotalQty < minOrderQty(selectedProduct)) { showToast(`Sản phẩm này cần mua tối thiểu ${minOrderQty(selectedProduct)} cái.`); return; }
+                          if (selectedTotalQty < minOrderQty(selectedProduct)) { showToast('Sản phẩm này cần mua tối thiểu ' + minOrderQty(selectedProduct) + ' cái.'); return; }
                           setBuyNowItems(multiVariantSelectedLines.map(({ v, qty }) => ({ productId: selectedProduct.id, variant: v.name, qty }))); `
 );
 
@@ -206,7 +206,7 @@ replaceOnce(
   'single product buy now minimum check',
   `                        setBuyNowItems(null);
                         setBuyNowItem({ productId: selectedProduct.id, variant: selectedVariant, qty: selectedQty });`,
-  `                        if (selectedQty < minOrderQty(selectedProduct)) { showToast(`Sản phẩm này cần mua tối thiểu ${minOrderQty(selectedProduct)} cái.`); return; }
+  `                        if (selectedQty < minOrderQty(selectedProduct)) { showToast('Sản phẩm này cần mua tối thiểu ' + minOrderQty(selectedProduct) + ' cái.'); return; }
                         setBuyNowItems(null);
                         setBuyNowItem({ productId: selectedProduct.id, variant: selectedVariant, qty: selectedQty });`
 );
@@ -244,16 +244,16 @@ replaceOnce(
       const nextQty = Math.max(1, Math.min(Number(current.qty || 1) + delta, max));
       const productQtyBefore = (buyNowItems || []).filter((bi) => bi.productId === item.productId).reduce((sum, bi) => sum + Number(bi.qty || 0), 0);
       const productQtyAfter = productQtyBefore - Number(current.qty || 0) + nextQty;
-      if (delta < 0 && productQtyAfter < minimum) { showToast(`${item.product.name} cần mua tối thiểu ${minimum} cái.`); return; }
+      if (delta < 0 && productQtyAfter < minimum) { showToast(item.product.name + ' cần mua tối thiểu ' + minimum + ' cái.'); return; }
       setBuyNowItems((prev) => (prev || []).map((bi) => (cartKey(bi.productId, bi.variant) === item.key ? { ...bi, qty: nextQty } : bi)));
     } else if (buyNowItem) {
       const nextQty = Math.max(1, Math.min(Number(buyNowItem.qty || 1) + delta, max));
-      if (delta < 0 && nextQty < minimum) { showToast(`${item.product.name} cần mua tối thiểu ${minimum} cái.`); return; }
+      if (delta < 0 && nextQty < minimum) { showToast(item.product.name + ' cần mua tối thiểu ' + minimum + ' cái.'); return; }
       setBuyNowItem((prev) => (prev ? { ...prev, qty: nextQty } : prev));
     } else {
       const productQtyBefore = selectedItems.filter((c) => c.productId === item.productId).reduce((sum, c) => sum + Number(c.qty || 0), 0);
       const nextQty = Math.max(1, Math.min(Number(item.qty || 1) + delta, max));
-      if (delta < 0 && productQtyBefore - Number(item.qty || 0) + nextQty < minimum) { showToast(`${item.product.name} cần mua tối thiểu ${minimum} cái.`); return; }
+      if (delta < 0 && productQtyBefore - Number(item.qty || 0) + nextQty < minimum) { showToast(item.product.name + ' cần mua tối thiểu ' + minimum + ' cái.'); return; }
       updateCartQty(item.key, delta);
     }
   };`
