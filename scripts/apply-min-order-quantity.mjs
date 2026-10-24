@@ -71,10 +71,10 @@ replaceOnce(
 
 replaceOnce(
   'minimum quantity save validation',
-  "    if (!editingProduct.name.trim() || !editingProduct.price) { showToast('Vui lòng nhập tên và giá sản phẩm'); return; }",
-  `    if (!editingProduct.name.trim() || !editingProduct.price) { showToast('Vui lòng nhập tên và giá sản phẩm'); return; }
-    const minQtyValue = Number(editingProduct.minOrderQuantity || 1);
-    if (!Number.isInteger(minQtyValue) || minQtyValue < 1) { showToast('Số lượng mua tối thiểu phải là số nguyên từ 1 trở lên'); return; }`
+  'const imageList = Array.from(new Set((Array.isArray(editingProduct.images) ? editingProduct.images : []).filter(Boolean))).slice(0, MAX_PRODUCT_IMAGES);',
+  `const minQtyValue = Number(editingProduct.minOrderQuantity || 1);
+    if (!Number.isInteger(minQtyValue) || minQtyValue < 1) { showToast('Số lượng mua tối thiểu phải là số nguyên từ 1 trở lên'); return; }
+    const imageList = Array.from(new Set((Array.isArray(editingProduct.images) ? editingProduct.images : []).filter(Boolean))).slice(0, MAX_PRODUCT_IMAGES);`
 );
 
 replaceOnce(
