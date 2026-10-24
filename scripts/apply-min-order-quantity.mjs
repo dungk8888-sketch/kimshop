@@ -43,7 +43,7 @@ replaceOnce(
   'stock:Number(p.stock||0), min_order_quantity:minOrderQty(p), sold:Number(p.sold||0)'
 );
 
-const defaultProductStatements = source.match(/setEditingProduct\(\{ id: null,[^;]*\}\);/g) || [];
+const defaultProductStatements = source.match(/setEditingProduct\(\{[^;]*__isNew:\s*true[^;]*\}\);/g) || [];
 if (defaultProductStatements.length !== 1) {
   throw new Error(`[min-order-quantity] Expected one new-product state object; found ${defaultProductStatements.length}.`);
 }
