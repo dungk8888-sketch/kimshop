@@ -91,7 +91,7 @@ replaceOnce("open product minimum quantity", "setSelectedQty(1);\n    setQtyDraf
 
 replaceOnce("variant selection minimum quantity", "setSelectedQty(1);\n    setQtyDraft(null);\n    setGalleryIndex(0);", "setSelectedQty(minOrderQty(selectedProduct));\n    setQtyDraft(null);\n    setGalleryIndex(0);");
 
-replaceOnce("product purchase minimum gate", "const purchaseActionDisabled = hasVariants\n    ? (purchasableSelectedVariants.length === 0 || (isMultiVariantQty && variantQtyTotal === 0))\n    : (displayStock === 0);", "const minQtyForSelectedProduct = minOrderQty(selectedProduct);\n  const selectedVariantStockTotal = purchasableSelectedVariants.reduce((sum: number, v: any) => sum + Math.max(0, Number(v.stock || 0)), 0);\n  const purchaseActionDisabled = hasVariants\n    ? (purchasableSelectedVariants.length === 0 || (isMultiVariantQty\n      ? (variantQtyTotal < minQtyForSelectedProduct || selectedVariantStockTotal < minQtyForSelectedProduct)\n      : quantityMaxStock < minQtyForSelectedProduct))\n    : (displayStock < minQtyForSelectedProduct || displayStock === 0);");
+replaceOnce("product purchase minimum gate", "const purchaseActionDisabled = hasVariants\n    ? (purchasableSelectedVariants.length === 0 || (isMultiVariantQty && variantQtyTotal === 0))\n    : (displayStock === 0);", "const minQtyForSelectedProduct = minOrderQty(selectedProduct);\n  const selectedVariantStockTotal = purchasableSelectedVariants.reduce((sum: number, v: any) => sum + Math.max(0, Number(v.stock || 0)), 0);\n  const minimumQuantityBlocked = hasVariants\n    ? (isMultiVariantQty\n      ? (variantQtyTotal < minQtyForSelectedProduct || selectedVariantStockTotal < minQtyForSelectedProduct)\n      : quantityMaxStock < minQtyForSelectedProduct)\n    : (displayStock < minQtyForSelectedProduct);\n  const purchaseActionDisabled = hasVariants\n    ? (purchasableSelectedVariants.length === 0 || (isMultiVariantQty && variantQtyTotal === 0) || minimumQuantityBlocked)\n    : (displayStock === 0 || minimumQuantityBlocked);");
 
 replaceOnce("quantity decrement minimum", "const commitQty = (raw: number | string) => {\n    let n = Math.floor(Number(raw));\n    const max = Math.max(1, quantityMaxStock || 1);\n    if (!Number.isFinite(n) || n < 1) n = 1;\n    if (n > max) n = max;\n    setSelectedQty(n);\n    setQtyDraft(null);\n  };", "const commitQty = (raw: number | string) => {\n    let n = Math.floor(Number(raw));\n    const minimum = minOrderQty(selectedProduct);\n    const max = Math.max(1, quantityMaxStock || 1);\n    if (!Number.isFinite(n) || n < minimum) n = minimum;\n    if (n > max) n = max;\n    setSelectedQty(n);\n    setQtyDraft(null);\n  };");
 
@@ -132,34 +132,7 @@ replaceOnce(
   };`
 );
 
-replaceOnce(
-  'cart quantity minimum guard',
-  `  const updateCartQty = (key, delta) => {
-    const current = cart.find((c) => c.key === key);
-    if (!current) return;
-    const product = products.find((p) => p.id === current.productId);
-    const max = product ? cartAvailableStock(product, current.variant) : 99;
-    const newQty = Math.max(1, Math.min(current.qty + delta, max));
-    setCart((prev) => prev.map((c) => (c.key === key ? { ...c, qty: newQty } : c)));
-    if (currentUser) upsertCartItemDb(currentUser.id, current.productId, current.variant, newQty);
-  };`,
-  `  const updateCartQty = (key, delta) => {
-    const current = cart.find((c) => c.key === key);
-    if (!current) return;
-    const product = products.find((p) => p.id === current.productId);
-    const max = product ? cartAvailableStock(product, current.variant) : 99;
-    if (max < 1) { showToast('Sản phẩm hiện đã hết hàng'); return; }
-    const newQty = Math.max(1, Math.min(current.qty + delta, max));
-    const productQtyBefore = cart.filter((c) => c.productId === current.productId).reduce((sum, c) => sum + Number(c.qty || 0), 0);
-    const productQtyAfter = productQtyBefore - Number(current.qty || 0) + newQty;
-    if (delta < 0 && product && productQtyAfter < minOrderQty(product)) {
-      showToast(product.name + ' cần mua tối thiểu ' + minOrderQty(product) + ' cái.');
-      return;
-    }
-    setCart((prev) => prev.map((c) => (c.key === key ? { ...c, qty: newQty } : c)));
-    if (currentUser) upsertCartItemDb(currentUser.id, current.productId, current.variant, newQty);
-  };`
-);
+replaceOnce("cart quantity minimum guard", "const updateCartQty = (key, delta) => {\n    const current = cart.find((c) => c.key === key);\n    if (!current) return;\n    const product = products.find((p) => p.id === current.productId);\n    const max = product ? cartAvailableStock(product, current.variant) : 99;\n    const newQty = Math.max(1, Math.min(current.qty + delta, max));\n    setCart((prev) => prev.map((c) => (c.key === key ? { ...c, qty: newQty } : c)));\n    if (currentUser) scheduleCartQtyWrite(currentUser.id, current.productId, current.variant, newQty);\n  };", "const updateCartQty = (key, delta) => {\n    const current = cart.find((c) => c.key === key);\n    if (!current) return;\n    const product = products.find((p) => p.id === current.productId);\n    const max = product ? cartAvailableStock(product, current.variant) : 99;\n    if (max < 1) { showToast('Sản phẩm hiện đã hết hàng'); return; }\n    const newQty = Math.max(1, Math.min(current.qty + delta, max));\n    const productQtyBefore = cart.filter((c) => c.productId === current.productId).reduce((sum, c) => sum + Number(c.qty || 0), 0);\n    const productQtyAfter = productQtyBefore - Number(current.qty || 0) + newQty;\n    if (delta < 0 && product && productQtyAfter < minOrderQty(product)) {\n      showToast(product.name + ' cần mua tối thiểu ' + minOrderQty(product) + ' cái.');\n      return;\n    }\n    setCart((prev) => prev.map((c) => (c.key === key ? { ...c, qty: newQty } : c)));\n    if (currentUser) scheduleCartQtyWrite(currentUser.id, current.productId, current.variant, newQty);\n  };");
 
 replaceCount("allow multi-variant batch add", "if (q > 0) addToCart(selectedProduct, v.name, q);", "if (q > 0) addToCart(selectedProduct, v.name, q, true);", 2);
 
