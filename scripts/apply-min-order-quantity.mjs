@@ -24,11 +24,11 @@ replaceOnce(
   'minimum quantity helpers',
   'const dbProductToUi = (p:any, images:any[]=[], variants:any[]=[]) => ({...p, sellerId:p.seller_id,',
   `const minOrderQty = (product: any) => Math.max(1, Math.floor(Number(product?.minOrderQuantity ?? product?.min_order_quantity ?? 1) || 1));
-const minimumOrderIssues = (items: any[] = []) => {
+const minimumOrderIssues = (items: any[] = [], productList: any[] = []) => {
   const totals = new Map<string, { product: any; qty: number }>();
   for (const item of items || []) {
-    const product = item?.product;
-    const productId = String(item?.productId ?? product?.id ?? item?.product_id ?? '');
+    const productId = String(item?.productId ?? item?.product_id ?? item?.product?.id ?? '');
+    const product = item?.product || productList.find((candidate: any) => String(candidate?.id) === productId);
     if (!productId || !product) continue;
     const row = totals.get(productId) || { product, qty: 0 };
     row.qty += Math.max(0, Math.floor(Number(item?.qty ?? item?.quantity ?? 0) || 0));
@@ -77,8 +77,6 @@ replaceOnce(
                     </div>`
 );
 
-replaceOnce("minimum quantity field for products with variants", "                    )}\n\n                    <div>\n                      <label className=\"block text-gray-600 text-[11px] mb-1.5\">", "                    )}\n\n                    {(editingProduct.variantGroups || []).filter((g:any) => g.name?.trim() && (g.values || []).length).length > 0 && (\n                      <div className=\"mb-3\">\n                        <label className=\"block text-gray-600 text-[11px] mb-1.5\">Số lượng mua tối thiểu</label>\n                        <input type=\"number\" min={1} step={1} placeholder=\"1\" value={editingProduct.minOrderQuantity ?? 1} onChange={(e) => setEditingProduct({ ...editingProduct, minOrderQuantity: e.target.value })} className=\"w-full border border-gray-200 rounded-sm px-3 py-2 outline-none focus:border-[#EE4D2D]\" />\n                        <p className=\"text-gray-400 text-[10px] mt-1\">Để 1 nếu không giới hạn. Ví dụ đặt 5 thì khách phải mua ít nhất 5 cái.</p>\n                      </div>\n                    )}\n\n                    <div>\n                      <label className=\"block text-gray-600 text-[11px] mb-1.5\">");
-
 replaceOnce("minimum quantity save validation","const saveProduct = async () => {","const saveProduct = async () => {\n    const minQtyValue = Number(editingProduct.minOrderQuantity || 1);\n    if (!Number.isInteger(minQtyValue) || minQtyValue < 1) { showToast('Số lượng mua tối thiểu phải là số nguyên từ 1 trở lên'); return; }");
 
 replaceOnce("open product minimum quantity", "setSelectedQty(1);\n    setQtyDraft(null);\n    setVariantQtyMap({});\n    setVariantQtyDraftMap({});", "const initialVariant = (product.variants || []).find((v: any) => v && v.isActive !== false && Number(v.stock || 0) > 0) || (product.variants || [])[0];\n    const initialQtyStock = initialVariant ? Number(initialVariant.stock || 0) : Number(product.stock || 0);\n    setSelectedQty(Math.min(minOrderQty(product), initialQtyStock > 0 ? initialQtyStock : minOrderQty(product)));\n    setQtyDraft(null);\n    setVariantQtyMap({});\n    setVariantQtyDraftMap({});");
@@ -88,7 +86,7 @@ replaceOnce("variant selection minimum quantity", "setSelectedQty(1);\n    setQt
 replaceOnce(
   "minimum quantity purchase gate",
   "const purchaseActionDisabled = hasVariants\n    ? (purchasableSelectedVariants.length === 0 || (isMultiVariantQty && variantQtyTotal === 0))\n    : (displayStock === 0);",
-  "const minQtyForSelectedProduct = minOrderQty(selectedProduct);\n  const selectedVariantStockTotal = purchasableSelectedVariants.reduce((sum: number, v: any) => sum + Math.max(0, Number(v.stock || 0)), 0);\n  const minimumQuantityBlocked = hasVariants\n    ? (isMultiVariantQty\n      ? (variantQtyTotal < minQtyForSelectedProduct || selectedVariantStockTotal < minQtyForSelectedProduct)\n      : quantityMaxStock < minQtyForSelectedProduct)\n    : (displayStock < minQtyForSelectedProduct);\n  const purchaseActionDisabled = hasVariants\n    ? (purchasableSelectedVariants.length === 0 || (isMultiVariantQty && variantQtyTotal === 0) || minimumQuantityBlocked)\n    : (displayStock === 0 || minimumQuantityBlocked);"
+  "const minQtyForSelectedProduct = minOrderQty(selectedProduct);\n  const selectedVariantStockTotal = purchasableSelectedVariants.reduce((sum: number, v: any) => sum + Math.max(0, Number(v.stock || 0)), 0);\n  const minimumQuantityBlocked = hasVariants\n    ? (isMultiVariantQty\n      ? (variantQtyTotal < minQtyForSelectedProduct || selectedVariantStockTotal < minQtyForSelectedProduct)\n      : (selectedQty < minQtyForSelectedProduct || quantityMaxStock < minQtyForSelectedProduct))\n    : (selectedQty < minQtyForSelectedProduct || displayStock < minQtyForSelectedProduct);\n  const purchaseActionDisabled = hasVariants\n    ? (purchasableSelectedVariants.length === 0 || (isMultiVariantQty && variantQtyTotal === 0) || minimumQuantityBlocked)\n    : (displayStock === 0 || minimumQuantityBlocked);"
 );
 
 replaceOnce("quantity decrement minimum", "const commitQty = (raw: number | string) => {\n    let n = Math.floor(Number(raw));\n    const max = Math.max(1, quantityMaxStock || 1);\n    if (!Number.isFinite(n) || n < 1) n = 1;\n    if (n > max) n = max;\n    setSelectedQty(n);\n    setQtyDraft(null);\n  };", "const commitQty = (raw: number | string) => {\n    let n = Math.floor(Number(raw));\n    const minimum = minOrderQty(selectedProduct);\n    const max = Math.max(1, quantityMaxStock || 1);\n    if (!Number.isFinite(n) || n < minimum) n = minimum;\n    if (n > max) n = max;\n    setSelectedQty(n);\n    setQtyDraft(null);\n  };");
@@ -134,11 +132,11 @@ replaceOnce("cart quantity minimum guard", "const updateCartQty = (key, delta) =
 
 replaceCount("allow multi-variant batch add", "if (q > 0) addToCart(selectedProduct, v.name, q);", "if (q > 0) addToCart(selectedProduct, v.name, q, true);", 2);
 
-replaceOnce("selected cart checkout minimum guard", "const goToCheckout = () => {", "const goToCheckout = () => {\n    const minimumIssues = minimumOrderIssues(selectedItems);\n    if (minimumIssues.length) { showToast(minimumIssues[0].message); return; }");
+replaceOnce("selected cart checkout minimum guard", "const goToCheckout = () => {", "const goToCheckout = () => {\n    const minimumIssues = minimumOrderIssues(selectedItems, products);\n    if (minimumIssues.length) { showToast(minimumIssues[0].message); return; }");
 
-replaceOnce("checkout quantity minimum guard", "const updateCheckoutQty = (item, delta) => {", "const updateCheckoutQty = (item, delta) => {\n    const minimum = minOrderQty(item.product);\n    if (delta < 0) {\n      const maxForMinimum = item.product ? cartAvailableStock(item.product, item.variant) : 99;\n      const currentCheckoutItems = (buyNowItems && buyNowItems.length > 0) ? buyNowItems : (buyNowItem ? [buyNowItem] : selectedItems);\n      const totalBefore = currentCheckoutItems.filter((entry) => entry.productId === item.productId).reduce((sum, entry) => sum + Number(entry.qty || 0), 0);\n      const nextQty = Math.max(1, Math.min(Number(item.qty || 1) + delta, maxForMinimum));\n      if (totalBefore - Number(item.qty || 0) + nextQty < minimum) { showToast((item.product?.name || 'Sản phẩm') + ' cần mua tối thiểu ' + minimum + ' cái.'); return; }\n    }");
+replaceOnce("checkout quantity minimum guard", "const updateCheckoutQty = (item, delta) => {", "const updateCheckoutQty = (item, delta) => {\n    const checkoutProduct = item.product || products.find((p: any) => String(p.id) === String(item.productId));\n    const minimum = minOrderQty(checkoutProduct);\n    if (delta < 0) {\n      const maxForMinimum = item.product ? cartAvailableStock(item.product, item.variant) : 99;\n      const currentCheckoutItems = (buyNowItems && buyNowItems.length > 0) ? buyNowItems : (buyNowItem ? [buyNowItem] : selectedItems);\n      const totalBefore = currentCheckoutItems.filter((entry) => entry.productId === item.productId).reduce((sum, entry) => sum + Number(entry.qty || 0), 0);\n      const nextQty = Math.max(1, Math.min(Number(item.qty || 1) + delta, maxForMinimum));\n      if (totalBefore - Number(item.qty || 0) + nextQty < minimum) { showToast((checkoutProduct?.name || 'Sản phẩm') + ' cần mua tối thiểu ' + minimum + ' cái.'); return; }\n    }");
 
-replaceOnce("checkout minimum validation","const placeOrder = async () => {","const placeOrder = async () => {\n    const minimumIssues = minimumOrderIssues(checkoutItems);\n    if (minimumIssues.length) { setCheckoutError(minimumIssues[0].message); showToast(minimumIssues[0].message); return; }");
+replaceOnce("checkout minimum validation","const placeOrder = async () => {","const placeOrder = async () => {\n    const minimumIssues = minimumOrderIssues(checkoutItems, products);\n    if (minimumIssues.length) { setCheckoutError(minimumIssues[0].message); showToast(minimumIssues[0].message); return; }");
 
 writeFileSync(file, source);
 console.log('[min-order-quantity] applied');
